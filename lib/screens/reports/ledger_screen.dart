@@ -11,7 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/group_provider.dart';
 import '../../models/account_model.dart';
-import '../../models/group_model.dart';
+
 import '../../models/transaction_model.dart';
 import '../transaction/transaction_entry_screen.dart';
 import '../transaction/transaction_detail_screen.dart';
@@ -53,32 +53,6 @@ class _LedgerScreenState extends State<LedgerScreen> {
           setState(() => _selectedAccounts = [acc]);
         } catch (e) {
           // Account not found
-        }
-      }
-    });
-  }
-
-  void _onGroupSelected(GroupModel group, List<Account> allAccounts) {
-    setState(() {
-      // Toggle logic: If all accounts in group are selected, deselect them. Otherwise select all.
-      final groupAccountNames = group.accountNames;
-      final groupAccounts = allAccounts
-          .where((a) => groupAccountNames.contains(a.name))
-          .toList();
-
-      final areAllSelected = groupAccounts.every(
-        (a) => _selectedAccounts.contains(a),
-      );
-
-      if (areAllSelected) {
-        // Deselect
-        _selectedAccounts.removeWhere((a) => groupAccounts.contains(a));
-      } else {
-        // Select (Add missing ones)
-        for (var acc in groupAccounts) {
-          if (!_selectedAccounts.contains(acc)) {
-            _selectedAccounts.add(acc);
-          }
         }
       }
     });
@@ -1052,47 +1026,9 @@ class _LedgerScreenState extends State<LedgerScreen> {
     List<Account> accounts,
     GroupProvider groupProvider,
   ) {
-    final reportGroups = groupProvider.reportGroups;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Group Chips
-        if (reportGroups.isNotEmpty)
-          SizedBox(
-            height: 40,
-            child: ListView.separated(
-              scrollDirection: Axis.horizontal,
-              itemCount: reportGroups.length,
-              separatorBuilder: (c, i) => const SizedBox(width: 8),
-              itemBuilder: (context, index) {
-                final group = reportGroups[index];
-                // Check if fully selected
-                final groupAccountNames = group.accountNames;
-                final groupAccounts = accounts
-                    .where((a) => groupAccountNames.contains(a.name))
-                    .toList();
-                final isSelected =
-                    groupAccounts.isNotEmpty &&
-                    groupAccounts.every((a) => _selectedAccounts.contains(a));
-
-                return FilterChip(
-                  label: Text(group.name),
-                  selected: isSelected,
-                  onSelected: (_) => _onGroupSelected(group, accounts),
-                  selectedColor: Colors.blue.shade100,
-                  checkmarkColor: Colors.blue,
-                  labelStyle: GoogleFonts.inter(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-                    color: isSelected ? Colors.blue.shade900 : Colors.black87,
-                  ),
-                );
-              },
-            ),
-          ),
-
-        const SizedBox(height: 8),
-
         // Account Multi-Select Dropdown Trigger
         InkWell(
           onTap: () => _showAccountMultiSelect(context, accounts),
