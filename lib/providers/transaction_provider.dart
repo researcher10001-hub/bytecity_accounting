@@ -970,22 +970,12 @@ class TransactionProvider with ChangeNotifier {
   // --- Hybrid Permission Logic ---
   List<TransactionModel> getVisibleTransactions(User user) {
     return _transactions.where((tx) {
-      // Strict Visibility Request:
-      // "Only the person who gave the entry should see their info."
-      // We interpret this as: Data Entry roles (Accountant, BOA) see ONLY their own entries.
-      // Admin and Viewer roles continue to see all (subject to standard permissions).
+      // Apply primary permission rules (Admin, Mgmt, Viewer, Creator, Owner)
+      if (PermissionService().canViewTransaction(user, tx)) return true;
 
-      if (user.isAdmin || user.isViewer || user.isManagement) {
-        return PermissionService().canViewTransaction(user, tx);
-      }
-
-      // For others (Accountants, Associates), strict Creator Only check.
-      // UPDATE: Also show "Legacy" transactions that have no creator recorded.
-      // normalize strings for comparison
+      // Fallback: Allow "Legacy" transactions that have no creator recorded
       final txOwner = (tx.createdBy ?? '').trim().toLowerCase();
-      final currentUser = user.email.trim().toLowerCase();
-
-      return txOwner == currentUser || txOwner.isEmpty;
+      return txOwner.isEmpty;
     }).toList();
   }
 

@@ -41,6 +41,17 @@ class _LedgerScreenState extends State<LedgerScreen> {
       // Fetch Groups
       context.read<GroupProvider>().fetchGroups(forceRefresh: true);
 
+      final accountProvider = Provider.of<AccountProvider>(
+        context,
+        listen: false,
+      );
+      final currentUser = context.read<AuthProvider>().user;
+      context.read<TransactionProvider>().fetchHistory(
+        currentUser,
+        forceRefresh: true,
+        accountProvider: accountProvider,
+      );
+
       if (widget.initialAccountName != null) {
         final accountProvider = Provider.of<AccountProvider>(
           context,
@@ -194,8 +205,11 @@ class _LedgerScreenState extends State<LedgerScreen> {
                     size: 18,
                     color: Color(0xFF64748B),
                   ),
-            onPressed: () =>
-                transactionProvider.fetchHistory(user, forceRefresh: true),
+            onPressed: () => transactionProvider.fetchHistory(
+              user,
+              forceRefresh: true,
+              accountProvider: accountProvider,
+            ),
           ),
           const SizedBox(width: 8),
         ],

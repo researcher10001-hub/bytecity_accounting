@@ -61,12 +61,23 @@ class PermissionService {
     if (user.isViewer) return true; // Viewers see all
 
     // 2. Creator Check
-    if (transaction.createdBy == user.email) return true;
+    final currentUserEmail = user.email.trim().toLowerCase();
+    if (transaction.createdBy.trim().toLowerCase() == currentUserEmail) {
+      return true;
+    }
 
-    // 3. Account Ownership Logic (Simplified)
-    // If strict checking is required, we need the Account object.
-    // For now, if not Admin/Mgmt/Viewer and not Creator, deny.
-    // (This implies BOA only sees their own entries unless we do a complex lookup)
+    // 3. Account Ownership Logic
+    // If user owns ANY account involved in this transaction, they can view it.
+    for (var detail in transaction.details) {
+      if (detail.account != null) {
+        final owners = detail.account!.owners;
+        for (var owner in owners) {
+          if (owner.trim().toLowerCase() == currentUserEmail) {
+            return true;
+          }
+        }
+      }
+    }
 
     return false;
   }
