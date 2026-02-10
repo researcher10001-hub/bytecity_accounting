@@ -14,6 +14,7 @@ import '../../models/account_group_model.dart';
 import '../../models/transaction_model.dart';
 import '../../providers/account_group_provider.dart';
 import '../settings/group_settings_screen.dart';
+import '../transaction/transaction_entry_screen.dart';
 
 class LedgerScreen extends StatefulWidget {
   final String? initialAccountName;
@@ -1024,10 +1025,10 @@ class _LedgerScreenState extends State<LedgerScreen> {
   }
 
   void _showEditTransactionDialog(BuildContext context, TransactionModel tx) {
-    // Placeholder for edit transaction dialog
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Edit Transaction feature to be implemented'),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => TransactionEntryScreen(transaction: tx),
       ),
     );
   }
