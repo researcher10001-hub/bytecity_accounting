@@ -15,6 +15,7 @@ import '../../models/transaction_model.dart';
 import '../../providers/account_group_provider.dart';
 import '../settings/group_settings_screen.dart';
 import '../transaction/transaction_entry_screen.dart';
+import '../transaction/transaction_detail_screen.dart';
 
 class LedgerScreen extends StatefulWidget {
   final String? initialAccountName;
@@ -431,6 +432,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
     required String status,
     String? uniqueKeyExtra,
   }) {
+    final transactionProvider = context.read<TransactionProvider>();
     // FORMAT DATE: "05 Feb"
     final dateStr = DateFormat('dd MMM').format(date);
 
@@ -599,7 +601,17 @@ class _LedgerScreenState extends State<LedgerScreen> {
                     // Messages Link
                     InkWell(
                       onTap: () {
-                        // Implementation for messages
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => TransactionDetailScreen(
+                              transaction: originalTx,
+                              allTransactions: transactionProvider.transactions,
+                            ),
+                          ),
+                        ).then((_) {
+                          // Optional: refresh if needed
+                        });
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -614,7 +626,9 @@ class _LedgerScreenState extends State<LedgerScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Text(
-                              'Messages: No comments', // Dynamics needed
+                              originalTx.approvalLog.isEmpty
+                                  ? 'Messages: No comments'
+                                  : 'Messages: ${originalTx.approvalLog.length} comments',
                               style: GoogleFonts.inter(
                                 fontSize: 13,
                                 fontWeight: FontWeight.w500,
