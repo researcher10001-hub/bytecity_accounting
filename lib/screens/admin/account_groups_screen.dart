@@ -938,166 +938,233 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
       context: context,
       builder: (ctx) {
         bool isAdding = false;
-        final scrollController = ScrollController(); // Added ScrollController
+        String searchQuery = ""; // Search state persists here
+        final scrollController = ScrollController();
+        final searchController = TextEditingController(); // Added controller
 
         return StatefulBuilder(
-          builder: (context, setState) => AlertDialog(
-            title: Text("Add Accounts to ${group.name}"),
-            content: SizedBox(
-              width: double.maxFinite,
-              height: 300,
-              child: candidates.isEmpty
-                  ? const Center(
-                      child: Text("No other accounts available to add."),
-                    )
-                  : Scrollbar(
-                      thumbVisibility: true,
-                      controller: scrollController, // Attach controller
-                      child: ListView.builder(
-                        controller: scrollController, // Attach same controller
-                        // +1 for the Select All item at the top
-                        itemCount: candidates.length + 1,
-                        itemBuilder: (context, index) {
-                          // Index 0 is "Select All"
-                          if (index == 0) {
-                            final allSelected =
-                                selectedIds.length == candidates.length;
-                            final noneSelected = selectedIds.isEmpty;
+          builder: (context, setOuterState) {
+            return AlertDialog(
+              title: Text("Add Accounts to ${group.name}"),
+              content: StatefulBuilder(
+                builder: (context, setInnerState) {
+                  final filteredCandidates = candidates.where((acc) {
+                    final query = searchQuery.toLowerCase();
+                    return acc.name.toLowerCase().contains(query) ||
+                        acc.type.toLowerCase().contains(query);
+                  }).toList();
 
-                            return Column(
-                              children: [
-                                CheckboxListTile(
-                                  title: const Text(
-                                    "Select All",
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                  return SizedBox(
+                    width: double.maxFinite,
+                    height: 400,
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        TextField(
+                          controller: searchController,
+                          onChanged: (val) {
+                            setInnerState(() => searchQuery = val);
+                          },
+                          decoration: InputDecoration(
+                            hintText: 'Search accounts...',
+                            prefixIcon: const Icon(
+                              LucideIcons.search,
+                              size: 20,
+                            ),
+                            suffixIcon: searchQuery.isEmpty
+                                ? null
+                                : IconButton(
+                                    icon: const Icon(LucideIcons.x, size: 16),
+                                    onPressed: () {
+                                      searchController.clear();
+                                      setInnerState(() => searchQuery = "");
+                                    },
                                   ),
-                                  subtitle: Text(
-                                    "${candidates.length} accounts available",
-                                  ),
-                                  value: allSelected
-                                      ? true
-                                      : (noneSelected
-                                            ? false
-                                            : null), // null for mixed state
-                                  tristate: true, // Enable mixed state dash
-                                  onChanged: isAdding
-                                      ? null
-                                      : (val) {
-                                          setState(() {
-                                            if (!allSelected) {
-                                              // If not currently all selected (i.e. None or Mixed), Select All.
-                                              selectedIds = candidates
-                                                  .map((e) => e.name)
-                                                  .toList();
-                                            } else {
-                                              // If currently All Selected, clear.
-                                              selectedIds.clear();
-                                            }
-                                          });
-                                        },
-                                ),
-                                const Divider(height: 1),
-                              ],
-                            );
-                          }
-
-                          // Actual Items (shift index by -1)
-                          final itemIndex = index - 1;
-                          final acc = candidates[itemIndex];
-                          final isSelected = selectedIds.contains(acc.name);
-
-                          return CheckboxListTile(
-                            title: Text(acc.name),
-                            subtitle: Text(acc.type),
-                            value: isSelected,
-                            onChanged: isAdding
-                                ? null // Disable while adding
-                                : (val) {
-                                    setState(() {
-                                      if (val == true) {
-                                        selectedIds.add(acc.name);
-                                      } else {
-                                        selectedIds.remove(acc.name);
-                                      }
-                                    });
-                                  },
-                          );
-                        },
-                      ),
-                    ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: isAdding ? null : () => Navigator.pop(ctx, false),
-                child: const Text('Cancel'),
-              ),
-              ElevatedButton(
-                onPressed: isAdding
-                    ? null
-                    : () async {
-                        setState(() {
-                          isAdding = true;
-                        });
-
-                        try {
-                          for (var accName in selectedIds) {
-                            final acc = candidates.firstWhere(
-                              (a) => a.name == accName,
-                            );
-                            final newGroups = List<String>.from(acc.groupIds)
-                              ..add(group.id);
-                            await provider.updateAccount(
-                              user,
-                              acc,
-                              acc.name,
-                              acc.type,
-                              newGroups,
-                              acc.owners, // Preserve owners
-                              acc.defaultCurrency ?? 'BDT',
-                              acc.subCategory,
-                            );
-                          }
-
-                          if (ctx.mounted) {
-                            Navigator.pop(ctx, true); // Return success
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  "${selectedIds.length} accounts added.",
-                                ),
-                              ),
-                            );
-                          }
-                        } catch (e) {
-                          print("Error in bulk add: $e"); // Debug
-                          if (ctx.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(
-                                content: Text("Error adding accounts."),
-                              ),
-                            );
-                            // Stop loading on error so user can retry or cancel
-                            setState(() {
-                              isAdding = false;
-                            });
-                          }
-                        }
-                      },
-                child: isAdding
-                    ? const SizedBox(
-                        height: 20,
-                        width: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            contentPadding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                            ),
+                          ),
                         ),
-                      )
-                    : const Text('Add Selected'),
+                        const SizedBox(height: 12),
+                        Expanded(
+                          child: filteredCandidates.isEmpty
+                              ? const Center(
+                                  child: Text("No accounts match your search."),
+                                )
+                              : Scrollbar(
+                                  thumbVisibility: true,
+                                  controller: scrollController,
+                                  child: ListView.builder(
+                                    controller: scrollController,
+                                    itemCount: filteredCandidates.length + 1,
+                                    itemBuilder: (context, index) {
+                                      if (index == 0) {
+                                        final allSelected =
+                                            filteredCandidates.isNotEmpty &&
+                                            filteredCandidates.every(
+                                              (e) =>
+                                                  selectedIds.contains(e.name),
+                                            );
+                                        final someSelected = filteredCandidates
+                                            .any(
+                                              (e) =>
+                                                  selectedIds.contains(e.name),
+                                            );
+
+                                        return Column(
+                                          children: [
+                                            CheckboxListTile(
+                                              title: const Text(
+                                                "Select All",
+                                                style: TextStyle(
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              subtitle: Text(
+                                                "${filteredCandidates.length} accounts matching search",
+                                              ),
+                                              value: allSelected
+                                                  ? true
+                                                  : (someSelected
+                                                        ? null
+                                                        : false),
+                                              tristate: true,
+                                              onChanged: isAdding
+                                                  ? null
+                                                  : (val) {
+                                                      setOuterState(() {
+                                                        if (val == true) {
+                                                          for (var acc
+                                                              in filteredCandidates) {
+                                                            if (!selectedIds
+                                                                .contains(
+                                                                  acc.name,
+                                                                )) {
+                                                              selectedIds.add(
+                                                                acc.name,
+                                                              );
+                                                            }
+                                                          }
+                                                        } else {
+                                                          for (var acc
+                                                              in filteredCandidates) {
+                                                            selectedIds.remove(
+                                                              acc.name,
+                                                            );
+                                                          }
+                                                        }
+                                                      });
+                                                    },
+                                            ),
+                                            const Divider(height: 1),
+                                          ],
+                                        );
+                                      }
+
+                                      final acc = filteredCandidates[index - 1];
+                                      final isSelected = selectedIds.contains(
+                                        acc.name,
+                                      );
+
+                                      return CheckboxListTile(
+                                        title: Text(acc.name),
+                                        subtitle: Text(acc.type),
+                                        value: isSelected,
+                                        onChanged: isAdding
+                                            ? null
+                                            : (val) {
+                                                setOuterState(() {
+                                                  if (val == true) {
+                                                    selectedIds.add(acc.name);
+                                                  } else {
+                                                    selectedIds.remove(
+                                                      acc.name,
+                                                    );
+                                                  }
+                                                });
+                                              },
+                                      );
+                                    },
+                                  ),
+                                ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
               ),
-            ],
-          ),
+              actions: [
+                TextButton(
+                  onPressed: isAdding ? null : () => Navigator.pop(ctx, false),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton(
+                  onPressed: isAdding
+                      ? null
+                      : () async {
+                          setOuterState(() {
+                            isAdding = true;
+                          });
+
+                          try {
+                            for (var accName in selectedIds) {
+                              final acc = candidates.firstWhere(
+                                (a) => a.name == accName,
+                              );
+                              final newGroups = List<String>.from(acc.groupIds)
+                                ..add(group.id);
+                              await provider.updateAccount(
+                                user,
+                                acc,
+                                acc.name,
+                                acc.type,
+                                newGroups,
+                                acc.owners,
+                                acc.defaultCurrency ?? 'BDT',
+                                acc.subCategory,
+                              );
+                            }
+
+                            if (ctx.mounted) {
+                              Navigator.pop(ctx, true);
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    "${selectedIds.length} accounts added.",
+                                  ),
+                                ),
+                              );
+                            }
+                          } catch (e) {
+                            if (ctx.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text("Error adding accounts."),
+                                ),
+                              );
+                              setOuterState(() {
+                                isAdding = false;
+                              });
+                            }
+                          }
+                        },
+                  child: isAdding
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text('Add Selected'),
+                ),
+              ],
+            );
+          },
         );
       },
     );
