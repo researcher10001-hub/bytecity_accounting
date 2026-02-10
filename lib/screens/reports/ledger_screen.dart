@@ -205,191 +205,199 @@ class _LedgerScreenState extends State<LedgerScreen> {
         ),
       ),
       backgroundColor: Colors.grey[50],
-      body: Column(
-        children: [
-          // FILTERS
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withAlpha(0x02),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+      body:
+          (accountProvider.isLoading || transactionProvider.isLoading) &&
+              accounts.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
               children: [
-                Row(
-                  children: [
-                    // Account Selector (Searchable)
-                    Expanded(
-                      flex: 1,
-                      child: _buildAccountDropdown(
-                        context,
-                        accounts,
-                        groupProvider,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                // Pro Dual-Field Filter Bar
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDateTile(
-                        'From',
-                        _dateRange?.start,
-                        () => _selectDate(isStart: true),
-                      ),
-                    ),
-                    const Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 10),
-                      child: Icon(
-                        LucideIcons.arrowRight,
-                        size: 14,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                    Expanded(
-                      child: _buildDateTile(
-                        'To',
-                        _dateRange?.end,
-                        _dateRange?.start == null
-                            ? null
-                            : () => _selectDate(isStart: false),
-                      ),
-                    ),
-                    if (_dateRange != null) ...[
-                      const SizedBox(width: 8),
-                      Material(
-                        color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                        child: InkWell(
-                          onTap: () => setState(() => _dateRange = null),
-                          borderRadius: BorderRadius.circular(10),
-                          child: Container(
-                            padding: const EdgeInsets.all(12),
-                            child: const Icon(
-                              LucideIcons.x,
-                              size: 18,
-                              color: Color(0xFFEF4444),
-                            ),
-                          ),
-                        ),
+                // FILTERS
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha(0x02),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
                       ),
                     ],
-                  ],
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Row(
+                        children: [
+                          // Account Selector (Searchable)
+                          Expanded(
+                            flex: 1,
+                            child: _buildAccountDropdown(
+                              context,
+                              accounts,
+                              groupProvider,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      // Pro Dual-Field Filter Bar
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDateTile(
+                              'From',
+                              _dateRange?.start,
+                              () => _selectDate(isStart: true),
+                            ),
+                          ),
+                          const Padding(
+                            padding: EdgeInsets.symmetric(horizontal: 10),
+                            child: Icon(
+                              LucideIcons.arrowRight,
+                              size: 14,
+                              color: Color(0xFF94A3B8),
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildDateTile(
+                              'To',
+                              _dateRange?.end,
+                              _dateRange?.start == null
+                                  ? null
+                                  : () => _selectDate(isStart: false),
+                            ),
+                          ),
+                          if (_dateRange != null) ...[
+                            const SizedBox(width: 8),
+                            Material(
+                              color: const Color(
+                                0xFFEF4444,
+                              ).withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(10),
+                              child: InkWell(
+                                onTap: () => setState(() => _dateRange = null),
+                                borderRadius: BorderRadius.circular(10),
+                                child: Container(
+                                  padding: const EdgeInsets.all(12),
+                                  child: const Icon(
+                                    LucideIcons.x,
+                                    size: 18,
+                                    color: Color(0xFFEF4444),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+
+                // TRANSACTION LIST
+                Expanded(
+                  child: _selectedAccounts.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                LucideIcons.wallet,
+                                size: 48,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'Please select an account',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ledgerEntries.isEmpty
+                      ? Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              const Icon(
+                                LucideIcons.fileX,
+                                size: 48,
+                                color: Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(height: 16),
+                              Text(
+                                'No transactions found',
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        )
+                      : ListView.separated(
+                          padding: const EdgeInsets.all(16),
+                          itemCount: ledgerEntries.length,
+                          separatorBuilder: (context, index) =>
+                              const SizedBox(height: 12),
+                          itemBuilder: (context, index) {
+                            final entry = ledgerEntries[index];
+                            final date = entry['date'] as DateTime;
+                            final originalTx =
+                                entry['originalTx'] as TransactionModel;
+
+                            // Convert dynamic values to double safely
+                            final double debit = (entry['debit'] ?? 0.0)
+                                .toDouble();
+                            final double credit = (entry['credit'] ?? 0.0)
+                                .toDouble();
+
+                            final bool isDebit = debit > 0;
+                            final double txAmount = isDebit ? debit : credit;
+                            final Color amountColor = isDebit
+                                ? Colors.red
+                                : Colors.green;
+                            final String formattedAmount =
+                                '৳${NumberFormat('#,##0').format(txAmount)}';
+
+                            // Status Logic Simulation (since 'status' might not be in model yet)
+                            // If 'originalTx' has a status field, use it.
+                            // Ideally: String status = originalTx.status;
+                            // For now, defaulting to Approved unless specific logic exists.
+                            // But user asked for Pending/Approved dots.
+                            // We'll mimic this: if it's recent or specific condition, maybe Pending?
+                            // For now, let's look for a 'status' key in entry if we added it, or default.
+                            // In Step 6145 view, we didn't add status to map.
+                            // So we will just show 'Approved' visually for now, or check something.
+                            // Let's assume passed validation means Approved.
+
+                            String status = 'Approved';
+                            bool isPending = false;
+
+                            // Action Required Logic
+                            // If isPending is true, show Action Required.
+
+                            return _buildTransactionCard(
+                              context,
+                              entry,
+                              date,
+                              formattedAmount,
+                              amountColor,
+                              originalTx,
+                              isPending: isPending,
+                              status: status,
+                              uniqueKeyExtra: index.toString(),
+                            );
+                          },
+                        ),
                 ),
               ],
             ),
-          ),
-          const Divider(height: 1),
-
-          // TRANSACTION LIST
-          Expanded(
-            child: _selectedAccounts.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          LucideIcons.wallet,
-                          size: 48,
-                          color: Color(0xFF94A3B8),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'Please select an account',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ledgerEntries.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        const Icon(
-                          LucideIcons.fileX,
-                          size: 48,
-                          color: Color(0xFF94A3B8),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No transactions found',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: const Color(0xFF64748B),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.separated(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: ledgerEntries.length,
-                    separatorBuilder: (context, index) =>
-                        const SizedBox(height: 12),
-                    itemBuilder: (context, index) {
-                      final entry = ledgerEntries[index];
-                      final date = entry['date'] as DateTime;
-                      final originalTx =
-                          entry['originalTx'] as TransactionModel;
-
-                      // Convert dynamic values to double safely
-                      final double debit = (entry['debit'] ?? 0.0).toDouble();
-                      final double credit = (entry['credit'] ?? 0.0).toDouble();
-
-                      final bool isDebit = debit > 0;
-                      final double txAmount = isDebit ? debit : credit;
-                      final Color amountColor = isDebit
-                          ? Colors.red
-                          : Colors.green;
-                      final String formattedAmount =
-                          '৳${NumberFormat('#,##0').format(txAmount)}';
-
-                      // Status Logic Simulation (since 'status' might not be in model yet)
-                      // If 'originalTx' has a status field, use it.
-                      // Ideally: String status = originalTx.status;
-                      // For now, defaulting to Approved unless specific logic exists.
-                      // But user asked for Pending/Approved dots.
-                      // We'll mimic this: if it's recent or specific condition, maybe Pending?
-                      // For now, let's look for a 'status' key in entry if we added it, or default.
-                      // In Step 6145 view, we didn't add status to map.
-                      // So we will just show 'Approved' visually for now, or check something.
-                      // Let's assume passed validation means Approved.
-
-                      String status = 'Approved';
-                      bool isPending = false;
-
-                      // Action Required Logic
-                      // If isPending is true, show Action Required.
-
-                      return _buildTransactionCard(
-                        context,
-                        entry,
-                        date,
-                        formattedAmount,
-                        amountColor,
-                        originalTx,
-                        isPending: isPending,
-                        status: status,
-                        uniqueKeyExtra: index.toString(),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
       bottomNavigationBar: _selectedAccounts.isEmpty
           ? null
           : _buildStatusBar(totalDebit, totalCredit, runningBalance),
