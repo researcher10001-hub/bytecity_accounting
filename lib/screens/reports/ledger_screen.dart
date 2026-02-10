@@ -529,7 +529,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
                     ),
                     _buildDetailRow('$againstPrefix:', againstAccount),
                     _buildDetailRow('Desc:', originalTx.mainNarration),
-                    _buildDetailRow('By:', originalTx.createdBy),
+                    _buildDetailRow('Entry By:', originalTx.createdByName),
                     _buildDetailRow(
                       'Status:',
                       status,

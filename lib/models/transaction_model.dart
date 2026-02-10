@@ -92,6 +92,7 @@ class TransactionModel {
   String mainNarration;
   List<TransactionDetail> details;
   String createdBy; // User email
+  String createdByName; // User name
   String currency;
   double exchangeRate;
 
@@ -119,6 +120,7 @@ class TransactionModel {
     this.mainNarration = '',
     required this.details,
     required this.createdBy,
+    this.createdByName = '', // Default to empty, will be populated from API
     this.currency = 'BDT',
     this.exchangeRate = 1.0,
     this.status = TransactionStatus.pending,

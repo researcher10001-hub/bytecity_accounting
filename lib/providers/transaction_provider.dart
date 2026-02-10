@@ -448,6 +448,7 @@ class TransactionProvider with ChangeNotifier {
           mainNarration: _mainNarration,
           details: finalDetails,
           createdBy: user.email,
+          createdByName: user.name,
           currency: _currency,
           exchangeRate: _exchangeRate,
         );
@@ -539,6 +540,7 @@ class TransactionProvider with ChangeNotifier {
         mainNarration: _mainNarration,
         details: finalDetails,
         createdBy: user.email,
+        createdByName: user.name,
         currency: _currency,
         exchangeRate: _exchangeRate,
       );
@@ -852,6 +854,10 @@ class TransactionProvider with ChangeNotifier {
                 currency: item['currency']?.toString() ?? 'BDT',
                 exchangeRate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
                 createdBy: item['created_by']?.toString() ?? '',
+                createdByName:
+                    item['created_by_name']?.toString() ??
+                    item['created_by']?.toString() ??
+                    '',
                 status: TransactionStatus.values.firstWhere(
                   (e) =>
                       e.toString().split('.').last ==

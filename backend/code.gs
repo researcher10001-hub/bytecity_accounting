@@ -996,6 +996,16 @@ function getEntries(e) {
     const rows = sheet.getDataRange().getValues();
     const entries = [];
     
+    // 1. Fetch User Emails -> Names Map for display lookup
+    const userMap = {};
+    const userSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+    if (userSheet) {
+      const userData = userSheet.getDataRange().getValues();
+      for (let j = 1; j < userData.length; j++) {
+        userMap[userData[j][1].toString().toLowerCase()] = userData[j][0].toString();
+      }
+    }
+
     // Schema: 
     // 0: EntryID, 1: Date, 2: VoucherNo, 3: Description, 4: Account, 5: Debit, 6: Credit, 7: Currency, 8: Rate, 9: CreatedBy, 10: Type, 11: Status
 
@@ -1007,6 +1017,8 @@ function getEntries(e) {
        if (row.length > 11 && row[11] === 'Deleted') {
          continue;
        }
+
+       const creatorEmail = (row[9] || "").toString().toLowerCase();
 
        entries.push({
          'id': row[0],
@@ -1020,6 +1032,7 @@ function getEntries(e) {
          'currency': row[7],
          'rate': row[8],
          'created_by': row[9],
+         'created_by_name': userMap[creatorEmail] || row[9] || 'Unknown',
          'type': (row.length > 10) ? row[10] : "Journal", // Read Type
          'approval_status': (row.length > 11) ? row[11] : "Pending",
          'approval_log': (row.length > 12) ? row[12] : "[]",
