@@ -16,8 +16,6 @@ class ApiConstants {
   static const String actionAddEntryMessage = 'addEntryMessage';
 
   // Restored Constants
-  static const String actionSaveTransaction =
-      'saveTransaction'; // Used in TransactionProvider
   static const String actionGetSubCategories =
       'getSubCategories'; // Used in SubCategoryProvider
   static const String actionCreateSubCategory =

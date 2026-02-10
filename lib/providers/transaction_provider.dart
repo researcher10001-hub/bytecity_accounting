@@ -417,9 +417,8 @@ class TransactionProvider with ChangeNotifier {
       };
 
       // API Call
-      // API Call
       final response = await _apiService.postRequest(
-        ApiConstants.actionSaveTransaction,
+        ApiConstants.actionCreateEntry, // Point to the correct backend action
         apiPayload,
       );
 
@@ -465,6 +464,11 @@ class TransactionProvider with ChangeNotifier {
 
       _isLoading = false;
       return transaction;
+    } catch (e) {
+      print('Error in saveTransaction: $e');
+      _isLoading = false;
+      notifyListeners();
+      rethrow; // Re-throw to allow UI to catch and show error
     } finally {
       _isLoading = false;
       notifyListeners();

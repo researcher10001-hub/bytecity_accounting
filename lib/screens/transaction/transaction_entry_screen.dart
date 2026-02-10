@@ -485,13 +485,25 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                         return;
                       }
                     } else {
-                      savedTx = await provider.saveTransaction(user);
-                      if (savedTx != null && context.mounted) {
-                        context.read<AccountProvider>().fetchAccounts(user);
-                        context.read<TransactionProvider>().fetchHistory(
-                          user,
-                          forceRefresh: true,
-                        );
+                      try {
+                        savedTx = await provider.saveTransaction(user);
+                        if (savedTx != null && context.mounted) {
+                          context.read<AccountProvider>().fetchAccounts(user);
+                          context.read<TransactionProvider>().fetchHistory(
+                            user,
+                            forceRefresh: true,
+                          );
+                        }
+                      } catch (e) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Failed to save: ${e.toString()}'),
+                              backgroundColor: Colors.red,
+                              duration: const Duration(seconds: 4),
+                            ),
+                          );
+                        }
                       }
                     }
 
