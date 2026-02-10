@@ -1,0 +1,66 @@
+##################################################
+# Miscellaneous / OS / Editor junk
+##################################################
+*.class
+*.log
+*.pyc
+*.swp
+.DS_Store
+Thumbs.db
+
+.atom/
+.history/
+.svn/
+.swiftpm/
+migrate_working_dir/
+
+##################################################
+# IntelliJ / Android Studio
+##################################################
+*.iml
+*.ipr
+*.iws
+.idea/
+
+##################################################
+# VS Code
+##################################################
+.vscode/
+
+##################################################
+# Flutter / Dart
+##################################################
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+.pub-cache/
+.pub/
+build/
+coverage/
+
+# Generated API docs
+**/doc/api/
+
+##################################################
+# Android
+##################################################
+android/.gradle/
+android/local.properties
+android/app/debug
+android/app/profile
+android/app/release
+
+##################################################
+# iOS
+##################################################
+ios/Pods/
+ios/.symlinks/
+ios/Flutter/.last_build_id
+ios/Flutter/Flutter.framework
+ios/Flutter/Flutter.podspec
+
+##################################################
+# Symbolication / Obfuscation
+##################################################
+app.*.symbols
+app.*.map.json
