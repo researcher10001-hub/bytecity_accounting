@@ -1335,15 +1335,16 @@ function getGroups(e) {
     if (!sheet) {
       // Auto-create Groups sheet with a default group
       const newSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_GROUPS);
-      newSheet.appendRow(["GroupID", "Name", "Description", "Active"]);
-      newSheet.appendRow(["G-001", "General", "Default Group", true]);
+      newSheet.appendRow(["GroupID", "Name", "Description", "Active", "Type"]);
+      newSheet.appendRow(["G-001", "General", "Default Group", true, "permission"]);
       
       return successResponse([{
         'id': "G-001", 
         'name': "General", 
         'description': "Default Group", 
         'accounts': [], 
-        'active': true
+        'active': true,
+        'type': 'permission'
       }]);
     }
 
@@ -1362,7 +1363,8 @@ function getGroups(e) {
            'name': row[1],
            'description': row[2],
            'accounts': [], // To be filled
-           'active': true
+           'active': true,
+           'type': (row.length > 4 && row[4]) ? row[4].toString() : 'permission'
          });
          activeGroupIds.add(row[0]);
        }
@@ -1411,19 +1413,21 @@ function createGroup(e) {
     let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_GROUPS);
     if (!sheet) {
       sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_GROUPS);
-      sheet.appendRow(["GroupID", "Name", "Description", "Active"]);
+      sheet.appendRow(["GroupID", "Name", "Description", "Active", "Type"]);
     }
     
     // Auto-Generate Sequential ID (G-XXX)
     const newId = _generateNextGroupId(sheet);
+    const type = data.type || 'permission';
     
-    // Schema: GroupID [0], Name [1], Description [2], Active [3]
-    sheet.appendRow([newId, name, description, true]);
+    // Schema: GroupID [0], Name [1], Description [2], Active [3], Type [4]
+    sheet.appendRow([newId, name, description, true, type]);
     
     // UPDATE ACCOUNTS SHEET
-    if (accounts.length > 0) {
-       _updateAccountGroupLinks(newId, accounts);
-    }
+    // DEFENSIVE FIX: Always call this with replaceMode=true to clear any 'ghost' accounts
+    // that might be accidentally linked to this new ID.
+    const targetAccounts = accounts || [];
+    _updateAccountGroupLinks(newId, targetAccounts, true);
     
     return successResponse({'message': 'Group created', 'id': newId});
     
@@ -1461,6 +1465,9 @@ function updateGroup(e) {
     sheet.getRange(rowToUpdate, 2).setValue(name);
     if (description !== undefined) {
       sheet.getRange(rowToUpdate, 3).setValue(description);
+    }
+    if (data.type) {
+      sheet.getRange(rowToUpdate, 5).setValue(data.type);
     }
     
     // UPDATE ACCOUNTS SHEET
@@ -1638,30 +1645,46 @@ function _handleFailedAttempt(email, scriptProperties, attemptsKey, lockoutKey) 
 }
 
 // --- HELPER: GENERATE NEXT GROUP ID ---
+// --- HELPER: GENERATE NEXT GROUP ID ---
 function _generateNextGroupId(sheet) {
-  // Format: G-XXX (e.g. G-001, G-002)
-  const lastRow = sheet.getLastRow();
-  if (lastRow < 2) return "G-001";
-  
-  // GroupID is Column 1 (Index 0)
-  const data = sheet.getRange(2, 1, lastRow - 1, 1).getValues();
-  let maxSeq = 0;
-  
-  for (let i = 0; i < data.length; i++) {
-     const id = data[i][0].toString();
-     if (id.startsWith("G-")) {
-        const parts = id.split("-");
-        if (parts.length > 1) {
-           const seq = parseInt(parts[1]);
-           if (!isNaN(seq) && seq > maxSeq) {
-              maxSeq = seq;
-           }
-        }
-     }
+  // EMERGENCY FIX: Use Timestamp-based ID to guarantee uniqueness
+  // This avoids any potential reuse of IDs from deleted groups (Ghost Data)
+  const timestamp = new Date().getTime().toString(36);
+  const random = Math.random().toString(36).substring(2, 6);
+  return "GRP-" + (timestamp + random).toUpperCase();
+}
+
+// Utility: Remove orphan group IDs from Accounts sheet
+function cleanAccountOrphans() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const groupSheet = ss.getSheetByName(SHEET_GROUPS);
+  const accSheet = ss.getSheetByName(SHEET_ACCOUNTS);
+  if (!groupSheet || !accSheet) return "Sheets not found";
+
+  const groupRows = groupSheet.getDataRange().getValues();
+  const activeGroupIds = new Set();
+  for (let i = 1; i < groupRows.length; i++) {
+    // ACTIVE check: GroupID (0), Active (3)
+    if (groupRows[i][3] === true || groupRows[i][3] === "TRUE") {
+      activeGroupIds.add(groupRows[i][0].toString());
+    }
   }
-  
-  const nextSeq = maxSeq + 1;
-  return "G-" + ("000" + nextSeq).slice(-3);
+
+  const accData = accSheet.getDataRange().getValues();
+  let fixCount = 0;
+  for (let i = 1; i < accData.length; i++) {
+    const currentGIdsStr = accData[i][2] ? accData[i][2].toString() : "";
+    if (currentGIdsStr) {
+      const gIds = currentGIdsStr.split(',').map(s => s.trim()).filter(s => s);
+      const filteredGIds = gIds.filter(id => activeGroupIds.has(id));
+      
+      if (filteredGIds.length !== gIds.length) {
+        accSheet.getRange(i + 1, 3).setValue(filteredGIds.join(","));
+        fixCount++;
+      }
+    }
+  }
+  return "Fixed " + fixCount + " account rows";
 }
 
 // --- DELETE ACCOUNT (Optimized Logic) ---

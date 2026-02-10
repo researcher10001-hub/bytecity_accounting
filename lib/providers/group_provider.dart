@@ -10,6 +10,10 @@ class GroupProvider with ChangeNotifier {
   String? _error;
 
   List<GroupModel> get groups => _groups;
+  List<GroupModel> get permissionGroups =>
+      _groups.where((g) => g.isPermission).toList();
+  List<GroupModel> get reportGroups =>
+      _groups.where((g) => g.isReport).toList();
   bool get isLoading => _isLoading;
   String? get error => _error;
 
@@ -29,9 +33,7 @@ class GroupProvider with ChangeNotifier {
       // ApiService already unwraps {status, data} and returns only 'data'
       // So response is directly the List<dynamic>
       if (response is List) {
-        _groups = (response)
-            .map((json) => GroupModel.fromJson(json))
-            .toList();
+        _groups = (response).map((json) => GroupModel.fromJson(json)).toList();
         _error = null;
       } else {
         _error = 'Invalid response format';
@@ -52,20 +54,26 @@ class GroupProvider with ChangeNotifier {
         .join(', ');
   }
 
-  Future<bool> addGroup(String name, String description) async {
+  Future<bool> addGroup(
+    String name,
+    String description, {
+    String type = 'permission',
+  }) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final response = await _apiService.postRequest(
         ApiConstants.actionCreateGroup,
-        {'name': name, 'description': description},
+        {'name': name, 'description': description, 'type': type},
       );
 
       // ApiService returns the unwrapped 'data' which is {message, id}
       if (response is Map && response.containsKey('id')) {
         final id = response['id'];
-        _groups.add(GroupModel(id: id, name: name, description: description));
+        _groups.add(
+          GroupModel(id: id, name: name, description: description, type: type),
+        );
         notifyListeners();
         return true;
       } else {
@@ -81,14 +89,19 @@ class GroupProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> updateGroup(String id, String name, String description) async {
+  Future<bool> updateGroup(
+    String id,
+    String name,
+    String description, {
+    String type = 'permission',
+  }) async {
     _isLoading = true;
     notifyListeners();
 
     try {
       final response = await _apiService.postRequest(
         ApiConstants.actionUpdateGroup,
-        {'id': id, 'name': name, 'description': description},
+        {'id': id, 'name': name, 'description': description, 'type': type},
       );
 
       // ApiService returns unwrapped data {message: 'Group updated'}
@@ -99,6 +112,7 @@ class GroupProvider with ChangeNotifier {
             id: id,
             name: name,
             description: description,
+            type: type,
           );
           notifyListeners();
         }

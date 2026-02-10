@@ -17,6 +17,8 @@ class AccountGroupsScreen extends StatefulWidget {
 }
 
 class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
+  String _selectedTab = 'permission'; // 'permission' or 'report'
+
   @override
   void initState() {
     super.initState();
@@ -169,151 +171,344 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
             );
           }
 
-          return ListView.builder(
-            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
-            itemCount: provider.groups.length,
-            itemBuilder: (context, index) {
-              final group = provider.groups[index];
-              final accountCount = accountProvider.accounts
-                  .where((a) => a.groupIds.contains(group.id))
-                  .length;
+          // Filter groups by selected tab
+          final filteredGroups = _selectedTab == 'permission'
+              ? provider.permissionGroups
+              : provider.reportGroups;
 
-              return Container(
-                    margin: const EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.02),
-                          blurRadius: 10,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
-                    ),
-                    child: InkWell(
-                      onTap: () => _showLinkedAccounts(context, group),
-                      borderRadius: BorderRadius.circular(20),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 52,
-                              height: 52,
-                              decoration: BoxDecoration(
-                                color: const Color(
-                                  0xFFE91E63,
-                                ).withValues(alpha: 0.08),
-                                borderRadius: BorderRadius.circular(14),
-                              ),
-                              child: const Icon(
-                                LucideIcons.package,
-                                color: Color(0xFFE91E63),
-                                size: 24,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Text(
-                                        group.name,
-                                        style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.w700,
-                                          fontSize: 16,
-                                          color: const Color(0xFF1E293B),
-                                        ),
+          return Column(
+            children: [
+              // Tab Bar
+              Container(
+                margin: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                padding: const EdgeInsets.all(4),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () =>
+                            setState(() => _selectedTab = 'permission'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 'permission'
+                                ? Colors.white
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: _selectedTab == 'permission'
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
                                       ),
-                                      const SizedBox(width: 8),
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 8,
-                                          vertical: 2,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: const Color(0xFFF1F5F9),
-                                          borderRadius: BorderRadius.circular(
-                                            6,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          '$accountCount',
-                                          style: GoogleFonts.inter(
-                                            fontSize: 11,
-                                            fontWeight: FontWeight.w600,
-                                            color: const Color(0xFF64748B),
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                  if (group.description.isNotEmpty) ...[
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      group.description,
-                                      style: GoogleFonts.inter(
-                                        fontSize: 13,
-                                        color: const Color(0xFF64748B),
-                                      ),
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
                                     ),
-                                  ],
-                                ],
+                                  ]
+                                : [],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                LucideIcons.shield,
+                                size: 14,
+                                color: _selectedTab == 'permission'
+                                    ? const Color(0xFFE91E63)
+                                    : const Color(0xFF94A3B8),
                               ),
-                            ),
-                            const SizedBox(width: 8),
-                            Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () =>
-                                        _showGroupDialog(context, group),
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      child: const Icon(
-                                        LucideIcons.edit2,
-                                        color: Color(0xFF64748B),
-                                        size: 18,
-                                      ),
-                                    ),
-                                  ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Permission',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: _selectedTab == 'permission'
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFF94A3B8),
                                 ),
-                                const SizedBox(width: 4),
-                                Material(
-                                  color: Colors.transparent,
-                                  child: InkWell(
-                                    onTap: () => _confirmDelete(context, group),
-                                    borderRadius: BorderRadius.circular(8),
-                                    child: Container(
-                                      padding: const EdgeInsets.all(8),
-                                      child: const Icon(
-                                        LucideIcons.trash2,
-                                        color: Color(0xFFF43F5E),
-                                        size: 18,
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  )
-                  .animate(delay: (index * 50).ms)
-                  .fadeIn(duration: 400.ms)
-                  .slideX(begin: 0.1, end: 0, curve: Curves.easeOutCubic);
-            },
+                    Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => _selectedTab = 'report'),
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: _selectedTab == 'report'
+                                ? Colors.white
+                                : Colors.transparent,
+                            borderRadius: BorderRadius.circular(8),
+                            boxShadow: _selectedTab == 'report'
+                                ? [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.05,
+                                      ),
+                                      blurRadius: 4,
+                                      offset: const Offset(0, 1),
+                                    ),
+                                  ]
+                                : [],
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(
+                                LucideIcons.barChart2,
+                                size: 14,
+                                color: _selectedTab == 'report'
+                                    ? const Color(0xFFE91E63)
+                                    : const Color(0xFF94A3B8),
+                              ),
+                              const SizedBox(width: 6),
+                              Text(
+                                'Report',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: _selectedTab == 'report'
+                                      ? const Color(0xFF1E293B)
+                                      : const Color(0xFF94A3B8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+
+              // Group List
+              Expanded(
+                child: filteredGroups.isEmpty
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              _selectedTab == 'permission'
+                                  ? LucideIcons.shield
+                                  : LucideIcons.barChart2,
+                              color: const Color(0xFF94A3B8),
+                              size: 48,
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No ${_selectedTab} groups yet',
+                              style: GoogleFonts.inter(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF64748B),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 20,
+                          vertical: 24,
+                        ),
+                        itemCount: filteredGroups.length,
+                        itemBuilder: (context, index) {
+                          final group = filteredGroups[index];
+                          final accountCount = accountProvider.accounts
+                              .where((a) => a.groupIds.contains(group.id))
+                              .length;
+
+                          return Container(
+                                margin: const EdgeInsets.only(bottom: 16),
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: const Color(0xFFE2E8F0),
+                                  ),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(
+                                        alpha: 0.02,
+                                      ),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ],
+                                ),
+                                child: InkWell(
+                                  onTap: () =>
+                                      _showLinkedAccounts(context, group),
+                                  borderRadius: BorderRadius.circular(20),
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(16),
+                                    child: Row(
+                                      children: [
+                                        Container(
+                                          width: 52,
+                                          height: 52,
+                                          decoration: BoxDecoration(
+                                            color: const Color(
+                                              0xFFE91E63,
+                                            ).withValues(alpha: 0.08),
+                                            borderRadius: BorderRadius.circular(
+                                              14,
+                                            ),
+                                          ),
+                                          child: const Icon(
+                                            LucideIcons.package,
+                                            color: Color(0xFFE91E63),
+                                            size: 24,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 16),
+                                        Expanded(
+                                          child: Column(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Row(
+                                                children: [
+                                                  Flexible(
+                                                    child: Text(
+                                                      group.name,
+                                                      style: GoogleFonts.inter(
+                                                        fontWeight:
+                                                            FontWeight.w700,
+                                                        fontSize: 16,
+                                                        color: const Color(
+                                                          0xFF1E293B,
+                                                        ),
+                                                      ),
+                                                      maxLines: 1,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Container(
+                                                    padding:
+                                                        const EdgeInsets.symmetric(
+                                                          horizontal: 8,
+                                                          vertical: 2,
+                                                        ),
+                                                    decoration: BoxDecoration(
+                                                      color: const Color(
+                                                        0xFFF1F5F9,
+                                                      ),
+                                                      borderRadius:
+                                                          BorderRadius.circular(
+                                                            6,
+                                                          ),
+                                                    ),
+                                                    child: Text(
+                                                      '$accountCount',
+                                                      style: GoogleFonts.inter(
+                                                        fontSize: 11,
+                                                        fontWeight:
+                                                            FontWeight.w600,
+                                                        color: const Color(
+                                                          0xFF64748B,
+                                                        ),
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                              if (group
+                                                  .description
+                                                  .isNotEmpty) ...[
+                                                const SizedBox(height: 4),
+                                                Text(
+                                                  group.description,
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 13,
+                                                    color: const Color(
+                                                      0xFF64748B,
+                                                    ),
+                                                  ),
+                                                  maxLines: 1,
+                                                  overflow:
+                                                      TextOverflow.ellipsis,
+                                                ),
+                                              ],
+                                            ],
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Row(
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                onTap: () => _showGroupDialog(
+                                                  context,
+                                                  group,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(
+                                                    8,
+                                                  ),
+                                                  child: const Icon(
+                                                    LucideIcons.edit2,
+                                                    color: Color(0xFF64748B),
+                                                    size: 18,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Material(
+                                              color: Colors.transparent,
+                                              child: InkWell(
+                                                onTap: () => _confirmDelete(
+                                                  context,
+                                                  group,
+                                                ),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                child: Container(
+                                                  padding: const EdgeInsets.all(
+                                                    8,
+                                                  ),
+                                                  child: const Icon(
+                                                    LucideIcons.trash2,
+                                                    color: Color(0xFFF43F5E),
+                                                    size: 18,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ),
+                              )
+                              .animate(delay: (index * 50).ms)
+                              .fadeIn(duration: 400.ms)
+                              .slideX(
+                                begin: 0.1,
+                                end: 0,
+                                curve: Curves.easeOutCubic,
+                              );
+                        },
+                      ),
+              ),
+            ],
           );
         },
       ),
@@ -1022,6 +1217,7 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
     final descController = TextEditingController(
       text: group?.description ?? '',
     );
+    String selectedType = group?.type ?? _selectedTab;
 
     showDialog(
       context: context,
@@ -1146,6 +1342,98 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                                     LucideIcons.alignLeft,
                                   ),
                                 ),
+                                const SizedBox(height: 20),
+                                _buildModernLabel('Group Type'),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: const Color(0xFFE2E8F0),
+                                    ),
+                                    borderRadius: BorderRadius.circular(14),
+                                    color: Colors.white,
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: DropdownButton<String>(
+                                      value: selectedType,
+                                      isExpanded: true,
+                                      icon: const Icon(
+                                        LucideIcons.chevronDown,
+                                        size: 18,
+                                      ),
+                                      style: GoogleFonts.inter(
+                                        fontSize: 14,
+                                        color: const Color(0xFF334155),
+                                      ),
+                                      items: [
+                                        DropdownMenuItem(
+                                          value: 'permission',
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                LucideIcons.shield,
+                                                size: 16,
+                                                color: Color(0xFF3B82F6),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Permission — Controls entry access',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'report',
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                LucideIcons.barChart2,
+                                                size: 16,
+                                                color: Color(0xFF10B981),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Report — Quick filter in Ledger',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                        DropdownMenuItem(
+                                          value: 'both',
+                                          child: Row(
+                                            children: [
+                                              const Icon(
+                                                LucideIcons.layers,
+                                                size: 16,
+                                                color: Color(0xFFF59E0B),
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                'Both — Permission + Report',
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 13,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                      onChanged: (val) {
+                                        if (val != null) {
+                                          setState(() => selectedType = val);
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ),
                               ],
                             ),
                           ),
@@ -1206,11 +1494,13 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                                         group.id,
                                         name,
                                         descController.text.trim(),
+                                        type: selectedType,
                                       );
                                     } else {
                                       success = await provider.addGroup(
                                         name,
                                         descController.text.trim(),
+                                        type: selectedType,
                                       );
                                     }
 

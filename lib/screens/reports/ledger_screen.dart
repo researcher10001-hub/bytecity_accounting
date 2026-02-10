@@ -9,11 +9,10 @@ import '../../providers/account_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/group_provider.dart';
 import '../../models/account_model.dart';
-import '../../models/account_group_model.dart';
+import '../../models/group_model.dart';
 import '../../models/transaction_model.dart';
-import '../../providers/account_group_provider.dart';
-import '../settings/group_settings_screen.dart';
 import '../transaction/transaction_entry_screen.dart';
 import '../transaction/transaction_detail_screen.dart';
 
@@ -39,7 +38,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
       userProvider.fetchUsers();
 
       // Fetch Groups
-      context.read<AccountGroupProvider>().fetchGroups();
+      context.read<GroupProvider>().fetchGroups(forceRefresh: true);
 
       if (widget.initialAccountName != null) {
         final accountProvider = Provider.of<AccountProvider>(
@@ -58,7 +57,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
     });
   }
 
-  void _onGroupSelected(AccountGroup group, List<Account> allAccounts) {
+  void _onGroupSelected(GroupModel group, List<Account> allAccounts) {
     setState(() {
       // Toggle logic: If all accounts in group are selected, deselect them. Otherwise select all.
       final groupAccountNames = group.accountNames;
@@ -88,7 +87,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
   Widget build(BuildContext context) {
     final accountProvider = context.watch<AccountProvider>();
     final transactionProvider = context.watch<TransactionProvider>();
-    final groupProvider = context.watch<AccountGroupProvider>();
+    final groupProvider = context.watch<GroupProvider>();
     final accounts = accountProvider.accounts;
 
     final user = context.watch<AuthProvider>().user;
@@ -1050,21 +1049,22 @@ class _LedgerScreenState extends State<LedgerScreen> {
   Widget _buildAccountDropdown(
     BuildContext context,
     List<Account> accounts,
-    AccountGroupProvider groupProvider,
+    GroupProvider groupProvider,
   ) {
+    final reportGroups = groupProvider.reportGroups;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Group Chips
-        if (groupProvider.groups.isNotEmpty)
+        if (reportGroups.isNotEmpty)
           SizedBox(
             height: 40,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: groupProvider.groups.length,
+              itemCount: reportGroups.length,
               separatorBuilder: (c, i) => const SizedBox(width: 8),
               itemBuilder: (context, index) {
-                final group = groupProvider.groups[index];
+                final group = reportGroups[index];
                 // Check if fully selected
                 final groupAccountNames = group.accountNames;
                 final groupAccounts = accounts
@@ -1198,20 +1198,15 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             children: [
                               TextButton.icon(
                                 onPressed: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (_) =>
-                                          const GroupSettingsScreen(),
+                                  // Groups are managed from Settings > Account Groups
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Groups can be managed from Settings → Account Groups',
+                                      ),
+                                      duration: Duration(seconds: 2),
                                     ),
-                                  ).then((_) {
-                                    // Refresh groups on return
-                                    if (context.mounted) {
-                                      context
-                                          .read<AccountGroupProvider>()
-                                          .fetchGroups();
-                                    }
-                                  });
+                                  );
                                 },
                                 icon: const Icon(
                                   LucideIcons.plusCircle,
@@ -1254,9 +1249,10 @@ class _LedgerScreenState extends State<LedgerScreen> {
                     ),
 
                     // Quick Groups
-                    Consumer<AccountGroupProvider>(
+                    Consumer<GroupProvider>(
                       builder: (context, groupProvider, child) {
-                        if (groupProvider.groups.isEmpty) {
+                        final reportGroups = groupProvider.reportGroups;
+                        if (reportGroups.isEmpty) {
                           return const SizedBox.shrink();
                         }
                         return SizedBox(
@@ -1264,11 +1260,11 @@ class _LedgerScreenState extends State<LedgerScreen> {
                           child: ListView.separated(
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             scrollDirection: Axis.horizontal,
-                            itemCount: groupProvider.groups.length,
+                            itemCount: reportGroups.length,
                             separatorBuilder: (_, __) =>
                                 const SizedBox(width: 8),
                             itemBuilder: (context, index) {
-                              final group = groupProvider.groups[index];
+                              final group = reportGroups[index];
                               // Check if all accounts in group are selected
                               final groupAccountNames = group.accountNames
                                   .toSet();
