@@ -10,18 +10,20 @@ import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 
 class AccountGroupsScreen extends StatefulWidget {
-  const AccountGroupsScreen({super.key});
+  final String initialTab;
+  const AccountGroupsScreen({super.key, this.initialTab = 'permission'});
 
   @override
   State<AccountGroupsScreen> createState() => _AccountGroupsScreenState();
 }
 
 class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
-  String _selectedTab = 'permission'; // 'permission' or 'report'
+  late String _selectedTab;
 
   @override
   void initState() {
     super.initState();
+    _selectedTab = widget.initialTab;
     // Fetch groups on load
     WidgetsBinding.instance.addPostFrameCallback((_) {
       context.read<GroupProvider>().fetchGroups();

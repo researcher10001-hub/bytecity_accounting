@@ -15,6 +15,7 @@ import '../../models/group_model.dart';
 import '../../models/transaction_model.dart';
 import '../transaction/transaction_entry_screen.dart';
 import '../transaction/transaction_detail_screen.dart';
+import '../admin/account_groups_screen.dart';
 
 class LedgerScreen extends StatefulWidget {
   final String? initialAccountName;
@@ -1198,13 +1199,13 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             children: [
                               TextButton.icon(
                                 onPressed: () {
-                                  // Groups are managed from Settings > Account Groups
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Groups can be managed from Settings → Account Groups',
-                                      ),
-                                      duration: Duration(seconds: 2),
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) =>
+                                          const AccountGroupsScreen(
+                                            initialTab: 'report',
+                                          ),
                                     ),
                                   );
                                 },
