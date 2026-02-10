@@ -262,6 +262,7 @@ function createAccount(e) {
     // Schema: Name [0], Owners [1], Group IDs [2], Type [3], Active [4], HasUsage [5], Currency [6]
     sheet.appendRow([name, owners, groupIds, type, true, false, currency]);
     
+    SpreadsheetApp.flush(); // Force write
     return successResponse({'message': 'Account created'});
     
   } catch (err) {
@@ -1429,6 +1430,7 @@ function createGroup(e) {
     const targetAccounts = accounts || [];
     _updateAccountGroupLinks(newId, targetAccounts, true);
     
+    SpreadsheetApp.flush(); // Force write
     return successResponse({'message': 'Group created', 'id': newId});
     
   } catch (err) {
@@ -1475,6 +1477,7 @@ function updateGroup(e) {
        _updateAccountGroupLinks(id, accounts, true); // True = replace mode (handle removals)
     }
     
+    SpreadsheetApp.flush(); // Force write
     return successResponse({'message': 'Group updated'});
     
   } catch (err) {
@@ -1560,6 +1563,7 @@ function deleteGroup(e) {
     // UNLINK FROM ALL ACCOUNTS
     _updateAccountGroupLinks(id, [], true); // Empty list + replace mode = remove all
     
+    SpreadsheetApp.flush(); // Force write
     return successResponse({'message': 'Group deleted'});
     
   } catch (err) {

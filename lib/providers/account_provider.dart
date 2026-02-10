@@ -28,7 +28,10 @@ class AccountProvider with ChangeNotifier {
     try {
       final data = await _apiService.postRequest(
         ApiConstants.actionGetAccounts,
-        {'email': user.email},
+        {
+          'email': user.email,
+          '_': DateTime.now().millisecondsSinceEpoch.toString(), // Cache Buster
+        },
       );
 
       if (data is List) {

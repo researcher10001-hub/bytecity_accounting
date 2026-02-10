@@ -98,14 +98,6 @@ class Account {
 
   bool canView(User user) {
     if (canEdit(user)) return true;
-    if (user.isAdmin) {
-      return true; // Admins see all? Or strict? Protocol says "Admin NEVER approves accounting truth", but viewing is likely allowed.
-    }
-
-    // Intersection of Account Groups and User Groups
-    for (var gId in groupIds) {
-      if (user.groupIds.contains(gId)) return true;
-    }
     return false;
   }
 

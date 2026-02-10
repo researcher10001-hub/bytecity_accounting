@@ -73,6 +73,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
     // 1. Filter Transactions
     List<Map<String, dynamic>> ledgerEntries = [];
     double runningBalance = 0.0;
+
     double totalDebit = 0.0;
     double totalCredit = 0.0;
 
@@ -1082,6 +1083,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
       backgroundColor: Colors.transparent,
       builder: (ctx) {
         String query = "";
+        bool isRefreshing = false; // Loading state
         return StatefulBuilder(
           builder: (context, setModalState) {
             final filtered = allAccounts
@@ -1113,6 +1115,12 @@ class _LedgerScreenState extends State<LedgerScreen> {
               child: SafeArea(
                 child: Column(
                   children: [
+                    // Loading Indicator
+                    if (isRefreshing)
+                      const LinearProgressIndicator(
+                        backgroundColor: Colors.transparent,
+                        valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                      ),
                     // Header
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -1124,18 +1132,23 @@ class _LedgerScreenState extends State<LedgerScreen> {
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Text(
-                            'Select Accounts',
-                            style: GoogleFonts.inter(
-                              fontSize: 18,
-                              fontWeight: FontWeight.w600,
+                          Flexible(
+                            child: Text(
+                              'Select Accounts',
+                              style: GoogleFonts.inter(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                              ),
+                              overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               TextButton.icon(
-                                onPressed: () {
-                                  Navigator.push(
+                                onPressed: () async {
+                                  // Navigate to Account Groups and auto-refresh on return
+                                  await Navigator.push(
                                     context,
                                     MaterialPageRoute(
                                       builder: (context) =>
@@ -1144,6 +1157,23 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                           ),
                                     ),
                                   );
+
+                                  // Show loading state
+                                  setModalState(() => isRefreshing = true);
+
+                                  // Auto-refresh accounts when returning
+                                  final provider = context
+                                      .read<AccountProvider>();
+                                  final user = context
+                                      .read<AuthProvider>()
+                                      .user;
+                                  await provider.fetchAccounts(
+                                    user,
+                                    forceRefresh: true,
+                                  );
+
+                                  // Hide loading and rebuild modal
+                                  setModalState(() => isRefreshing = false);
                                 },
                                 icon: const Icon(
                                   LucideIcons.plusCircle,
@@ -1202,16 +1232,21 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                 const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final group = reportGroups[index];
-                              // Check if all accounts in group are selected
-                              final groupAccountNames = group.accountNames
-                                  .toSet();
-                              final selectedNames = _selectedAccounts
-                                  .map((a) => a.name)
-                                  .toSet();
+                              // Use AccountProvider as source of truth
+                              // Filter accounts that possess this group's ID
+                              final accountsInGroup = allAccounts
+                                  .where((a) => a.groupIds.contains(group.id))
+                                  .toList();
+
+                              if (accountsInGroup.isEmpty) {
+                                // If no accounts in this group, show as unselected disabled state or just unselected
+                                // But better to check if any are selected
+                              }
+
                               final isFullySelected =
-                                  groupAccountNames.isNotEmpty &&
-                                  groupAccountNames.every(
-                                    (name) => selectedNames.contains(name),
+                                  accountsInGroup.isNotEmpty &&
+                                  accountsInGroup.every(
+                                    (a) => _selectedAccounts.contains(a),
                                   );
 
                               return ActionChip(
@@ -1235,18 +1270,19 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                   fontWeight: FontWeight.w500,
                                 ),
                                 onPressed: () {
-                                  final accountsToSelect = allAccounts.where(
-                                    (a) => groupAccountNames.contains(a.name),
-                                  );
+                                  if (accountsInGroup.isEmpty) return;
 
                                   if (isFullySelected) {
-                                    // Deselect all
+                                    // Deselect all (robust against stale objects by using name)
+                                    final namesInGroup = accountsInGroup
+                                        .map((a) => a.name)
+                                        .toSet();
                                     _selectedAccounts.removeWhere(
-                                      (a) => groupAccountNames.contains(a.name),
+                                      (a) => namesInGroup.contains(a.name),
                                     );
                                   } else {
                                     // Select all (union)
-                                    for (var acc in accountsToSelect) {
+                                    for (var acc in accountsInGroup) {
                                       if (!_selectedAccounts.contains(acc)) {
                                         _selectedAccounts.add(acc);
                                       }
