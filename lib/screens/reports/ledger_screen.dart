@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import '../../providers/account_provider.dart';
 import '../../providers/transaction_provider.dart';
@@ -203,11 +204,19 @@ class _LedgerScreenState extends State<LedgerScreen> {
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(
-              LucideIcons.refreshCw,
-              size: 18,
-              color: Color(0xFF64748B),
-            ),
+            icon: transactionProvider.isLoading
+                ? const Icon(
+                        LucideIcons.refreshCw,
+                        size: 18,
+                        color: Color(0xFF64748B),
+                      )
+                      .animate(onPlay: (c) => c.repeat())
+                      .rotate(duration: 1.seconds)
+                : const Icon(
+                    LucideIcons.refreshCw,
+                    size: 18,
+                    color: Color(0xFF64748B),
+                  ),
             onPressed: () =>
                 transactionProvider.fetchHistory(user, forceRefresh: true),
           ),
