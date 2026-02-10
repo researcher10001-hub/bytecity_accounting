@@ -302,7 +302,9 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                         style: const TextStyle(fontSize: 13),
                       ),
                       Text(
-                        d.debit > 0 ? "Dr ${d.debit}" : "Cr ${d.credit}",
+                        d.debit > 0
+                            ? "Dr ${NumberFormat('#,##0.00').format(d.debit)}"
+                            : "Cr ${NumberFormat('#,##0.00').format(d.credit)}",
                         style: TextStyle(
                           fontSize: 12,
                           color: d.debit > 0 ? Colors.black : Colors.grey,
