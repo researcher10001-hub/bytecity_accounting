@@ -50,6 +50,7 @@ class UserProvider with ChangeNotifier {
       final payload = {
         'email': updatedUser.email,
         'role': updatedUser.role,
+        'designation': updatedUser.designation,
         'status': updatedUser.status,
         'group_ids': updatedUser.groupIds.join(','),
       };
@@ -80,8 +81,8 @@ class UserProvider with ChangeNotifier {
       final newUser = User(
         email: user.email,
         name: user.name,
-
         role: user.role,
+        designation: user.designation,
         status: user.status,
         allowForeignCurrency: user.allowForeignCurrency,
         dateEditPermissionExpiresAt: DateTime.now().add(Duration(hours: hours)),
@@ -104,7 +105,7 @@ class UserProvider with ChangeNotifier {
         email: user.email,
         name: user.name,
         role: user.role,
-
+        designation: user.designation,
         status: user.status,
         allowForeignCurrency: allowed,
         dateEditPermissionExpiresAt: user.dateEditPermissionExpiresAt,
@@ -123,6 +124,7 @@ class UserProvider with ChangeNotifier {
     String email,
     String password,
     String role,
+    String designation,
   ) async {
     _isLoading = true;
     notifyListeners();
@@ -133,6 +135,7 @@ class UserProvider with ChangeNotifier {
         'email': email.trim(),
         'password': password,
         'role': role,
+        'designation': designation.trim(),
       };
 
       await _apiService.postRequest(ApiConstants.actionCreateUser, payload);
@@ -142,6 +145,7 @@ class UserProvider with ChangeNotifier {
         email: email.trim(),
         name: name.trim(),
         role: role,
+        designation: designation.trim(),
         status: 'Active',
       );
       _users.add(newUser);

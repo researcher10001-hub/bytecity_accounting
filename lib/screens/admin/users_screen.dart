@@ -72,17 +72,11 @@ class _UsersScreenState extends State<UsersScreen> {
     // Group Users
     final admins = filteredUsers.where((u) => u.isAdmin).toList();
     final management = filteredUsers.where((u) => u.isManagement).toList();
-    final boas = filteredUsers
-        .where((u) => u.isBusinessOperationsAssociate)
-        .toList();
+    final boas = filteredUsers.where((u) => u.isAssociate).toList();
     final viewers = filteredUsers.where((u) => u.isViewer).toList(); // Viewers
     final others = filteredUsers
         .where(
-          (u) =>
-              !u.isAdmin &&
-              !u.isManagement &&
-              !u.isBusinessOperationsAssociate &&
-              !u.isViewer,
+          (u) => !u.isAdmin && !u.isManagement && !u.isAssociate && !u.isViewer,
         )
         .toList();
 
@@ -163,7 +157,7 @@ class _UsersScreenState extends State<UsersScreen> {
                         ),
                       if (boas.isNotEmpty)
                         _buildSection(
-                          'Business Operations Associates',
+                          'Associates',
                           boas,
                           userProvider,
                           accountProvider,
@@ -1470,13 +1464,14 @@ class _UsersScreenState extends State<UsersScreen> {
   void _showAddUserDialog(BuildContext context) {
     final nameController = TextEditingController();
     final emailController = TextEditingController();
+    final designationController = TextEditingController(); // NEW
     final passwordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
     String selectedRole = AppRoles.viewer;
     final roles = [
       AppRoles.admin,
       AppRoles.management,
-      AppRoles.businessOperationsAssociate,
+      AppRoles.associate,
       AppRoles.viewer,
     ];
 
@@ -1503,6 +1498,15 @@ class _UsersScreenState extends State<UsersScreen> {
                     controller: emailController,
                     decoration: const InputDecoration(
                       labelText: 'Email Address',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Designation Input
+                  TextField(
+                    controller: designationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Designation (e.g. Senior Accountant)',
                       border: OutlineInputBorder(),
                     ),
                   ),
@@ -1578,7 +1582,13 @@ class _UsersScreenState extends State<UsersScreen> {
 
                         final success = await context
                             .read<UserProvider>()
-                            .addUser(name, email, pass, selectedRole);
+                            .addUser(
+                              name,
+                              email,
+                              pass,
+                              selectedRole,
+                              designationController.text.trim(),
+                            );
 
                         if (context.mounted) {
                           if (success) {
@@ -1731,6 +1741,18 @@ class _UsersScreenState extends State<UsersScreen> {
                               color: Colors.grey.shade800,
                             ),
                           ),
+                          if (user.designation.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(top: 2),
+                              child: Text(
+                                user.designation,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                  color: Colors.indigo.shade700,
+                                ),
+                              ),
+                            ),
                           const SizedBox(height: 4),
                           Row(
                             children: [

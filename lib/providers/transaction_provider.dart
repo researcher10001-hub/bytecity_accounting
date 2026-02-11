@@ -984,6 +984,7 @@ class TransactionProvider with ChangeNotifier {
                 debit: _parseSafeDouble(item['debit']),
                 credit: _parseSafeDouble(item['credit']),
                 narration: '',
+                // Parse per-line currency and rate
                 currency: item['currency']?.toString() ?? 'BDT',
                 rate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
               ),

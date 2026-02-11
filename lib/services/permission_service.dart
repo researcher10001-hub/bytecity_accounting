@@ -101,8 +101,8 @@ class PermissionService {
 
   /// Check if user can View Account Balance
   bool canViewBalance(User user) {
-    if (user.isBusinessOperationsAssociate) {
-      return false; // HIDDEN for BOA
+    if (user.isAssociate) {
+      return false; // HIDDEN for Associates
     }
     return true; // Visible for Admin, Management, Viewer
   }
@@ -114,7 +114,7 @@ class PermissionService {
 
   /// Check if user can View All Reports
   bool canViewReports(User user) {
-    if (user.isBusinessOperationsAssociate) return false;
+    if (user.isAssociate) return false;
     return true; // Admin, Management, Viewer
   }
 }

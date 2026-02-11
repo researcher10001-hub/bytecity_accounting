@@ -212,6 +212,8 @@ function getAccounts(e) {
         // HasUsage is internal optimization (Col 5 / Index 5)
         // DefaultCurrency is Col 7 (Index 6)
         const currency = (row.length > 6) ? row[6] : "BDT";
+        // Sub-Category is Col 8 (Index 7)
+        const subCategory = (row.length > 7) ? row[7] : "";
 
         accounts.push({
           'name': row[0],
@@ -220,7 +222,8 @@ function getAccounts(e) {
           'group_ids': row[2].toString(), 
           'type': row[3],
           'active': isActive,
-          'default_currency': currency
+          'default_currency': currency,
+          'sub_category': subCategory
         });
      }
      
@@ -243,6 +246,8 @@ function createAccount(e) {
     const owners = data.owners || "admin@test.com"; 
     const groupIds = data.group_ids || ""; 
     const currency = data.default_currency || "BDT";
+    // Sub-Category
+    const subCategory = data.sub_category || "";
     
     if (!name || !type) {
       return errorResponse("Missing required fields");
@@ -259,8 +264,8 @@ function createAccount(e) {
       }
     }
     
-    // Schema: Name [0], Owners [1], Group IDs [2], Type [3], Active [4], HasUsage [5], Currency [6]
-    sheet.appendRow([name, owners, groupIds, type, true, false, currency]);
+    // Schema: Name [0], Owners [1], Group IDs [2], Type [3], Active [4], HasUsage [5], Currency [6], Sub-Category [7]
+    sheet.appendRow([name, owners, groupIds, type, true, false, currency, subCategory]);
     
     SpreadsheetApp.flush(); // Force write
     return successResponse({'message': 'Account created'});
@@ -279,6 +284,7 @@ function updateAccount(e) {
     const type = data.type;
     const groupIds = data.group_ids || ""; 
     const owners = data.owners; // New owners list
+    const subCategory = data.sub_category; 
     
     if (!oldName || !newName || !type) {
       return errorResponse("Missing required fields");
@@ -313,12 +319,19 @@ function updateAccount(e) {
     sheet.getRange(rowToUpdate, 4).setValue(type);
     
     // Update Currency if provided
-    // Update Currency if provided
     if (currency) {
          // Column 7 corresponds to Index 6
          // getRange(row, col) is 1-based. So 7.
          sheet.getRange(rowToUpdate, 7).setValue(currency);
     }
+    
+    // Update Sub-Category if provided
+    if (subCategory !== undefined) {
+         // Column 8 corresponds to Index 7
+         sheet.getRange(rowToUpdate, 8).setValue(subCategory);
+    }
+
+    // Update Owners if provided
     
     // Update Owners if provided
     if (owners !== undefined && owners !== null) {
@@ -405,6 +418,10 @@ function updateUser(e) {
     if (status !== undefined) sheet.getRange(rowToUpdate, 5).setValue(status);
     if (groupIds !== undefined) sheet.getRange(rowToUpdate, 6).setValue(groupIds);
     
+    // Designation is Col 8 (Index 7)
+    const designation = data.designation;
+    if (designation !== undefined) sheet.getRange(rowToUpdate, 8).setValue(designation);
+    
     return successResponse({'message': 'User updated'});
     
   } catch (err) {
@@ -420,7 +437,8 @@ function createUser(e) {
     const email = data.email;
     const password = data.password;
     const role = data.role || "Viewer";
-    
+    const designation = data.designation || "";
+
     if (!name || !email || !password) {
       return errorResponse("Missing required fields");
     }
@@ -439,8 +457,8 @@ function createUser(e) {
     
     const hash = generateHash(email, password);
     
-    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5]
-    sheet.appendRow([name, email, hash, role, "Active", ""]);
+    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7]
+    sheet.appendRow([name, email, hash, role, "Active", "", "", designation]);
     
     return successResponse({'message': 'User created'});
     
@@ -504,7 +522,8 @@ function getUsers(e) {
         'role': row[3],
         'status': row[4], // Active, Suspended, Deleted
         'active': row[4] == "Active", // Backward compatibility check
-        'group_ids': (row.length > 5) ? row[5].toString() : ""
+        'group_ids': (row.length > 5) ? row[5].toString() : "",
+        'designation': (row.length > 7) ? row[7].toString() : ""
       });
     }
     
@@ -591,9 +610,12 @@ function loginUser(e) {
              
              // GENERATE NEW SESSION TOKEN
              const newToken = Utilities.getUuid();
-             // Store in Col 7
+             // Store in Col 7 (Session Token)
              sheet.getRange(i + 1, 7).setValue(newToken);
              
+             // Designation is Col 8 (Index 7)
+             const designation = (row.length > 7) ? row[7].toString() : "";
+
              return successResponse({
                'name': row[0],
                'email': storedEmail,
@@ -601,7 +623,8 @@ function loginUser(e) {
                'status': "Active", 
                'active': true,
                'group_ids': groupIds,
-               'session_token': newToken // Send to client
+               'session_token': newToken,
+               'designation': designation
              });
           } else {
             return errorResponse("Account " + status + ". Contact admin.");

@@ -3,6 +3,7 @@ import '../core/constants/role_constants.dart';
 class User {
   final String name;
   final String email;
+  final String designation;
   final String role; // Admin, Accountant, Viewer
   final String status; // Active, Suspended, Deleted
   final bool allowForeignCurrency;
@@ -15,6 +16,7 @@ class User {
     required this.name,
     required this.email,
     required this.role,
+    this.designation = '',
     this.status = 'Active',
     this.allowForeignCurrency = false,
     this.dateEditPermissionExpiresAt,
@@ -38,6 +40,7 @@ class User {
     String name = (json['name'] ?? '').toString().trim();
     String email = (json['email'] ?? '').toString().trim();
     String roleRaw = (json['role'] ?? 'Viewer').toString().trim();
+    String designationRaw = (json['designation'] ?? '').toString().trim();
     String statusRaw = (json['status'] ?? '').toString().trim();
 
     // Use 'active' flag if status is missing or empty
@@ -62,6 +65,7 @@ class User {
       name: name,
       email: email,
       role: roleRaw,
+      designation: designationRaw,
       status: statusRaw,
       allowForeignCurrency: json['allow_foreign_currency'] == true,
       dateEditPermissionExpiresAt: json['date_edit_expires_at'] != null
@@ -77,6 +81,7 @@ class User {
       'name': name,
       'email': email,
       'role': role,
+      'designation': designation,
       'status': status,
       'allow_foreign_currency': allowForeignCurrency,
       'date_edit_expires_at': dateEditPermissionExpiresAt?.toIso8601String(),
@@ -88,10 +93,10 @@ class User {
   // Helper properties for roles
   bool get isAdmin => role.toLowerCase() == AppRoles.admin.toLowerCase();
   bool get isManagement =>
-      role.toLowerCase() == AppRoles.management.toLowerCase() ||
-      role.toLowerCase() == AppRoles.authority.toLowerCase();
-  bool get isBusinessOperationsAssociate =>
-      role.toLowerCase() == AppRoles.businessOperationsAssociate.toLowerCase();
+      role.toLowerCase() == AppRoles.management.toLowerCase();
+  bool get isAssociate =>
+      role.toLowerCase() == AppRoles.associate.toLowerCase() ||
+      role.toLowerCase() == 'business operations associate'; // Backward compat
   bool get isViewer => role.toLowerCase() == AppRoles.viewer.toLowerCase();
 
   // Status Helpers

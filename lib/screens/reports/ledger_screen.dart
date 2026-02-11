@@ -144,9 +144,9 @@ class _LedgerScreenState extends State<LedgerScreen> {
             ].contains(matchedAccount.type);
 
             if (isDebitNormal) {
-              movement = detail.debit - detail.credit;
+              movement = detail.debitBDT - detail.creditBDT;
             } else {
-              movement = detail.credit - detail.debit;
+              movement = detail.creditBDT - detail.debitBDT;
             }
 
             runningBalance += movement;
@@ -173,14 +173,20 @@ class _LedgerScreenState extends State<LedgerScreen> {
                   ? detail.narration
                   : (tx.mainNarration.isNotEmpty ? tx.mainNarration : ''),
               'against': againstAccountName,
-              'debit': detail.debit,
-              'credit': detail.credit,
+              // Use BDT equivalents for Ledger
+              'debit': detail.debitBDT,
+              'credit': detail.creditBDT,
               'balance': runningBalance,
               'type': tx.type,
               'createdBy': tx.createdBy,
               'originalTx': tx,
               'specificAccount': matchedAccount
                   .name, // To know which account this line belongs to
+              // Store original currency details for display
+              'currency': detail.currency,
+              'rate': detail.rate,
+              'originalDebit': detail.debit,
+              'originalCredit': detail.credit,
             });
           }
         }
@@ -422,6 +428,19 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             // Action Required Logic
                             // If isPending is true, show Action Required.
 
+                            // Extract Original Currency Info
+                            final String currency =
+                                entry['currency']?.toString() ?? 'BDT';
+                            final double rate = (entry['rate'] ?? 1.0)
+                                .toDouble();
+                            final double originalDebit =
+                                (entry['originalDebit'] ?? 0.0).toDouble();
+                            final double originalCredit =
+                                (entry['originalCredit'] ?? 0.0).toDouble();
+                            final double originalAmount = isDebit
+                                ? originalDebit
+                                : originalCredit;
+
                             return _buildTransactionCard(
                               context,
                               entry,
@@ -432,6 +451,10 @@ class _LedgerScreenState extends State<LedgerScreen> {
                               isPending: isPending,
                               status: status,
                               uniqueKeyExtra: index.toString(),
+                              // Pass Original Currency Info
+                              currency: currency,
+                              rate: rate,
+                              originalAmount: originalAmount,
                             );
                           },
                         ),
@@ -454,6 +477,10 @@ class _LedgerScreenState extends State<LedgerScreen> {
     required bool isPending,
     required String status,
     String? uniqueKeyExtra,
+    // New parameters for multi-currency
+    String currency = 'BDT',
+    double rate = 1.0,
+    double originalAmount = 0.0,
   }) {
     final transactionProvider = context.read<TransactionProvider>();
     // FORMAT DATE: "05 Feb"
@@ -771,6 +798,24 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                 color: amountColor,
                               ),
                             ),
+                            if (isDebit && currency != 'BDT') ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                '$currency ${NumberFormat('#,##0.00').format(originalAmount)}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  color: Colors.grey.shade600,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              Text(
+                                '@ $rate',
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
                             Text(
                               'Dr',
                               style: GoogleFonts.inter(
@@ -798,6 +843,24 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                 color: amountColor,
                               ),
                             ),
+                            if (!isDebit && currency != 'BDT') ...[
+                              const SizedBox(height: 2),
+                              Text(
+                                '$currency ${NumberFormat('#,##0.00').format(originalAmount)}',
+                                style: GoogleFonts.inter(
+                                  fontSize: 10,
+                                  color: Colors.grey.shade600,
+                                  fontStyle: FontStyle.italic,
+                                ),
+                              ),
+                              Text(
+                                '@ $rate',
+                                style: GoogleFonts.inter(
+                                  fontSize: 9,
+                                  color: Colors.grey.shade500,
+                                ),
+                              ),
+                            ],
                             Text(
                               'Cr',
                               style: GoogleFonts.inter(
