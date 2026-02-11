@@ -10,10 +10,21 @@ import 'account_provider.dart';
 
 // Helper class for UI modification before saving to main model
 class SplitEntry {
+  final String id; // Stable ID for UI keys
   Account? account;
   double amount;
+  String currency; // Per-line currency: 'BDT', 'AED', 'USD', 'RM'
+  double rate; // Exchange rate to BDT (1.0 for BDT)
 
-  SplitEntry({this.account, this.amount = 0.0});
+  double get bdtAmount => amount * rate;
+
+  SplitEntry({
+    String? id,
+    this.account,
+    this.amount = 0.0,
+    this.currency = 'BDT',
+    this.rate = 1.0,
+  }) : id = id ?? DateTime.now().microsecondsSinceEpoch.toString();
 }
 
 class TransactionProvider with ChangeNotifier {
@@ -23,7 +34,7 @@ class TransactionProvider with ChangeNotifier {
   String _voucherNo = '';
   String _mainNarration = '';
 
-  // Currency State
+  // Currency State (voucher-level kept for backward compat, but per-line is primary)
   String _currency = 'BDT';
   double _exchangeRate = 1.0;
 
@@ -70,9 +81,15 @@ class TransactionProvider with ChangeNotifier {
   double get totalDestAmount =>
       _destinations.fold(0, (sum, item) => sum + item.amount);
 
-  double get equivalentBDT => totalSourceAmount * _exchangeRate;
+  // BDT equivalent totals (for balance checking across currencies)
+  double get totalSourceBDT =>
+      _sources.fold(0, (sum, item) => sum + item.bdtAmount);
+  double get totalDestBDT =>
+      _destinations.fold(0, (sum, item) => sum + item.bdtAmount);
 
-  bool get isBalanced => (totalSourceAmount - totalDestAmount).abs() < 0.001;
+  double get equivalentBDT => totalSourceBDT;
+
+  bool get isBalanced => (totalSourceBDT - totalDestBDT).abs() < 0.01;
 
   // Constructor
   TransactionProvider() {
@@ -149,8 +166,17 @@ class TransactionProvider with ChangeNotifier {
   void toggleSplitMode(bool enable) {
     _isSplitMode = enable;
     if (!enable) {
+      // Simple mode = BDT only; reset currencies
       if (_sources.length > 1) _sources = [_sources.first];
       if (_destinations.length > 1) _destinations = [_destinations.first];
+      for (var s in _sources) {
+        s.currency = 'BDT';
+        s.rate = 1.0;
+      }
+      for (var d in _destinations) {
+        d.currency = 'BDT';
+        d.rate = 1.0;
+      }
     }
     notifyListeners();
   }
@@ -169,25 +195,29 @@ class TransactionProvider with ChangeNotifier {
     _currency = tx.currency;
     _exchangeRate = tx.exchangeRate;
 
-    // Populate Sources and Destinations
+    // Populate Sources and Destinations with per-line currency/rate
     _sources = [];
     _destinations = [];
 
     for (var detail in tx.details) {
       if (detail.debit > 0) {
-        // Destination (Debit)
+        // Destination (Debit) — use original amount and per-line currency/rate
         _destinations.add(
           SplitEntry(
             account: detail.account,
-            amount: detail.debit / _exchangeRate,
+            amount: detail.debit,
+            currency: detail.currency,
+            rate: detail.rate,
           ),
         );
       } else {
-        // Source (Credit)
+        // Source (Credit) — use original amount and per-line currency/rate
         _sources.add(
           SplitEntry(
             account: detail.account,
-            amount: detail.credit / _exchangeRate,
+            amount: detail.credit,
+            currency: detail.currency,
+            rate: detail.rate,
           ),
         );
       }
@@ -204,15 +234,27 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  // --- Helper to check default currency ---
-  void _checkAndSetDefaultCurrency(Account? account) {
-    if (account?.defaultCurrency != null && account!.defaultCurrency != 'BDT') {
-      // Auto-switch currency
-      _currency = account.defaultCurrency!;
-      // NOTE: We don't reset exchange rate to 1.0, user must input rate or we fetch it.
-      // Ideally we might fetch rate here, but for now we let user input it.
-      // But if we switch back to BDT, we reset.
-    }
+  // --- Per-line currency helpers ---
+  void updateSourceCurrency(int index, String currency) {
+    _sources[index].currency = currency;
+    if (currency == 'BDT') _sources[index].rate = 1.0;
+    notifyListeners();
+  }
+
+  void updateSourceRate(int index, double rate) {
+    _sources[index].rate = rate;
+    notifyListeners();
+  }
+
+  void updateDestCurrency(int index, String currency) {
+    _destinations[index].currency = currency;
+    if (currency == 'BDT') _destinations[index].rate = 1.0;
+    notifyListeners();
+  }
+
+  void updateDestRate(int index, double rate) {
+    _destinations[index].rate = rate;
+    notifyListeners();
   }
 
   // --- Simple Mode Helpers ---
@@ -226,7 +268,12 @@ class TransactionProvider with ChangeNotifier {
   void setSimpleSourceAccount(Account? account) {
     if (_sources.isNotEmpty) {
       _sources[0].account = account;
-      _checkAndSetDefaultCurrency(account);
+      // Auto-detect currency from account's defaultCurrency
+      if (account?.defaultCurrency != null &&
+          account!.defaultCurrency!.isNotEmpty) {
+        _sources[0].currency = account.defaultCurrency!;
+        if (account.defaultCurrency == 'BDT') _sources[0].rate = 1.0;
+      }
       notifyListeners();
     }
   }
@@ -234,7 +281,12 @@ class TransactionProvider with ChangeNotifier {
   void setSimpleDestAccount(Account? account) {
     if (_destinations.isNotEmpty) {
       _destinations[0].account = account;
-      _checkAndSetDefaultCurrency(account);
+      // Auto-detect currency from account's defaultCurrency
+      if (account?.defaultCurrency != null &&
+          account!.defaultCurrency!.isNotEmpty) {
+        _destinations[0].currency = account.defaultCurrency!;
+        if (account.defaultCurrency == 'BDT') _destinations[0].rate = 1.0;
+      }
       notifyListeners();
     }
   }
@@ -262,7 +314,12 @@ class TransactionProvider with ChangeNotifier {
 
   void updateSourceAccount(int index, Account? account) {
     _sources[index].account = account;
-    _checkAndSetDefaultCurrency(account);
+    // Auto-detect currency from account
+    if (account?.defaultCurrency != null &&
+        account!.defaultCurrency!.isNotEmpty) {
+      _sources[index].currency = account.defaultCurrency!;
+      if (account.defaultCurrency == 'BDT') _sources[index].rate = 1.0;
+    }
     notifyListeners();
   }
 
@@ -285,7 +342,12 @@ class TransactionProvider with ChangeNotifier {
 
   void updateDestAccount(int index, Account? account) {
     _destinations[index].account = account;
-    _checkAndSetDefaultCurrency(account);
+    // Auto-detect currency from account
+    if (account?.defaultCurrency != null &&
+        account!.defaultCurrency!.isNotEmpty) {
+      _destinations[index].currency = account.defaultCurrency!;
+      if (account.defaultCurrency == 'BDT') _destinations[index].rate = 1.0;
+    }
     notifyListeners();
   }
 
@@ -333,7 +395,7 @@ class TransactionProvider with ChangeNotifier {
 
     if (!isBalanced) {
       _error =
-          'Total Source ($totalSourceAmount) and Destination ($totalDestAmount) must ensure balance.';
+          'BDT Equivalent mismatch: Source BDT(${totalSourceBDT.toStringAsFixed(2)}) ≠ Dest BDT(${totalDestBDT.toStringAsFixed(2)})';
       notifyListeners();
       return false;
     }
@@ -356,61 +418,56 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // CONVERT Sources/Destinations to TransactionDetail list with Dr/Cr logic
+      // CONVERT Sources/Destinations to TransactionDetail list with per-line currency/rate
       List<TransactionDetail> finalDetails = [];
 
-      // Add Destinations (Debit) FIRST
+      // Add Destinations (Debit) FIRST — original amount, per-line currency/rate
       for (var d in _destinations) {
         finalDetails.add(
           TransactionDetail(
             account: d.account,
             credit: 0,
-            debit: d.amount * _exchangeRate, // Convert to BDT
+            debit: d.amount, // Original amount (NOT multiplied by rate)
             narration: 'Destination',
+            currency: d.currency,
+            rate: d.rate,
           ),
         );
       }
 
-      // Add Sources (Credit) SECOND
+      // Add Sources (Credit) SECOND — original amount, per-line currency/rate
       for (var s in _sources) {
         finalDetails.add(
           TransactionDetail(
             account: s.account,
-            credit: s.amount * _exchangeRate, // Convert to BDT
+            credit: s.amount, // Original amount (NOT multiplied by rate)
             debit: 0,
             narration: 'Source',
+            currency: s.currency,
+            rate: s.rate,
           ),
         );
       }
 
-      final transaction = TransactionModel(
-        date: _selectedDate,
-        type: _selectedType!,
-        voucherNo: _voucherNo,
-        mainNarration: _mainNarration,
-        details: finalDetails,
-        createdBy: user.email,
-        currency: _currency,
-        exchangeRate: _exchangeRate,
-      );
-
-      // Build API Payload
+      // Build API Payload with per-line currency/rate
       final Map<String, dynamic> apiPayload = {
         'user_email': user.email,
         'session_token': user.sessionToken,
         'entry': {
           'date':
               "${_selectedDate.year}-${_selectedDate.month.toString().padLeft(2, '0')}-${_selectedDate.day.toString().padLeft(2, '0')}",
-          'type': _selectedType.toString().split('.').last, // Add Type
+          'type': _selectedType.toString().split('.').last,
           'voucher_no': _voucherNo,
           'description': _mainNarration,
-          'currency': _currency,
-          'rate': _exchangeRate,
+          'currency': _currency, // Voucher-level (backward compat)
+          'rate': _exchangeRate, // Voucher-level (backward compat)
           'lines': finalDetails.map((d) {
             return {
               'account': d.account?.name ?? 'Unknown',
               'debit': d.debit,
               'credit': d.credit,
+              'currency': d.currency,
+              'rate': d.rate,
             };
           }).toList(),
         },
@@ -418,7 +475,7 @@ class TransactionProvider with ChangeNotifier {
 
       // API Call
       final response = await _apiService.postRequest(
-        ApiConstants.actionCreateEntry, // Point to the correct backend action
+        ApiConstants.actionCreateEntry,
         apiPayload,
       );
 
@@ -427,19 +484,6 @@ class TransactionProvider with ChangeNotifier {
         final serverVoucherNo = response['voucher_no'].toString();
         _voucherNo = serverVoucherNo;
 
-        // We must update the transaction model instance before adding to history
-        // Since TransactionModel fields are final, we can't 'update' it easily unless we remove 'final' or recreate it.
-        // Wait, voucherNo IS final.
-        // So we should CREATE the transaction object AFTER the API response?
-        // Or recreate it.
-        // Ideally, we move the creation down?
-        // No, 'transaction' variable is needed for 'insert(0, transaction)'.
-
-        // Let's create a NEW copy with updated voucherNo
-        // But TransactionModel doesn't have copyWith.
-        // I'll assume I can just instantiate a new one using the old one's data + new voucherNo.
-
-        // BETTER: Re-instantiate here.
         final updatedTransaction = TransactionModel(
           date: _selectedDate,
           type: _selectedType!,
@@ -458,7 +502,17 @@ class TransactionProvider with ChangeNotifier {
         return updatedTransaction;
       }
 
-      // Fallback if no voucher_no returned (shouldn't happen with new backend)
+      // Fallback
+      final transaction = TransactionModel(
+        date: _selectedDate,
+        type: _selectedType!,
+        voucherNo: _voucherNo,
+        mainNarration: _mainNarration,
+        details: finalDetails,
+        createdBy: user.email,
+        currency: _currency,
+        exchangeRate: _exchangeRate,
+      );
       print('Saved Transaction (Fallback): ${transaction.toJson()}');
       _transactions.insert(0, transaction);
 
@@ -468,7 +522,7 @@ class TransactionProvider with ChangeNotifier {
       print('Error in saveTransaction: $e');
       _isLoading = false;
       notifyListeners();
-      rethrow; // Re-throw to allow UI to catch and show error
+      rethrow;
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -483,15 +537,17 @@ class TransactionProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // similar to saveTransaction logic for building payload
+      // Build TransactionDetails with per-line currency/rate
       List<TransactionDetail> finalDetails = [];
       for (var d in _destinations) {
         finalDetails.add(
           TransactionDetail(
             account: d.account,
-            debit: d.amount * _exchangeRate,
+            debit: d.amount, // Original amount
             credit: 0,
             narration: 'Destination',
+            currency: d.currency,
+            rate: d.rate,
           ),
         );
       }
@@ -500,15 +556,16 @@ class TransactionProvider with ChangeNotifier {
           TransactionDetail(
             account: s.account,
             debit: 0,
-            credit: s.amount * _exchangeRate,
+            credit: s.amount, // Original amount
             narration: 'Source',
+            currency: s.currency,
+            rate: s.rate,
           ),
         );
       }
 
       final Map<String, dynamic> apiPayload = {
-        'action':
-            'editEntry', // Specify Action for safety if logic flow changes
+        'action': 'editEntry',
         'user_email': user.email,
         'old_voucher_no': _editingOldVoucherNo,
         'entry': {
@@ -524,23 +581,22 @@ class TransactionProvider with ChangeNotifier {
               'account': d.account?.name ?? 'Unknown',
               'debit': d.debit,
               'credit': d.credit,
+              'currency': d.currency,
+              'rate': d.rate,
             };
           }).toList(),
         },
       };
 
-      await _apiService.postRequest(
-        'editEntry',
-        apiPayload,
-      ); // Using generic action handling
+      await _apiService.postRequest('editEntry', apiPayload);
 
-      // Update Local State (Soft Delete Old, Add New)
+      // Update Local State
       _transactions.removeWhere((tx) => tx.voucherNo == _editingOldVoucherNo);
 
       final updatedTransaction = TransactionModel(
         date: _selectedDate,
         type: _selectedType!,
-        voucherNo: _voucherNo, // Or response voucher
+        voucherNo: _voucherNo,
         mainNarration: _mainNarration,
         details: finalDetails,
         createdBy: user.email,
@@ -928,6 +984,8 @@ class TransactionProvider with ChangeNotifier {
                 debit: _parseSafeDouble(item['debit']),
                 credit: _parseSafeDouble(item['credit']),
                 narration: '',
+                currency: item['currency']?.toString() ?? 'BDT',
+                rate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
               ),
             );
           } catch (e) {

@@ -63,12 +63,20 @@ class TransactionDetail {
   double debit;
   double credit;
   String narration;
+  String currency; // Per-line currency: 'BDT', 'AED', 'USD', 'RM'
+  double rate; // Exchange rate to BDT (1.0 for BDT)
+
+  // BDT equivalents (for balance checking and ledger)
+  double get debitBDT => debit * rate;
+  double get creditBDT => credit * rate;
 
   TransactionDetail({
     this.account,
     this.debit = 0.0,
     this.credit = 0.0,
     this.narration = '',
+    this.currency = 'BDT',
+    this.rate = 1.0,
   });
 
   Map<String, dynamic> toJson() {
@@ -77,6 +85,10 @@ class TransactionDetail {
       'debit': debit,
       'credit': credit,
       'narration': narration,
+      'currency': currency,
+      'rate': rate,
+      'debit_bdt': debitBDT,
+      'credit_bdt': creditBDT,
     };
   }
 
@@ -137,8 +149,13 @@ class TransactionModel {
 
   double get totalDebit => details.fold(0, (sum, item) => sum + item.debit);
   double get totalCredit => details.fold(0, (sum, item) => sum + item.credit);
+  // BDT equivalents for balance checking
+  double get totalDebitBDT =>
+      details.fold(0, (sum, item) => sum + item.debitBDT);
+  double get totalCreditBDT =>
+      details.fold(0, (sum, item) => sum + item.creditBDT);
   bool get isBalanced =>
-      (totalDebit - totalCredit).abs() < 0.01; // Floating point tolerance
+      (totalDebitBDT - totalCreditBDT).abs() < 0.01; // Floating point tolerance
 
   Map<String, dynamic> toJson() {
     return {

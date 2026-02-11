@@ -680,22 +680,30 @@ function createEntry(e) {
     
     let totalDr = 0;
     let totalCr = 0;
+    // Use BDT equivalents for balance check (per-line currency support)
+    let totalDrBDT = 0;
+    let totalCrBDT = 0;
     const rowsToAdd = [];
     const accountsInvolved = new Set();
     
-    // First pass: collect accounts and calculate totals
+    // First pass: collect accounts and calculate totals using BDT equivalents
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const dr = parseFloat(line.debit || 0);
         const cr = parseFloat(line.credit || 0);
+        // Per-line currency/rate (fallback to voucher-level)
+        const lineCurrency = line.currency || currency;
+        const lineRate = parseFloat(line.rate || rate);
         totalDr += dr;
         totalCr += cr;
+        totalDrBDT += dr * lineRate;
+        totalCrBDT += cr * lineRate;
         if (line.account) accountsInvolved.add(line.account);
     }
     
-    // Validate balance
-    if (Math.abs(totalDr - totalCr) > 0.001) {
-      return errorResponse("Voucher unbalanced: Debit(" + totalDr + ") != Credit(" + totalCr + ")");
+    // Validate balance using BDT equivalents (supports multi-currency)
+    if (Math.abs(totalDrBDT - totalCrBDT) > 0.01) {
+      return errorResponse("Voucher unbalanced (BDT): Debit(" + totalDrBDT.toFixed(2) + ") != Credit(" + totalCrBDT.toFixed(2) + ")");
     }
     
     // ===== SELF-ENTRY DETECTION =====
@@ -750,15 +758,16 @@ function createEntry(e) {
     
     const initialLogJson = JSON.stringify(autoLog);
 
-    // Second pass: create rows with proper status and log
+    // Second pass: create rows with per-line currency/rate
     for (let i = 0; i < lines.length; i++) {
         const line = lines[i];
         const dr = parseFloat(line.debit || 0);
         const cr = parseFloat(line.credit || 0);
-        // Columns: 1-13 (existing) + 14-18 (new)
-        // 14: LastActionBy (creator), 15: IsFlagged (false), 16-18: empty
+        // Per-line currency/rate (fallback to voucher-level for backward compat)
+        const lineCurrency = line.currency || currency;
+        const lineRate = parseFloat(line.rate || rate);
         rowsToAdd.push([
-          entryId, date, voucherNo, desc, line.account, dr, cr, currency, rate, 
+          entryId, date, voucherNo, desc, line.account, dr, cr, lineCurrency, lineRate, 
           userEmail, type, initialStatus, initialLogJson, 
           userEmail, // LastActionBy = creator (BOA)
           false,     // IsFlagged
@@ -1251,11 +1260,14 @@ function editEntry(e) {
          const line = lines[i];
          const dr = parseFloat(line.debit || 0);
          const cr = parseFloat(line.credit || 0);
+         // Per-line currency/rate (fallback to voucher-level for backward compat)
+         const lineCurrency = line.currency || currency;
+         const lineRate = parseFloat(line.rate || rate);
          
          // Schema: EntryID, Date, VoucherNo, Desc, Account, Dr, Cr, Curr, Rate, CreatedBy, Type, Status, Log, LastBy, Flagged, By, At, Reason, ActivityAt, ActivityType, ActivityBy
          rowsToAdd.push([
            entryId, date, voucherNo, desc, line.account, 
-           dr, cr, currency, rate, userEmail, type, 
+           dr, cr, lineCurrency, lineRate, userEmail, type, 
            "Active", "[]", userEmail, false, "", "", "",
            new Date().toISOString(), 'edit', userEmail
          ]);

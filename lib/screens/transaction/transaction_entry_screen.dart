@@ -25,9 +25,6 @@ class TransactionEntryScreen extends StatefulWidget {
 }
 
 class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
-  // UI State for Currency Toggle
-  bool _showCurrencyOptions = false;
-
   @override
   void initState() {
     super.initState();
@@ -337,79 +334,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           ],
         ),
 
-        // Currency Toggle
-        const SizedBox(height: 12),
-        Align(
-          alignment: Alignment.centerRight,
-          child: TextButton.icon(
-            onPressed: () {
-              setState(() {
-                _showCurrencyOptions = !_showCurrencyOptions;
-                if (!_showCurrencyOptions) {
-                  provider.setCurrency('BDT'); // Reset if hidden
-                }
-              });
-            },
-            icon: const Icon(Icons.public, size: 16),
-            label: Text(
-              _showCurrencyOptions
-                  ? 'Hide Currency Options'
-                  : 'Change Currency (BDT)',
-              style: const TextStyle(fontSize: 12),
-            ),
-          ),
-        ),
-
-        // Currency Selection Area (On-Demand)
-        if (_showCurrencyOptions || provider.currency != 'BDT')
-          Container(
-            padding: const EdgeInsets.all(12),
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: Colors.blue.shade50,
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: Colors.blue.shade100),
-            ),
-            child: Row(
-              children: [
-                Expanded(
-                  child: DropdownButtonFormField<String>(
-                    initialValue: provider.currency,
-                    decoration: const InputDecoration(
-                      labelText: 'Currency',
-                      isDense: true,
-                      border: OutlineInputBorder(),
-                      contentPadding: EdgeInsets.all(10),
-                    ),
-                    items: ['BDT', 'USD', 'RM', 'AED']
-                        .map((c) => DropdownMenuItem(value: c, child: Text(c)))
-                        .toList(),
-                    onChanged: (val) => provider.setCurrency(val!),
-                  ),
-                ),
-                if (provider.currency != 'BDT') ...[
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: TextFormField(
-                      initialValue: provider.exchangeRate.toString(),
-                      decoration: const InputDecoration(
-                        labelText: 'Exchange Rate',
-                        isDense: true,
-                        border: OutlineInputBorder(),
-                        contentPadding: EdgeInsets.all(10),
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      onChanged: (val) =>
-                          provider.setExchangeRate(double.tryParse(val) ?? 1.0),
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-
+        // Per-line currency is now handled inside each form (simple/split)
         const SizedBox(height: 12),
 
         if (provider.isSplitMode)
@@ -429,8 +354,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             onPressed: () => provider.toggleSplitMode(!provider.isSplitMode),
             child: Text(
               provider.isSplitMode
-                  ? 'Switch to Simple Mode'
-                  : 'Split Amount / Advanced',
+                  ? 'Switch to Simple Mode (BDT Only)'
+                  : 'Split / Multi-Currency Mode',
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
           ),
@@ -674,22 +599,16 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     String fromLabel = 'From (Credit)';
     String toLabel = 'To (Debit)';
 
-    // Request: Debit Label first, Credit Label second
-    // Request: Debit Field first, Credit Field second
-
     switch (provider.selectedType) {
       case VoucherType.payment:
-        // Debit: Expense on, Credit: Paid from
         toLabel = 'Expense on (Debit)';
         fromLabel = 'Paid from (Credit)';
         break;
       case VoucherType.receipt:
-        // Debit: Received in, Credit: Income from
         toLabel = 'Received in (Debit)';
         fromLabel = 'Income from (Credit)';
         break;
       case VoucherType.contra:
-        // Debit: Transfer to, Credit: Transfer from
         toLabel = 'Transfer to (Debit)';
         fromLabel = 'Transfer from (Credit)';
         break;
@@ -698,7 +617,6 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
     return Container(
       padding: const EdgeInsets.all(20),
-      // ... decoration ...
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(12),
@@ -706,7 +624,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       ),
       child: Column(
         children: [
-          // Swap: Show Debit (Dest) First
+          // Debit (Dest) First
           AccountAutocomplete(
             key: const ValueKey('simple_dest'),
             initialValue: accounts.contains(provider.simpleDestAccount)
@@ -718,7 +636,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             onSelected: (acc) => provider.setSimpleDestAccount(acc),
           ),
           const SizedBox(height: 20),
-          // Show Credit (Source) Second
+          // Credit (Source) Second
           AccountAutocomplete(
             key: const ValueKey('simple_source'),
             initialValue: accounts.contains(provider.simpleSourceAccount)
@@ -730,25 +648,11 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             onSelected: (acc) => provider.setSimpleSourceAccount(acc),
           ),
           const SizedBox(height: 20),
-          Column(
-            children: [
-              FormattedAmountField(
-                initialValue: provider.simpleAmount,
-                label: 'Amount (${provider.currency})',
-                isLarge: true,
-                onChanged: (val) => provider.setSimpleAmount(val),
-              ),
-              if (provider.currency != 'BDT') ...[
-                const SizedBox(height: 8),
-                Text(
-                  'Equivalent: ৳${NumberFormat('#,##0.00').format(provider.equivalentBDT)}',
-                  style: TextStyle(
-                    color: Colors.green.shade700,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ],
+          FormattedAmountField(
+            initialValue: provider.simpleAmount,
+            label: 'Amount (BDT)',
+            isLarge: true,
+            onChanged: (val) => provider.setSimpleAmount(val),
           ),
         ],
       ),
@@ -795,6 +699,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           onRemove: provider.removeDestination,
           onUpdateAccount: provider.updateDestAccount,
           onUpdateAmount: provider.updateDestAmount,
+          onUpdateCurrency: provider.updateDestCurrency,
+          onUpdateRate: provider.updateDestRate,
           color: Colors.blue.shade50,
           total: provider.totalDestAmount,
           currency: provider.currency,
@@ -810,6 +716,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           onRemove: provider.removeSource,
           onUpdateAccount: provider.updateSourceAccount,
           onUpdateAmount: provider.updateSourceAmount,
+          onUpdateCurrency: provider.updateSourceCurrency,
+          onUpdateRate: provider.updateSourceRate,
           color: Colors.orange.shade50,
           total: provider.totalSourceAmount,
           currency: provider.currency,
@@ -818,20 +726,35 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         // Balance Check & Conversion Info
         Column(
           children: [
-            if (provider.currency != 'BDT')
+            // Show BDT equivalent breakdown if any line has foreign currency
+            if (provider.destinations.any((d) => d.currency != 'BDT') ||
+                provider.sources.any((s) => s.currency != 'BDT'))
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
-                child: Text(
-                  'Total Equivalent BDT: ৳${NumberFormat('#,##0.000').format(provider.equivalentBDT)}',
-                  style: const TextStyle(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blueGrey,
-                  ),
+                child: Column(
+                  children: [
+                    Text(
+                      'Debit BDT: ৳${NumberFormat('#,##0.000').format(provider.totalDestBDT)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey,
+                        fontSize: 13,
+                      ),
+                    ),
+                    Text(
+                      'Credit BDT: ৳${NumberFormat('#,##0.000').format(provider.totalSourceBDT)}',
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blueGrey,
+                        fontSize: 13,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             if (!provider.isBalanced)
               Text(
-                'Difference: ${NumberFormat('#,##0.000').format((provider.totalSourceAmount - provider.totalDestAmount).abs())}',
+                'BDT Difference: ${NumberFormat('#,##0.000').format((provider.totalSourceBDT - provider.totalDestBDT).abs())}',
                 style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
@@ -883,6 +806,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     required Function(int) onRemove,
     required Function(int, Account?) onUpdateAccount,
     required Function(int, double) onUpdateAmount,
+    required Function(int, String) onUpdateCurrency,
+    required Function(int, double) onUpdateRate,
     required Color color,
     required double total,
     required String currency,
@@ -921,45 +846,187 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             separatorBuilder: (ctx, i) => const SizedBox(height: 8),
             itemBuilder: (ctx, index) {
               final entry = entries[index];
-              return Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: Padding(
-                      padding: const EdgeInsets.only(
-                        bottom: 0,
-                      ), // Adjust alignment if needed
-                      child: AccountAutocomplete(
-                        key: UniqueKey(),
-                        initialValue: accounts.contains(entry.account)
-                            ? entry.account
-                            : null,
-                        label: 'Select Account',
-                        options: accounts,
-                        groupProvider: groupProvider,
-                        onSelected: (acc) => onUpdateAccount(index, acc),
-                      ),
+              return Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: Colors.grey.shade200),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.02),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    flex: 1,
-                    child: FormattedAmountField(
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Row 1: [Account Name] [X Remove]
+                    Row(
+                      children: [
+                        Expanded(
+                          child: AccountAutocomplete(
+                            key: ValueKey(entry.id),
+                            initialValue: accounts.contains(entry.account)
+                                ? entry.account
+                                : null,
+                            label: 'Account',
+                            options: accounts,
+                            groupProvider: groupProvider,
+                            onSelected: (acc) => onUpdateAccount(index, acc),
+                          ),
+                        ),
+                        IconButton(
+                          icon: const Icon(
+                            Icons.remove_circle_outline,
+                            color: Colors.redAccent,
+                            size: 22,
+                          ),
+                          onPressed: () => onRemove(index),
+                          padding: EdgeInsets.zero,
+                          tooltip: 'Remove Line',
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Row 2: [Currency] [Rate]
+                    Row(
+                      children: [
+                        // Currency Selection
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 10,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: entry.currency != 'BDT'
+                                  ? Colors.amber.shade50
+                                  : Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(8),
+                              border: Border.all(
+                                color: entry.currency != 'BDT'
+                                    ? Colors.amber.shade300
+                                    : Colors.grey.shade300,
+                              ),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Currency',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                DropdownButton<String>(
+                                  value: entry.currency,
+                                  isDense: true,
+                                  isExpanded: true,
+                                  underline: const SizedBox(),
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: entry.currency != 'BDT'
+                                        ? Colors.amber.shade900
+                                        : Colors.black87,
+                                  ),
+                                  items: ['BDT', 'USD', 'RM', 'AED']
+                                      .map(
+                                        (c) => DropdownMenuItem(
+                                          value: c,
+                                          child: Text(c),
+                                        ),
+                                      )
+                                      .toList(),
+                                  onChanged: (val) =>
+                                      onUpdateCurrency(index, val!),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        // Rate Selection (Visible if foreign or for clarity)
+                        Expanded(
+                          flex: 2,
+                          child: Opacity(
+                            opacity: entry.currency == 'BDT' ? 0.5 : 1.0,
+                            child: TextFormField(
+                              key: ValueKey(
+                                'rate_${entry.id}_${entry.currency}',
+                              ),
+                              initialValue: entry.rate.toString(),
+                              enabled: entry.currency != 'BDT',
+                              decoration: InputDecoration(
+                                labelText: 'Exchange Rate',
+                                isDense: true,
+                                border: const OutlineInputBorder(),
+                                contentPadding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 12,
+                                ),
+                                suffixText: '→ BDT',
+                                suffixStyle: const TextStyle(
+                                  fontSize: 11,
+                                  color: Colors.grey,
+                                ),
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              onChanged: (val) => onUpdateRate(
+                                index,
+                                double.tryParse(val) ?? 1.0,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+
+                    // Row 3: [Amount (Currency)]
+                    FormattedAmountField(
+                      key: ValueKey('amount_${entry.id}'),
                       initialValue: entry.amount,
-                      label: 'Amount',
+                      label: 'Amount in ${entry.currency}',
                       onChanged: (val) => onUpdateAmount(index, val),
                     ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.remove_circle_outline,
-                      color: Colors.grey,
-                    ),
-                    onPressed: () => onRemove(index),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                  ),
-                ],
+
+                    // Show BDT equivalent if foreign
+                    if (entry.currency != 'BDT' && entry.amount > 0)
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.end,
+                          children: [
+                            Text(
+                              'BDT Equivalent: ',
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey.shade600,
+                              ),
+                            ),
+                            Text(
+                              '৳${NumberFormat('#,##0.00').format(entry.bdtAmount)}',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.green.shade700,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                  ],
+                ),
               );
             },
           ),
