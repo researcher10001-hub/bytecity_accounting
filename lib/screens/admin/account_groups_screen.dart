@@ -307,7 +307,7 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                             ),
                             const SizedBox(height: 16),
                             Text(
-                              'No ${_selectedTab} groups yet',
+                              'No $_selectedTab groups yet',
                               style: GoogleFonts.inter(
                                 fontSize: 16,
                                 fontWeight: FontWeight.w600,

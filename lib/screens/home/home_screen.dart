@@ -200,9 +200,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16),
                 child: Consumer<AccountProvider>(
                   builder: (context, provider, child) {
+                    // ALL users: show only OWNED accounts
                     final myAccounts = provider.accounts.where((a) {
-                      return PermissionService().canViewAccount(user, a);
+                      return PermissionService().isOwner(user, a);
                     }).toList();
+
+                    final countLabel = '${myAccounts.length} Own Accounts';
 
                     return InkWell(
                       onTap: () {
@@ -263,7 +266,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                   ),
                                   const SizedBox(height: 4),
                                   Text(
-                                    '${myAccounts.length} Accounts Assigned',
+                                    countLabel,
                                     style: GoogleFonts.inter(
                                       color: Colors.white.withOpacity(0.8),
                                       fontWeight: FontWeight.w500,

@@ -44,15 +44,33 @@ class PermissionService {
     if (user.isManagement) return true;
 
     // 3. Ownership or Group Access
-    if (account.owners.contains(user.email)) return true;
-    for (var groupId in user.groupIds) {
-      if (account.groupIds.contains(groupId)) return true;
-    }
+    if (isOwner(user, account)) return true;
+    if (isGroupMember(user, account)) return true;
 
     return false;
   }
 
+  /// Check if user is an OWNER of the account
+  bool isOwner(User user, Account account) {
+    return account.owners.any(
+      (ownerEmail) =>
+          ownerEmail.trim().toLowerCase() == user.email.trim().toLowerCase(),
+    );
+  }
+
+  /// Check if user has GROUP access to the account (not ownership)
+  bool isGroupMember(User user, Account account) {
+    for (var groupId in user.groupIds) {
+      if (account.groupIds.contains(groupId)) return true;
+    }
+    return false;
+  }
+
   /// Check if user can VIEW a specific transaction
+  /// Rules:
+  /// - Admin/Management/Viewer: see all
+  /// - Owner of any involved account: see all entries for that account
+  /// - Group member (not owner): only see if they CREATED the transaction
   bool canViewTransaction(User user, TransactionModel transaction) {
     // 1. Admin always has View/Audit access
     if (user.isAdmin) return true;
@@ -60,25 +78,24 @@ class PermissionService {
     if (user.isManagement) return true; // Management sees all
     if (user.isViewer) return true; // Viewers see all
 
-    // 2. Creator Check
+    // 2. Creator Check — user always sees their own transactions
     final currentUserEmail = user.email.trim().toLowerCase();
     if (transaction.createdBy.trim().toLowerCase() == currentUserEmail) {
       return true;
     }
 
     // 3. Account Ownership Logic
-    // If user owns ANY account involved in this transaction, they can view it.
+    // If user OWNS any account involved in this transaction, they can view it.
     for (var detail in transaction.details) {
       if (detail.account != null) {
-        final owners = detail.account!.owners;
-        for (var owner in owners) {
-          if (owner.trim().toLowerCase() == currentUserEmail) {
-            return true;
-          }
+        if (isOwner(user, detail.account!)) {
+          return true;
         }
       }
     }
 
+    // 4. Group-Only Access: NOT allowed to see others' transactions
+    // (Group members can only see their own transactions — handled by check #2 above)
     return false;
   }
 

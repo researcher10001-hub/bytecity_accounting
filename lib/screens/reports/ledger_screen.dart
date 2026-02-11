@@ -11,6 +11,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/group_provider.dart';
 import '../../models/account_model.dart';
+import '../../services/permission_service.dart';
 
 import '../../models/transaction_model.dart';
 import '../transaction/transaction_entry_screen.dart';
@@ -120,6 +121,21 @@ class _LedgerScreenState extends State<LedgerScreen> {
               .firstOrNull;
 
           if (matchedAccount != null) {
+            // BOA Group-Only Filtering:
+            // If user is NOT admin/management/viewer, and this account is
+            // only accessible via group (not owned), only show self-created entries.
+            if (!user.isAdmin && !user.isManagement && !user.isViewer) {
+              final permSvc = PermissionService();
+              final isOwned = permSvc.isOwner(user, matchedAccount);
+              if (!isOwned) {
+                // Group-only access: only show user's own entries
+                final txCreator = (tx.createdBy).trim().toLowerCase();
+                final me = user.email.trim().toLowerCase();
+                if (txCreator != me && txCreator.isNotEmpty) {
+                  continue; // Skip others' entries for group-only accounts
+                }
+              }
+            }
             // Calculate Movement for THIS account
             double movement = 0;
             bool isDebitNormal = [

@@ -1750,11 +1750,12 @@ class _UsersScreenState extends State<UsersScreen> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          // Badges
-                          Row(
+                          // Badges (Using Wrap to prevent overflow)
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 4,
                             children: [
                               _buildStatusBadge(user),
-                              const SizedBox(width: 8),
                               _buildRoleBadge(user.role),
                             ],
                           ),

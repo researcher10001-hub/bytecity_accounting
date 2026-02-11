@@ -4,6 +4,7 @@ import '../models/user_model.dart';
 import '../core/services/api_service.dart';
 import '../core/constants/api_constants.dart';
 import '../models/transaction_model.dart';
+import '../services/permission_service.dart';
 
 class AccountProvider with ChangeNotifier {
   List<Account> _accounts = [];
@@ -40,12 +41,13 @@ class AccountProvider with ChangeNotifier {
             .toSet()
             .toList();
 
-        // Filter based on permissions
-        // Admin, Management, and Viewer can see ALL accounts (at the Provider level).
-        // UI screens will handle specific "Action" permissions (e.g. canEnterTransaction).
+        // Filter based on permissions using PermissionService
+        // This checks ownership AND group membership for BOA users
         if (!user.isAdmin && !user.isManagement && !user.isViewer) {
           _accounts = _accounts
-              .where((account) => account.canView(user))
+              .where(
+                (account) => PermissionService().canViewAccount(user, account),
+              )
               .toList();
         }
       }

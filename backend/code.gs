@@ -217,7 +217,7 @@ function getAccounts(e) {
           'name': row[0],
           'owners': row[1], 
           'primary_owner': row[1], 
-          'group_ids': row[2], 
+          'group_ids': row[2].toString(), 
           'type': row[3],
           'active': isActive,
           'default_currency': currency

@@ -80,9 +80,9 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
 
     if (user == null) return const Scaffold(body: SizedBox());
 
-    // Filter accounts user owns/can view AND matches search query
+    // ALL users see only their OWNED accounts here
     final myAccounts = accountProvider.accounts.where((account) {
-      final hasPermission = PermissionService().canViewAccount(user, account);
+      final hasPermission = PermissionService().isOwner(user, account);
       final matchesSearch = account.name.toLowerCase().contains(_searchQuery);
       return hasPermission && matchesSearch;
     }).toList();
