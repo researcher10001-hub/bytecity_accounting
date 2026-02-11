@@ -1628,11 +1628,11 @@ function errorResponse(message) {
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
-// Generate a short 12-char unique ID (Timestamp + Random)
+// Generate a short 12-char unique ID (Timestamp + Random) - Lowercase for readability
 function generateShortId() {
-  const timestamp = new Date().getTime().toString(36); // Base36 timestamp
-  const random = Math.random().toString(36).substring(2, 6); // 4 random chars
-  return (timestamp + random).toUpperCase();
+  const timestamp = new Date().getTime().toString(36).toLowerCase(); // Base36 timestamp
+  const random = Math.random().toString(36).substring(2, 6).toLowerCase(); // 4 random chars
+  return timestamp + random;
 }
 
 // --- HANDLE FAILED ATTEMPT ---
