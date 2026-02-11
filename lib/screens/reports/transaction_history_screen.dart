@@ -214,31 +214,23 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     UserProvider userProvider,
     User currentUser,
   ) {
-    final creatorEmail = tx.createdBy;
-    String creatorName = 'Unknown';
-    if (creatorEmail.isNotEmpty) {
-      if (creatorEmail.trim().toLowerCase() ==
-          currentUser.email.trim().toLowerCase()) {
-        creatorName = currentUser.name;
-      } else {
-        try {
-          final u = userProvider.users.firstWhere(
-            (u) =>
-                u.email.trim().toLowerCase() ==
-                creatorEmail.trim().toLowerCase(),
-            orElse: () => User(
-              name: creatorEmail.split('@').first,
-              email: creatorEmail,
-              role: 'Viewer',
-            ),
-          );
-          creatorName = u.name;
-        } catch (e) {
-          creatorName = creatorEmail.split('@').first;
-        }
-      }
-    } else {
-      creatorName = 'Legacy';
+    // Footer Type Logic
+    String typeLabel = '';
+    IconData typeIcon = LucideIcons.tag;
+    switch (tx.type) {
+      case VoucherType.payment:
+        typeLabel = 'Payment';
+        break;
+      case VoucherType.receipt:
+        typeLabel = 'Receipt';
+        break;
+      case VoucherType.contra:
+        typeLabel = 'Transfer';
+        typeIcon = LucideIcons.arrowLeftRight;
+        break;
+      case VoucherType.journal:
+        typeLabel = 'Journal';
+        break;
     }
 
     return Container(
@@ -589,14 +581,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(
-                            LucideIcons.user,
+                          Icon(
+                            typeIcon,
                             size: 10,
-                            color: Color(0xFF64748B),
+                            color: const Color(0xFF64748B),
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            creatorName,
+                            typeLabel,
                             style: GoogleFonts.inter(
                               fontSize: 10,
                               fontWeight: FontWeight.w600,
