@@ -110,8 +110,8 @@ class _MessageCardState extends State<MessageCard>
                   fontWeight: FontWeight.w600,
                 ),
                 tabs: [
-                  Tab(text: 'Received for Review (${fullReceived.length})'),
-                  Tab(text: 'Sent for Review (${fullSent.length})'),
+                  Tab(text: 'In Review (${fullReceived.length})'),
+                  Tab(text: 'Sent Review (${fullSent.length})'),
                   Tab(text: 'Flagged (${fullFlagged.length})'),
                 ],
               ),

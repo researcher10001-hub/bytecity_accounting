@@ -108,11 +108,11 @@ class _NotificationScreenState extends State<NotificationScreen>
           tabs: [
             Tab(
               icon: const Icon(Icons.inbox),
-              text: 'Received for Review (${receivedMessages.length})',
+              text: 'In Review (${receivedMessages.length})',
             ),
             Tab(
               icon: const Icon(Icons.send),
-              text: 'Sent for Review (${sentMessages.length})',
+              text: 'Sent Review (${sentMessages.length})',
             ),
             Tab(
               icon: const Icon(Icons.flag),
