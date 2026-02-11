@@ -106,6 +106,11 @@ class _AccountAutocompleteState extends State<AccountAutocomplete> {
         _controller.text = account.name;
         widget.onSelected(account);
       },
+      hideOnUnfocus: true,
+      hideOnSelect: true,
+      hideOnEmpty: true,
+      hideOnLoading: false,
+      autoFlipDirection: true,
       emptyBuilder: (context) => const Padding(
         padding: EdgeInsets.all(16.0),
         child: Text('No accounts found', style: TextStyle(color: Colors.grey)),

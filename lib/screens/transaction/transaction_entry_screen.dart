@@ -76,28 +76,31 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         ),
         centerTitle: true,
       ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            _buildActionSelector(transactionProvider),
-            const SizedBox(height: 24),
+      body: GestureDetector(
+        onTap: () => FocusScope.of(context).unfocus(),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildActionSelector(transactionProvider),
+              const SizedBox(height: 24),
 
-            if (transactionProvider.error != null)
-              _buildErrorBanner(transactionProvider),
+              if (transactionProvider.error != null)
+                _buildErrorBanner(transactionProvider),
 
-            if (transactionProvider.selectedType == null)
-              _buildEmptyStateHint()
-            else
-              _buildTransactionForm(
-                context,
-                transactionProvider,
-                accountProvider,
-                groupProvider,
-                user,
-              ),
-          ],
+              if (transactionProvider.selectedType == null)
+                _buildEmptyStateHint()
+              else
+                _buildTransactionForm(
+                  context,
+                  transactionProvider,
+                  accountProvider,
+                  groupProvider,
+                  user,
+                ),
+            ],
+          ),
         ),
       ),
     );
