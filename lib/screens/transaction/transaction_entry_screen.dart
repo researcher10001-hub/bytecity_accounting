@@ -732,29 +732,11 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           const SizedBox(height: 20),
           Column(
             children: [
-              TextFormField(
-                initialValue: provider.simpleAmount == 0
-                    ? ''
-                    : provider.simpleAmount.toString(),
-                decoration: InputDecoration(
-                  labelText: 'Amount (${provider.currency})',
-                  border: const OutlineInputBorder(),
-                  prefixIcon: const Icon(Icons.attach_money),
-                  isDense: true,
-                  contentPadding: const EdgeInsets.all(16),
-                ),
-                keyboardType: const TextInputType.numberWithOptions(
-                  decimal: true,
-                ),
-                inputFormatters: [
-                  FilteringTextInputFormatter.allow(RegExp(r'^\d*\.?\d*')),
-                ], // Numeric Only
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-                onChanged: (val) =>
-                    provider.setSimpleAmount(double.tryParse(val) ?? 0),
+              FormattedAmountField(
+                initialValue: provider.simpleAmount,
+                label: 'Amount (${provider.currency})',
+                isLarge: true,
+                onChanged: (val) => provider.setSimpleAmount(val),
               ),
               if (provider.currency != 'BDT') ...[
                 const SizedBox(height: 8),
@@ -849,7 +831,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               ),
             if (!provider.isBalanced)
               Text(
-                'Difference: ${(provider.totalSourceAmount - provider.totalDestAmount).abs()}',
+                'Difference: ${NumberFormat('#,##0.000').format((provider.totalSourceAmount - provider.totalDestAmount).abs())}',
                 style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
@@ -926,7 +908,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                 ),
               ),
               Text(
-                'Total: $total $currency',
+                'Total: ${NumberFormat('#,##0.000').format(total)} $currency',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
@@ -962,28 +944,10 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                   const SizedBox(width: 8),
                   Expanded(
                     flex: 1,
-                    child: TextFormField(
-                      initialValue: entry.amount == 0
-                          ? ''
-                          : entry.amount.toString(),
-                      decoration: const InputDecoration(
-                        hintText: 'Amount',
-                        isDense: true,
-                        contentPadding: EdgeInsets.all(12),
-                        border: OutlineInputBorder(),
-                        filled: true,
-                        fillColor: Colors.white,
-                      ),
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      inputFormatters: [
-                        FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d{0,3}'),
-                        ),
-                      ],
-                      onChanged: (val) =>
-                          onUpdateAmount(index, double.tryParse(val) ?? 0),
+                    child: FormattedAmountField(
+                      initialValue: entry.amount,
+                      label: 'Amount',
+                      onChanged: (val) => onUpdateAmount(index, val),
                     ),
                   ),
                   IconButton(
@@ -1006,6 +970,100 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class FormattedAmountField extends StatefulWidget {
+  final double initialValue;
+  final ValueChanged<double> onChanged;
+  final String label;
+  final bool isLarge;
+
+  const FormattedAmountField({
+    super.key,
+    required this.initialValue,
+    required this.onChanged,
+    required this.label,
+    this.isLarge = false,
+  });
+
+  @override
+  State<FormattedAmountField> createState() => _FormattedAmountFieldState();
+}
+
+class _FormattedAmountFieldState extends State<FormattedAmountField> {
+  late TextEditingController _controller;
+  late FocusNode _focusNode;
+
+  @override
+  void initState() {
+    super.initState();
+    _focusNode = FocusNode();
+    _controller = TextEditingController(
+      text: widget.initialValue == 0
+          ? ''
+          : NumberFormat('#,##0.000').format(widget.initialValue),
+    );
+
+    _focusNode.addListener(() {
+      if (!_focusNode.hasFocus) {
+        _formatValue();
+      }
+    });
+  }
+
+  @override
+  void didUpdateWidget(FormattedAmountField oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // If the external value changed significantly (and we don't have focus), update controller
+    if (!_focusNode.hasFocus && widget.initialValue != oldWidget.initialValue) {
+      _controller.text = widget.initialValue == 0
+          ? ''
+          : NumberFormat('#,##0.000').format(widget.initialValue);
+    }
+  }
+
+  void _formatValue() {
+    final text = _controller.text.replaceAll(',', '');
+    double val = double.tryParse(text) ?? 0;
+    _controller.text = val == 0 ? '' : NumberFormat('#,##0.000').format(val);
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _focusNode.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: _controller,
+      focusNode: _focusNode,
+      decoration: InputDecoration(
+        labelText: widget.label,
+        hintText: widget.isLarge ? null : 'Amount',
+        border: const OutlineInputBorder(),
+        prefixIcon: widget.isLarge ? const Icon(Icons.attach_money) : null,
+        isDense: true,
+        contentPadding: widget.isLarge
+            ? const EdgeInsets.all(16)
+            : const EdgeInsets.all(12),
+        filled: !widget.isLarge,
+        fillColor: widget.isLarge ? null : Colors.white,
+      ),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      inputFormatters: [
+        FilteringTextInputFormatter.allow(RegExp(r'^\d*,?\d*\.?\d*')),
+      ],
+      style: widget.isLarge
+          ? const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
+          : null,
+      onChanged: (val) {
+        widget.onChanged(double.tryParse(val.replaceAll(',', '')) ?? 0);
+      },
     );
   }
 }
