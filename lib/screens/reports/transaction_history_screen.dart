@@ -525,7 +525,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 ),
                               ),
                               Text(
-                                NumberFormat('#,##0').format(
+                                NumberFormat('#,##0.000').format(
                                   isDebit ? detail.debit : detail.credit,
                                 ),
                                 style: GoogleFonts.inter(

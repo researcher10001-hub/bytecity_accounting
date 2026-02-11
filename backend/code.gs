@@ -694,7 +694,7 @@ function createEntry(e) {
     }
     
     // Validate balance
-    if (Math.abs(totalDr - totalCr) > 0.01) {
+    if (Math.abs(totalDr - totalCr) > 0.001) {
       return errorResponse("Voucher unbalanced: Debit(" + totalDr + ") != Credit(" + totalCr + ")");
     }
     

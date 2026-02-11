@@ -1184,9 +1184,9 @@ class _AccountCard extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                '${account.defaultCurrency ?? 'BDT'} ${NumberFormat("#,##0.00").format(balance.abs())}',
+                                '${account.defaultCurrency ?? 'BDT'} ${NumberFormat("#,##0.000").format(balance.abs())}',
                                 style: GoogleFonts.inter(
-                                  fontSize: 16,
+                                  fontSize: 15,
                                   fontWeight: FontWeight.bold,
                                   color: balance >= 0
                                       ? Colors.green[700]

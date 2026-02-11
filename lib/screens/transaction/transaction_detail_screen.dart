@@ -279,7 +279,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                         style: TextStyle(color: Colors.blueGrey, fontSize: 11),
                       ),
                       Text(
-                        "${_currentTransaction.currency} ${NumberFormat('#,##0.00').format(_currentTransaction.totalDebit)}",
+                        "${_currentTransaction.currency} ${NumberFormat('#,##0.000').format(_currentTransaction.totalDebit)}",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -303,8 +303,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       ),
                       Text(
                         d.debit > 0
-                            ? "Dr ${NumberFormat('#,##0.00').format(d.debit)}"
-                            : "Cr ${NumberFormat('#,##0.00').format(d.credit)}",
+                            ? "Dr ${NumberFormat('#,##0.000').format(d.debit)}"
+                            : "Cr ${NumberFormat('#,##0.000').format(d.credit)}",
                         style: TextStyle(
                           fontSize: 12,
                           color: d.debit > 0 ? Colors.black : Colors.grey,

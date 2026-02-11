@@ -184,6 +184,14 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
             ),
           ),
 
+          // Loading Bar (visible during refresh)
+          if (_isRefreshing)
+            const LinearProgressIndicator(
+              minHeight: 3,
+              backgroundColor: Color(0xFFE2E8F0),
+              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
+            ),
+
           Expanded(
             child: myAccounts.isEmpty
                 ? Center(
@@ -279,9 +287,9 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      '৳ ${NumberFormat('#,##0.00').format(balance.abs())}',
+                                      '৳ ${NumberFormat('#,##0.000').format(balance.abs())}',
                                       style: GoogleFonts.inter(
-                                        fontSize: 14,
+                                        fontSize: 13,
                                         fontWeight: FontWeight.w700,
                                         color: Colors.black87,
                                       ),

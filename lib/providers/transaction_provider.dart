@@ -72,7 +72,7 @@ class TransactionProvider with ChangeNotifier {
 
   double get equivalentBDT => totalSourceAmount * _exchangeRate;
 
-  bool get isBalanced => (totalSourceAmount - totalDestAmount).abs() < 0.01;
+  bool get isBalanced => (totalSourceAmount - totalDestAmount).abs() < 0.001;
 
   // Constructor
   TransactionProvider() {

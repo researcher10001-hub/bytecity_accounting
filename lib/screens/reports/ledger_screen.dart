@@ -310,6 +310,16 @@ class _LedgerScreenState extends State<LedgerScreen> {
                 ),
                 const Divider(height: 1),
 
+                // Loading Bar (visible during refresh)
+                if (transactionProvider.isLoading)
+                  const LinearProgressIndicator(
+                    minHeight: 3,
+                    backgroundColor: Color(0xFFE2E8F0),
+                    valueColor: AlwaysStoppedAnimation<Color>(
+                      Color(0xFF1E88E5),
+                    ),
+                  ),
+
                 // TRANSACTION LIST
                 Expanded(
                   child: _selectedAccounts.isEmpty
@@ -377,7 +387,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                 ? Colors.red
                                 : Colors.green;
                             final String formattedAmount =
-                                '৳${NumberFormat('#,##0').format(txAmount)}';
+                                '৳${NumberFormat('#,##0.000').format(txAmount)}';
 
                             // Status Logic Simulation (since 'status' might not be in model yet)
                             // If 'originalTx' has a status field, use it.

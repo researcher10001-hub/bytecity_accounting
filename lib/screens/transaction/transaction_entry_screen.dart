@@ -840,7 +840,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               Padding(
                 padding: const EdgeInsets.only(bottom: 8.0),
                 child: Text(
-                  'Total Equivalent BDT: ৳${NumberFormat('#,##0.00').format(provider.equivalentBDT)}',
+                  'Total Equivalent BDT: ৳${NumberFormat('#,##0.000').format(provider.equivalentBDT)}',
                   style: const TextStyle(
                     fontWeight: FontWeight.bold,
                     color: Colors.blueGrey,
@@ -979,7 +979,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       ),
                       inputFormatters: [
                         FilteringTextInputFormatter.allow(
-                          RegExp(r'^\d*\.?\d*'),
+                          RegExp(r'^\d*\.?\d{0,3}'),
                         ),
                       ],
                       onChanged: (val) =>
