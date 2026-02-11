@@ -49,6 +49,7 @@ class UserProvider with ChangeNotifier {
     try {
       final payload = {
         'email': updatedUser.email,
+        'name': updatedUser.name,
         'role': updatedUser.role,
         'designation': updatedUser.designation,
         'status': updatedUser.status,

@@ -1631,6 +1631,154 @@ class _UsersScreenState extends State<UsersScreen> {
     );
   }
 
+  void _showEditUserDialog(BuildContext context, User user) {
+    final nameController = TextEditingController(text: user.name);
+    final designationController = TextEditingController(text: user.designation);
+    String selectedRole = user.role;
+    String selectedStatus = user.status;
+
+    final roles = [
+      AppRoles.admin,
+      AppRoles.management,
+      AppRoles.associate,
+      AppRoles.viewer,
+    ];
+
+    final statuses = ['Active', 'Suspended', 'Deleted'];
+
+    showDialog(
+      context: context,
+      builder: (ctx) {
+        bool isUpdating = false;
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: Text('Edit User: ${user.email}'),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  TextField(
+                    controller: nameController,
+                    decoration: const InputDecoration(
+                      labelText: 'Full Name',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  // Designation Input
+                  TextField(
+                    controller: designationController,
+                    decoration: const InputDecoration(
+                      labelText: 'Designation (e.g. Senior Accountant)',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedRole,
+                    items: roles
+                        .map((r) => DropdownMenuItem(value: r, child: Text(r)))
+                        .toList(),
+                    onChanged: (val) => setState(() => selectedRole = val!),
+                    decoration: const InputDecoration(
+                      labelText: 'Role',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    value: selectedStatus,
+                    items: statuses
+                        .map((s) => DropdownMenuItem(value: s, child: Text(s)))
+                        .toList(),
+                    onChanged: (val) => setState(() => selectedStatus = val!),
+                    decoration: const InputDecoration(
+                      labelText: 'Status',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: isUpdating
+                    ? null
+                    : () async {
+                        final name = nameController.text.trim();
+                        if (name.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Name cannot be empty'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        setState(() => isUpdating = true);
+
+                        final updatedUser = User(
+                          email: user.email,
+                          name: name,
+                          role: selectedRole,
+                          designation: designationController.text.trim(),
+                          status: selectedStatus,
+                          allowForeignCurrency: user.allowForeignCurrency,
+                          dateEditPermissionExpiresAt:
+                              user.dateEditPermissionExpiresAt,
+                          groupIds: user.groupIds,
+                        );
+
+                        final success = await context
+                            .read<UserProvider>()
+                            .updateUser(updatedUser);
+
+                        if (context.mounted) {
+                          if (success) {
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('User updated successfully'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else {
+                            setState(() => isUpdating = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  context.read<UserProvider>().error ??
+                                      'Update failed',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isUpdating
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Save Changes'),
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
   void _confirmForceLogout(
     BuildContext context,
     UserProvider provider,
@@ -1800,6 +1948,16 @@ class _UsersScreenState extends State<UsersScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            // Edit User
+                            IconButton(
+                              icon: const Icon(LucideIcons.edit3, size: 18),
+                              color: Colors.indigo,
+                              tooltip: 'Edit User',
+                              constraints: const BoxConstraints(),
+                              padding: const EdgeInsets.all(8),
+                              onPressed: () =>
+                                  _showEditUserDialog(context, user),
+                            ),
                             // Reset Password
                             IconButton(
                               icon: const Icon(LucideIcons.key, size: 18),
