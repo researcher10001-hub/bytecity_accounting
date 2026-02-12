@@ -135,13 +135,22 @@ class ActionGrid extends StatelessWidget {
                         icon: Icons.fact_check_rounded,
                         label: 'Pending for Approval ($pendingCount)',
                         color: Colors.indigo,
-                        onTap: () {
-                          Navigator.push(
+                        onTap: () async {
+                          await Navigator.push(
                             context,
                             MaterialPageRoute(
                               builder: (_) => const PendingTransactionsScreen(),
                             ),
                           );
+                          if (context.mounted) {
+                            final auth = context.read<AuthProvider>();
+                            if (auth.user != null) {
+                              context.read<TransactionProvider>().fetchHistory(
+                                auth.user!,
+                                forceRefresh: true,
+                              );
+                            }
+                          }
                         },
                       );
                     },

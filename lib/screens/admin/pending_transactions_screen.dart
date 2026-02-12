@@ -5,6 +5,8 @@ import 'package:provider/provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../providers/auth_provider.dart';
+import '../../../providers/account_provider.dart';
 import '../../../models/transaction_model.dart';
 import '../../../models/message_model.dart';
 import '../transaction/transaction_detail_screen.dart';
@@ -20,6 +22,7 @@ class PendingTransactionsScreen extends StatefulWidget {
 
 class _PendingTransactionsScreenState extends State<PendingTransactionsScreen> {
   String? _selectedUserEmail;
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -27,6 +30,26 @@ class _PendingTransactionsScreenState extends State<PendingTransactionsScreen> {
       appBar: AppBar(
         title: const Text('Pending for Approval'),
         centerTitle: true,
+        actions: [
+          _isLoading
+              ? const Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 16),
+                  child: Center(
+                    child: SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Color(0xFF1E88E5),
+                      ),
+                    ),
+                  ),
+                )
+              : IconButton(
+                  icon: const Icon(Icons.refresh),
+                  onPressed: () => _refreshData(context),
+                ),
+        ],
       ),
       body: Consumer2<TransactionProvider, NotificationProvider>(
         builder: (context, txProvider, notifProvider, _) {
@@ -112,6 +135,43 @@ class _PendingTransactionsScreenState extends State<PendingTransactionsScreen> {
         },
       ),
     );
+  }
+
+  Future<void> _refreshData(BuildContext context) async {
+    setState(() => _isLoading = true);
+
+    try {
+      // Add a small delay so the animation is actually visible
+      await Future.wait([
+        Future.delayed(const Duration(milliseconds: 500)),
+        _performRefresh(context),
+      ]);
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
+  }
+
+  Future<void> _performRefresh(BuildContext context) async {
+    final auth = context.read<AuthProvider>();
+    final user = auth.user;
+    if (user == null) return;
+
+    final txProvider = context.read<TransactionProvider>();
+    final notifProvider = context.read<NotificationProvider>();
+    final userProvider = context.read<UserProvider>();
+    final accProvider = context.read<AccountProvider>();
+
+    await txProvider.fetchHistory(user, forceRefresh: true);
+    if (context.mounted) {
+      await notifProvider.refreshNotifications(
+        user,
+        txProvider,
+        userProvider,
+        accountProvider: accProvider,
+      );
+    }
   }
 
   Widget _buildEmptyState() {
