@@ -343,9 +343,9 @@ class _LoginScreenState extends State<LoginScreen> {
             controller: _emailController,
             decoration: _inputDecoration('Email address'),
             validator: (v) {
-              if (v == null || v.isEmpty) return 'Email required';
+              if (v == null || v.trim().isEmpty) return 'Email required';
               final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-              if (!emailRegex.hasMatch(v)) return 'Invalid email format';
+              if (!emailRegex.hasMatch(v.trim())) return 'Invalid email format';
               return null;
             },
           ),

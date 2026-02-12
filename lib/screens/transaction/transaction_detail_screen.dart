@@ -308,7 +308,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                             : "Cr ${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.credit)}",
                         style: TextStyle(
                           fontSize: 12,
-                          color: d.debit > 0 ? Colors.black : Colors.grey,
+                          fontWeight: FontWeight.bold,
+                          color: d.debit > 0 ? Colors.green : Colors.red,
                         ),
                       ),
                     ],

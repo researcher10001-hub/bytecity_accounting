@@ -421,8 +421,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       ].map((detail) {
                         final isDebit = detail.debit > 0;
                         Color accentColor = isDebit
-                            ? const Color(0xFFDC2626)
-                            : const Color(0xFF16A34A);
+                            ? const Color(0xFF16A34A) // Green for Debit
+                            : const Color(0xFFDC2626); // Red for Credit
 
                         // Prefix Logic
                         String prefix = '';

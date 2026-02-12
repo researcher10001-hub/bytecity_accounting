@@ -407,8 +407,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             final bool isDebit = debit > 0;
                             final double txAmount = isDebit ? debit : credit;
                             final Color amountColor = isDebit
-                                ? Colors.red
-                                : Colors.green;
+                                ? Colors.green
+                                : Colors.red;
                             final String formattedAmount =
                                 '৳${CurrencyFormatter.format(txAmount)}';
 
