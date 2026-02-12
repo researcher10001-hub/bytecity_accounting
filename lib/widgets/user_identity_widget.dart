@@ -57,13 +57,22 @@ class UserIdentityWidget extends StatelessWidget {
 
   /// Get user initials from name
   String _getInitials(String name) {
+    if (name.trim().isEmpty) return '?';
+
     final parts = name.trim().split(' ');
     if (parts.isEmpty) return '?';
+
     if (parts.length == 1) {
-      return parts[0].substring(0, 1).toUpperCase();
+      final part = parts[0];
+      return part.isNotEmpty ? part.substring(0, 1).toUpperCase() : '?';
     }
-    return (parts[0].substring(0, 1) + parts[parts.length - 1].substring(0, 1))
-        .toUpperCase();
+
+    String firstInitial = parts[0].isNotEmpty ? parts[0].substring(0, 1) : '';
+    String lastInitial = parts[parts.length - 1].isNotEmpty
+        ? parts[parts.length - 1].substring(0, 1)
+        : '';
+
+    return (firstInitial + lastInitial).toUpperCase();
   }
 
   /// Get role color

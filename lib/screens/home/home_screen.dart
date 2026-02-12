@@ -78,6 +78,12 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final role = user.role;
+    final navItems = _getNavItems(role);
+    // Safety check: Reset to 0 if out of bounds (e.g. role change)
+    var effectiveIndex = _currentIndex;
+    if (effectiveIndex >= navItems.length) {
+      effectiveIndex = 0;
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -85,9 +91,13 @@ class _HomeScreenState extends State<HomeScreen> {
           // Desktop Layout
           return DesktopScaffold(
             role: role,
-            currentIndex: _currentIndex,
-            onNavIndexChanged: (index) => setState(() => _currentIndex = index),
-            body: _buildBody(role),
+            currentIndex: effectiveIndex,
+            onNavIndexChanged: (index) {
+              if (index < navItems.length) {
+                setState(() => _currentIndex = index);
+              }
+            },
+            body: _buildBody(role, effectiveIndex),
           );
         } else {
           // Mobile Layout
@@ -135,8 +145,29 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 8),
               ],
             ),
-            body: _buildBody(role),
-            bottomNavigationBar: _buildBottomNav(role),
+            body: _buildBody(role, effectiveIndex),
+            bottomNavigationBar: BottomNavigationBar(
+              currentIndex: effectiveIndex,
+              onTap: (index) {
+                if (index < navItems.length) {
+                  setState(() => _currentIndex = index);
+                }
+              },
+              backgroundColor: Colors.white,
+              selectedItemColor: const Color(0xFF1E88E5),
+              unselectedItemColor: Colors.grey[400],
+              type: BottomNavigationBarType.fixed,
+              showUnselectedLabels: true,
+              selectedLabelStyle: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+              unselectedLabelStyle: GoogleFonts.inter(
+                fontWeight: FontWeight.w500,
+                fontSize: 12,
+              ),
+              items: navItems,
+            ),
             floatingActionButton: _shouldShowFAB(role)
                 ? FloatingActionButton(
                     onPressed: () async {
@@ -181,11 +212,11 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBody(String rawRole) {
+  Widget _buildBody(String rawRole, int currentIndex) {
     final role = rawRole.trim();
 
     // Unified Dashboard for index 0 (Home)
-    if (_currentIndex == 0) {
+    if (currentIndex == 0) {
       final user = context.watch<AuthProvider>().user;
 
       return SingleChildScrollView(
@@ -309,7 +340,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
     // Other tabs based on role
     if (role.toLowerCase() == AppRoles.admin.toLowerCase()) {
-      switch (_currentIndex) {
+      switch (currentIndex) {
         case 1:
           return const TransactionHistoryScreen();
         case 2:
@@ -322,7 +353,7 @@ class _HomeScreenState extends State<HomeScreen> {
           return const SizedBox();
       }
     } else if (role.toLowerCase() == AppRoles.management.toLowerCase()) {
-      switch (_currentIndex) {
+      switch (currentIndex) {
         case 1:
           return const TransactionHistoryScreen();
         case 2:
@@ -334,7 +365,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } else if (role.toLowerCase() ==
         AppRoles.businessOperationsAssociate.toLowerCase()) {
-      switch (_currentIndex) {
+      switch (currentIndex) {
         case 1:
           return const TransactionHistoryScreen();
         case 2:
@@ -344,7 +375,7 @@ class _HomeScreenState extends State<HomeScreen> {
       }
     } else {
       // Viewer
-      switch (_currentIndex) {
+      switch (currentIndex) {
         case 1:
           return const TransactionHistoryScreen();
         case 2:
@@ -355,10 +386,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
-  Widget? _buildBottomNav(String role) {
-    // Accountant & Admin get different menus
-
-    // Common items
+  List<BottomNavigationBarItem> _getNavItems(String role) {
     final homeItem = const BottomNavigationBarItem(
       icon: Icon(Icons.home_rounded),
       label: 'Home',
@@ -368,12 +396,10 @@ class _HomeScreenState extends State<HomeScreen> {
       label: 'History',
     );
 
-    List<BottomNavigationBarItem> items = [];
-
     final normalizedRole = role.trim().toLowerCase();
 
     if (normalizedRole == AppRoles.admin.toLowerCase()) {
-      items = [
+      return [
         homeItem,
         const BottomNavigationBarItem(
           icon: Icon(Icons.swap_horiz_rounded),
@@ -393,8 +419,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ];
     } else if (normalizedRole == AppRoles.management.toLowerCase()) {
-      // Management: Home, History, Reports, Settings
-      items = [
+      return [
         homeItem,
         historyItem,
         const BottomNavigationBarItem(
@@ -408,7 +433,7 @@ class _HomeScreenState extends State<HomeScreen> {
       ];
     } else {
       // BOA / Viewer
-      items = [
+      return [
         homeItem,
         historyItem,
         const BottomNavigationBarItem(
@@ -417,25 +442,6 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
       ];
     }
-
-    return BottomNavigationBar(
-      currentIndex: _currentIndex,
-      onTap: (index) => setState(() => _currentIndex = index),
-      backgroundColor: Colors.white,
-      selectedItemColor: const Color(0xFF1E88E5),
-      unselectedItemColor: Colors.grey[400],
-      type: BottomNavigationBarType.fixed,
-      showUnselectedLabels: true,
-      selectedLabelStyle: GoogleFonts.inter(
-        fontWeight: FontWeight.w600,
-        fontSize: 12,
-      ),
-      unselectedLabelStyle: GoogleFonts.inter(
-        fontWeight: FontWeight.w500,
-        fontSize: 12,
-      ),
-      items: items,
-    );
   }
 
   bool _shouldShowFAB(String rawRole) {

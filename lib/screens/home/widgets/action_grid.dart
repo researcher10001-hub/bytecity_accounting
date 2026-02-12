@@ -219,8 +219,10 @@ class ActionGrid extends StatelessWidget {
 
   bool _canCreateTransaction(String role) {
     final normalizedRole = role.trim().toLowerCase();
+    // Check against known roles including 'Associate'
     return normalizedRole == 'admin' ||
         normalizedRole == 'management' ||
+        normalizedRole == 'associate' ||
         normalizedRole == 'business operations associate';
   }
 }
