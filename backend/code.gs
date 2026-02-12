@@ -421,6 +421,10 @@ function updateUser(e) {
     // Designation is Col 8 (Index 7)
     const designation = data.designation;
     if (designation !== undefined) sheet.getRange(rowToUpdate, 8).setValue(designation);
+
+    // Allow Foreign Currency is Col 9 (Index 8)
+    const allowForeignCurrency = data.allow_foreign_currency;
+    if (allowForeignCurrency !== undefined) sheet.getRange(rowToUpdate, 9).setValue(allowForeignCurrency);
     
     return successResponse({'message': 'User updated'});
     
@@ -438,6 +442,7 @@ function createUser(e) {
     const password = data.password;
     const role = data.role || "Viewer";
     const designation = data.designation || "";
+    const allowForeignCurrency = data.allow_foreign_currency || false;
 
     if (!name || !email || !password) {
       return errorResponse("Missing required fields");
@@ -457,8 +462,8 @@ function createUser(e) {
     
     const hash = generateHash(email, password);
     
-    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7]
-    sheet.appendRow([name, email, hash, role, "Active", "", "", designation]);
+    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8]
+    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency]);
     
     return successResponse({'message': 'User created'});
     
@@ -523,7 +528,8 @@ function getUsers(e) {
         'status': row[4], // Active, Suspended, Deleted
         'active': row[4] == "Active", // Backward compatibility check
         'group_ids': (row.length > 5) ? row[5].toString() : "",
-        'designation': (row.length > 7) ? row[7].toString() : ""
+        'designation': (row.length > 7) ? row[7].toString() : "",
+        'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false
       });
     }
     
@@ -624,7 +630,9 @@ function loginUser(e) {
                'active': true,
                'group_ids': groupIds,
                'session_token': newToken,
-               'designation': designation
+               'session_token': newToken,
+               'designation': designation,
+               'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false
              });
           } else {
             return errorResponse("Account " + status + ". Contact admin.");

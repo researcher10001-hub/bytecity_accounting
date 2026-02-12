@@ -241,7 +241,17 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
     // Filter Accounts for Entry
     final entryAccounts = accountProvider.accounts.where((acc) {
-      return PermissionService().canEnterTransaction(user, acc);
+      if (!PermissionService().canEnterTransaction(user, acc)) return false;
+
+      // If user lacks Foreign Currency permission, hide non-BDT accounts
+      if (!user.allowForeignCurrency) {
+        if (acc.defaultCurrency != null &&
+            acc.defaultCurrency!.isNotEmpty &&
+            acc.defaultCurrency != 'BDT') {
+          return false;
+        }
+      }
+      return true;
     }).toList();
 
     return Column(
@@ -347,6 +357,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             provider,
             entryAccounts,
             groupProvider,
+            canUseForeignCurrency: user.allowForeignCurrency,
           )
         else
           _buildSimpleForm(context, provider, entryAccounts, groupProvider),
@@ -385,13 +396,6 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             onPressed: provider.isLoading
                 ? null
                 : () async {
-                    if (provider.selectedDate == null) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Please select a date')),
-                      );
-                      return;
-                    }
-
                     if (!provider.isBalanced) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -692,8 +696,9 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     BuildContext context,
     TransactionProvider provider,
     List<Account> accounts,
-    GroupProvider groupProvider,
-  ) {
+    GroupProvider groupProvider, {
+    bool canUseForeignCurrency = false,
+  }) {
     String sourceTitle = 'Sources (Credit)';
     String destTitle = 'Destinations (Debit)';
 
@@ -733,6 +738,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           color: Colors.blue.shade50,
           total: provider.totalDestAmount,
           currency: provider.currency,
+          canUseForeignCurrency: canUseForeignCurrency,
         ),
         const SizedBox(height: 24),
         // Show Credit (Source) Second
@@ -750,6 +756,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           color: Colors.orange.shade50,
           total: provider.totalSourceAmount,
           currency: provider.currency,
+          canUseForeignCurrency: canUseForeignCurrency,
         ),
         const SizedBox(height: 16),
         // Balance Check & Conversion Info
@@ -840,7 +847,13 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     required Color color,
     required double total,
     required String currency,
+    bool canUseForeignCurrency = false,
   }) {
+    // Generate available currencies based on permission
+    final List<String> availableCurrencies = canUseForeignCurrency
+        ? ['BDT', 'USD', 'RM', 'AED']
+        : ['BDT'];
+
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -954,7 +967,12 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                                   ),
                                 ),
                                 DropdownButton<String>(
-                                  value: entry.currency,
+                                  value:
+                                      availableCurrencies.contains(
+                                        entry.currency,
+                                      )
+                                      ? entry.currency
+                                      : 'BDT', // Fallback
                                   isDense: true,
                                   isExpanded: true,
                                   underline: const SizedBox(),
@@ -965,7 +983,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                                         ? Colors.amber.shade900
                                         : Colors.black87,
                                   ),
-                                  items: ['BDT', 'USD', 'RM', 'AED']
+                                  items: availableCurrencies
                                       .map(
                                         (c) => DropdownMenuItem(
                                           value: c,

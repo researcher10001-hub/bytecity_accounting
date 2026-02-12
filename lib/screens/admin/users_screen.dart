@@ -22,6 +22,7 @@ class _UsersScreenState extends State<UsersScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _showDeleted = false;
+  final Set<String> _loadingOperations = {}; // Track async actions
 
   @override
   void initState() {
@@ -2164,37 +2165,72 @@ class _UsersScreenState extends State<UsersScreen> {
                           ),
                           SizedBox(
                             height: 24,
-                            child: Switch(
-                              value: user.allowForeignCurrency,
-                              thumbColor:
-                                  WidgetStateProperty.resolveWith<Color?>((
-                                    states,
-                                  ) {
-                                    if (states.contains(WidgetState.selected)) {
-                                      return Colors.blue;
-                                    }
-                                    return Theme.of(
-                                      context,
-                                    ).textTheme.bodySmall?.color;
-                                  }),
-                              trackColor:
-                                  WidgetStateProperty.resolveWith<Color?>((
-                                    states,
-                                  ) {
-                                    if (states.contains(WidgetState.selected)) {
-                                      return Colors.blue.withValues(alpha: 0.4);
-                                    }
-                                    return Theme.of(
-                                      context,
-                                    ).dividerColor.withValues(alpha: 0.2);
-                                  }),
-                              onChanged: user.isAdmin
-                                  ? null
-                                  : (val) => provider.toggleCurrencyPermission(
-                                      user.email,
-                                      val,
+                            child:
+                                _loadingOperations.contains(
+                                  'currency_${user.email}',
+                                )
+                                ? const SizedBox(
+                                    width: 24,
+                                    height: 24,
+                                    child: Padding(
+                                      padding: EdgeInsets.all(4.0),
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                      ),
                                     ),
-                            ),
+                                  )
+                                : Switch(
+                                    value: user.allowForeignCurrency,
+                                    thumbColor:
+                                        WidgetStateProperty.resolveWith<Color?>(
+                                          (states) {
+                                            if (states.contains(
+                                              WidgetState.selected,
+                                            )) {
+                                              return Colors.blue;
+                                            }
+                                            return Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall?.color;
+                                          },
+                                        ),
+                                    trackColor:
+                                        WidgetStateProperty.resolveWith<Color?>(
+                                          (states) {
+                                            if (states.contains(
+                                              WidgetState.selected,
+                                            )) {
+                                              return Colors.blue.withValues(
+                                                alpha: 0.4,
+                                              );
+                                            }
+                                            return Theme.of(context)
+                                                .dividerColor
+                                                .withValues(alpha: 0.2);
+                                          },
+                                        ),
+                                    onChanged: user.isAdmin
+                                        ? null
+                                        : (val) async {
+                                            setState(() {
+                                              _loadingOperations.add(
+                                                'currency_${user.email}',
+                                              );
+                                            });
+                                            await provider
+                                                .toggleCurrencyPermission(
+                                                  user.email,
+                                                  val,
+                                                );
+                                            if (context.mounted) {
+                                              setState(() {
+                                                _loadingOperations.remove(
+                                                  'currency_${user.email}',
+                                                );
+                                              });
+                                            }
+                                          },
+                                  ),
                           ),
                         ],
                       ),

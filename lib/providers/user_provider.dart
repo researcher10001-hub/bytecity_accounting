@@ -54,6 +54,7 @@ class UserProvider with ChangeNotifier {
         'designation': updatedUser.designation,
         'status': updatedUser.status,
         'group_ids': updatedUser.groupIds.join(','),
+        'allow_foreign_currency': updatedUser.allowForeignCurrency,
       };
 
       await _apiService.postRequest(ApiConstants.actionUpdateUser, payload);
@@ -112,10 +113,8 @@ class UserProvider with ChangeNotifier {
         dateEditPermissionExpiresAt: user.dateEditPermissionExpiresAt,
         groupIds: user.groupIds,
       );
-      // Likewise, backend support needed. Optimistic for now.
-      _users[index] = newUser;
-      notifyListeners();
-      return true;
+
+      return await updateUser(newUser);
     }
     return false;
   }
