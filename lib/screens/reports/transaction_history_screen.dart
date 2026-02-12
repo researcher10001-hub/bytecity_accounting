@@ -465,17 +465,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 child: Row(
                                   children: [
                                     if (!isDebit) const SizedBox(width: 16),
-                                    Container(
-                                      width: 2.5,
-                                      height: 12,
-                                      decoration: BoxDecoration(
-                                        color: accentColor.withValues(
-                                          alpha: 0.3,
-                                        ),
-                                        borderRadius: BorderRadius.circular(1),
-                                      ),
-                                    ),
-                                    const SizedBox(width: 6),
+
                                     if (prefix.isNotEmpty) ...[
                                       Container(
                                         padding: const EdgeInsets.symmetric(
