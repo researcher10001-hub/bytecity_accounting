@@ -1853,132 +1853,185 @@ class _UsersScreenState extends State<UsersScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                Stack(
                   children: [
-                    // Avatar
-                    Container(
-                      width: 50,
-                      height: 50,
-                      decoration: BoxDecoration(
-                        color: _getRoleColor(user.role).withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      alignment: Alignment.center,
-                      child: Text(
-                        user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
-                        style: GoogleFonts.inter(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                          color: _getRoleColor(user.role),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-
-                    // Name & Details
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user.name,
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Avatar
+                        Container(
+                          width: 50,
+                          height: 50,
+                          decoration: BoxDecoration(
+                            color: _getRoleColor(
+                              user.role,
+                            ).withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          alignment: Alignment.center,
+                          child: Text(
+                            user.name.isNotEmpty
+                                ? user.name[0].toUpperCase()
+                                : '?',
                             style: GoogleFonts.inter(
-                              fontSize: 16,
+                              fontSize: 20,
                               fontWeight: FontWeight.bold,
-                              color: Colors.grey.shade800,
+                              color: _getRoleColor(user.role),
                             ),
                           ),
-                          if (user.designation.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(top: 2),
-                              child: Text(
-                                user.designation,
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                  color: Colors.indigo.shade700,
-                                ),
-                              ),
-                            ),
-                          const SizedBox(height: 4),
-                          Row(
-                            children: [
-                              Icon(
-                                LucideIcons.mail,
-                                size: 12,
-                                color: Colors.grey.shade500,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                user.email,
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  color: Colors.grey.shade600,
-                                ),
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 8),
-                          // Badges (Using Wrap to prevent overflow)
-                          Wrap(
-                            spacing: 8,
-                            runSpacing: 4,
-                            children: [
-                              _buildStatusBadge(user),
-                              _buildRoleBadge(user.role),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                        ),
+                        const SizedBox(width: 16),
 
-                    // Admin Actions
+                        // Name & Details
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  right: isAdmin ? 110 : 0,
+                                ),
+                                child: Text(
+                                  user.name,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(
+                                      context,
+                                    ).textTheme.bodyLarge?.color,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              if (user.designation.isNotEmpty)
+                                Padding(
+                                  padding: EdgeInsets.only(
+                                    top: 2,
+                                    right: isAdmin ? 110 : 0,
+                                  ),
+                                  child: Text(
+                                    user.designation,
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w500,
+                                      color: Theme.of(
+                                        context,
+                                      ).colorScheme.primary,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              const SizedBox(height: 4),
+                              Padding(
+                                padding: EdgeInsets.only(
+                                  right: isAdmin ? 110 : 0,
+                                ),
+                                child: Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.mail,
+                                      size: 12,
+                                      color: Theme.of(
+                                        context,
+                                      ).textTheme.bodySmall?.color,
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Expanded(
+                                      child: Text(
+                                        user.email,
+                                        style: GoogleFonts.inter(
+                                          fontSize: 12,
+                                          color: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall?.color,
+                                        ),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              // Badges (Using Wrap to prevent overflow)
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: [
+                                  _buildStatusBadge(user),
+                                  _buildRoleBadge(user.role),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
                     if (isAdmin)
-                      Container(
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: Colors.grey.shade200),
-                        ),
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 4,
-                          vertical: 4,
-                        ),
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            // Edit User
-                            IconButton(
-                              icon: const Icon(LucideIcons.edit3, size: 18),
-                              color: Colors.indigo,
-                              tooltip: 'Edit User',
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(8),
-                              onPressed: () =>
-                                  _showEditUserDialog(context, user),
+                      Positioned(
+                        top: 0,
+                        right: 0,
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardTheme.color,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: Theme.of(
+                                context,
+                              ).dividerColor.withValues(alpha: 0.1),
                             ),
-                            // Reset Password
-                            IconButton(
-                              icon: const Icon(LucideIcons.key, size: 18),
-                              color: Colors.orange,
-                              tooltip: 'Reset Password',
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(8),
-                              onPressed: () =>
-                                  _showResetPasswordDialog(context, user),
-                            ),
-                            // Force Logout
-                            IconButton(
-                              icon: const Icon(LucideIcons.logOut, size: 18),
-                              color: Colors.red,
-                              tooltip: 'Force Logout',
-                              constraints: const BoxConstraints(),
-                              padding: const EdgeInsets.all(8),
-                              onPressed: () =>
-                                  _confirmForceLogout(context, provider, user),
-                            ),
-                          ],
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 4,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 4,
+                            vertical: 4,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              // Edit User
+                              IconButton(
+                                icon: const Icon(LucideIcons.edit3, size: 18),
+                                color: Theme.of(context).colorScheme.primary,
+                                tooltip: 'Edit User',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(8),
+                                onPressed: () =>
+                                    _showEditUserDialog(context, user),
+                              ),
+                              // Reset Password
+                              IconButton(
+                                icon: const Icon(LucideIcons.key, size: 18),
+                                color: Colors.orange,
+                                tooltip: 'Reset Password',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(8),
+                                onPressed: () =>
+                                    _showResetPasswordDialog(context, user),
+                              ),
+                              // Force Logout
+                              IconButton(
+                                icon: const Icon(LucideIcons.logOut, size: 18),
+                                color: Colors.red,
+                                tooltip: 'Force Logout',
+                                constraints: const BoxConstraints(),
+                                padding: const EdgeInsets.all(8),
+                                onPressed: () => _confirmForceLogout(
+                                  context,
+                                  provider,
+                                  user,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                   ],
@@ -2001,12 +2054,18 @@ class _UsersScreenState extends State<UsersScreen> {
                           style: const TextStyle(fontSize: 13),
                         ),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.indigo,
-                          side: BorderSide(color: Colors.indigo.shade100),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Colors.indigo.withValues(
-                            alpha: 0.02,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary,
+                          side: BorderSide(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.primary.withValues(alpha: 0.1),
                           ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.primary.withValues(alpha: 0.02),
                         ),
                       ),
                     ),
@@ -2020,12 +2079,18 @@ class _UsersScreenState extends State<UsersScreen> {
                           style: const TextStyle(fontSize: 13),
                         ),
                         style: OutlinedButton.styleFrom(
-                          foregroundColor: Colors.purple,
-                          side: BorderSide(color: Colors.purple.shade100),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Colors.purple.withValues(
-                            alpha: 0.02,
+                          foregroundColor: Theme.of(
+                            context,
+                          ).colorScheme.secondary,
+                          side: BorderSide(
+                            color: Theme.of(
+                              context,
+                            ).colorScheme.secondary.withValues(alpha: 0.1),
                           ),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          backgroundColor: Theme.of(
+                            context,
+                          ).colorScheme.secondary.withValues(alpha: 0.02),
                         ),
                       ),
                     ),
@@ -2057,9 +2122,15 @@ class _UsersScreenState extends State<UsersScreen> {
                 Container(
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
-                    color: Colors.blueGrey.shade50.withValues(alpha: 0.3),
+                    color: Theme.of(
+                      context,
+                    ).dividerColor.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.blueGrey.shade50),
+                    border: Border.all(
+                      color: Theme.of(
+                        context,
+                      ).dividerColor.withValues(alpha: 0.1),
+                    ),
                   ),
                   child: Column(
                     children: [
@@ -2095,13 +2166,34 @@ class _UsersScreenState extends State<UsersScreen> {
                             height: 24,
                             child: Switch(
                               value: user.allowForeignCurrency,
+                              thumbColor:
+                                  WidgetStateProperty.resolveWith<Color?>((
+                                    states,
+                                  ) {
+                                    if (states.contains(WidgetState.selected)) {
+                                      return Colors.blue;
+                                    }
+                                    return Theme.of(
+                                      context,
+                                    ).textTheme.bodySmall?.color;
+                                  }),
+                              trackColor:
+                                  WidgetStateProperty.resolveWith<Color?>((
+                                    states,
+                                  ) {
+                                    if (states.contains(WidgetState.selected)) {
+                                      return Colors.blue.withValues(alpha: 0.4);
+                                    }
+                                    return Theme.of(
+                                      context,
+                                    ).dividerColor.withValues(alpha: 0.2);
+                                  }),
                               onChanged: user.isAdmin
                                   ? null
                                   : (val) => provider.toggleCurrencyPermission(
                                       user.email,
                                       val,
                                     ),
-                              activeThumbColor: Colors.blue,
                             ),
                           ),
                         ],
@@ -2119,7 +2211,11 @@ class _UsersScreenState extends State<UsersScreen> {
                                   color:
                                       (user.canEditDate
                                               ? Colors.green
-                                              : Colors.grey)
+                                              : Theme.of(context)
+                                                        .textTheme
+                                                        .bodySmall
+                                                        ?.color ??
+                                                    Colors.grey)
                                           .withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
@@ -2130,7 +2226,9 @@ class _UsersScreenState extends State<UsersScreen> {
                                   size: 14,
                                   color: user.canEditDate
                                       ? Colors.green
-                                      : Colors.grey,
+                                      : Theme.of(
+                                          context,
+                                        ).textTheme.bodySmall?.color,
                                 ),
                               ),
                               const SizedBox(width: 8),
@@ -2154,7 +2252,9 @@ class _UsersScreenState extends State<UsersScreen> {
                                       fontSize: 11,
                                       color: user.canEditDate
                                           ? Colors.green
-                                          : Colors.grey,
+                                          : Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall?.color,
                                     ),
                                   ),
                                 ],

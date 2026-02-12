@@ -38,24 +38,13 @@ class UserIdentityWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            // Role badge
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-              decoration: BoxDecoration(
-                color: _getRoleColor(user.role).withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(4),
-                border: Border.all(
-                  color: _getRoleColor(user.role).withValues(alpha: 0.3),
-                  width: 1,
-                ),
-              ),
-              child: Text(
-                _getRoleShortName(user.role),
-                style: GoogleFonts.inter(
-                  fontSize: 10,
-                  fontWeight: FontWeight.w600,
-                  color: _getRoleColor(user.role),
-                ),
+            // First Name
+            Text(
+              user.name.split(' ')[0],
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                fontWeight: FontWeight.w600,
+                color: Colors.black87,
               ),
             ),
             const SizedBox(width: 4),
@@ -89,21 +78,6 @@ class UserIdentityWidget extends StatelessWidget {
       return const Color(0xFF2196F3); // Blue
     } else {
       return const Color(0xFF757575); // Gray for Viewer
-    }
-  }
-
-  /// Get short role name for badge
-  String _getRoleShortName(String role) {
-    final normalizedRole = role.trim().toLowerCase();
-    if (normalizedRole == AppRoles.admin.toLowerCase()) {
-      return 'ADM';
-    } else if (normalizedRole == AppRoles.management.toLowerCase()) {
-      return 'OWN';
-    } else if (normalizedRole ==
-        AppRoles.businessOperationsAssociate.toLowerCase()) {
-      return 'BOA';
-    } else {
-      return 'VWR';
     }
   }
 
