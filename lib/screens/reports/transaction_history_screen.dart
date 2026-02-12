@@ -28,6 +28,13 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   @override
   void initState() {
     super.initState();
+    // Default to show TODAY's transactions
+    final now = DateTime.now();
+    _dateRange = DateTimeRange(
+      start: DateTime(now.year, now.month, now.day),
+      end: DateTime(now.year, now.month, now.day),
+    );
+
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<AuthProvider>().user;
       context.read<TransactionProvider>().fetchHistory(user);
@@ -234,6 +241,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         break;
     }
 
+    // Filter Debits and Credits
+    final debits = tx.details.where((d) => d.debit > 0).toList();
+    final credits = tx.details.where((d) => d.credit > 0).toList();
+
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -260,10 +271,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 ),
               ),
             ).then((_) {
-              context.read<TransactionProvider>().fetchHistory(
-                currentUser,
-                forceRefresh: true,
-              );
+              if (mounted) {
+                context.read<TransactionProvider>().fetchHistory(
+                  currentUser,
+                  forceRefresh: true,
+                );
+              }
             });
           },
           child: Padding(
@@ -271,10 +284,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // ROW 1: [Date] [Voucher ID (dim)] [Status]
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    // Date Badge
+                    // Date
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -294,7 +307,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            _getModernDate(tx.date),
+                            DateFormat('dd MMM yyyy').format(tx.date),
                             style: GoogleFonts.inter(
                               fontSize: 11,
                               fontWeight: FontWeight.w600,
@@ -304,6 +317,27 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         ],
                       ),
                     ),
+                    const SizedBox(width: 8),
+
+                    // Voucher ID (Small & Dim)
+                    Text(
+                      tx.voucherNo,
+                      style: GoogleFonts.inter(
+                        fontSize: 10,
+                        color: Colors.grey.shade400,
+                        fontWeight: FontWeight.w500,
+                      ),
+                    ),
+                    if (tx.isFlagged) ...[
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.flag_rounded,
+                        size: 12,
+                        color: Colors.red.shade400,
+                      ),
+                    ],
+
+                    const Spacer(),
 
                     // Status Badge
                     Container(
@@ -335,229 +369,152 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ),
                   ],
                 ),
-                const SizedBox(height: 10),
+                const SizedBox(height: 12),
 
-                // Voucher & Edit Row
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
+                // ROW 2: Debits
+                ...debits.map((d) {
+                  String prefix = 'Dr.';
+                  switch (tx.type) {
+                    case VoucherType.payment:
+                      prefix = 'Expense for';
+                      break;
+                    case VoucherType.receipt:
+                      prefix = 'Received in';
+                      break;
+                    case VoucherType.contra:
+                      prefix = 'Transfer to';
+                      break;
+                    default:
+                      prefix = 'Dr.';
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
                       children: [
-                        const Icon(
-                          LucideIcons.fileText,
-                          size: 14,
-                          color: Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 4),
                         Text(
-                          tx.voucherNo,
+                          prefix,
                           style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF334155),
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
                           ),
                         ),
-                        if (tx.isFlagged) ...[
-                          const SizedBox(width: 6),
-                          Icon(
-                            Icons.flag_rounded,
-                            size: 14,
-                            color: Colors.red.shade600,
-                          ),
-                        ],
-                      ],
-                    ),
-                    if (tx.createdBy.trim().toLowerCase() ==
-                            currentUser.email.trim().toLowerCase() ||
-                        currentUser.isAdmin)
-                      Material(
-                        color: const Color(0xFFF1F5F9),
-                        borderRadius: BorderRadius.circular(6),
-                        child: InkWell(
-                          onTap: () {
-                            Navigator.of(context)
-                                .push(
-                                  MaterialPageRoute(
-                                    builder: (context) =>
-                                        TransactionEntryScreen(transaction: tx),
-                                  ),
-                                )
-                                .then((_) {
-                                  context
-                                      .read<TransactionProvider>()
-                                      .fetchHistory(
-                                        currentUser,
-                                        forceRefresh: true,
-                                      );
-                                });
-                          },
-                          borderRadius: BorderRadius.circular(6),
-                          child: const Padding(
-                            padding: EdgeInsets.all(4),
-                            child: Icon(
-                              LucideIcons.edit3,
-                              size: 14,
-                              color: Color(0xFF64748B),
-                            ),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-                const SizedBox(height: 10),
-
-                // Account Lines
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF8FAFC),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Column(
-                    children: [
-                      ...[
-                        ...tx.details.where((d) => d.debit > 0),
-                        ...tx.details.where((d) => d.credit > 0),
-                      ].map((detail) {
-                        final isDebit = detail.debit > 0;
-                        Color accentColor = isDebit
-                            ? const Color(0xFF16A34A) // Green for Debit
-                            : const Color(0xFFDC2626); // Red for Credit
-
-                        // Prefix Logic
-                        String prefix = '';
-                        if (isDebit) {
-                          switch (tx.type) {
-                            case VoucherType.payment:
-                              prefix = 'Expense for';
-                              break;
-                            case VoucherType.receipt:
-                              prefix = 'Received in';
-                              break;
-                            case VoucherType.contra:
-                              prefix = 'Transfer to';
-                              break;
-                            default:
-                              prefix = 'Dr.';
-                          }
-                        } else {
-                          switch (tx.type) {
-                            case VoucherType.payment:
-                              prefix = 'Paid from';
-                              break;
-                            case VoucherType.receipt:
-                              prefix = 'Income from';
-                              break;
-                            case VoucherType.contra:
-                              prefix = 'Transfer from';
-                              break;
-                            default:
-                              prefix = 'Cr.';
-                          }
-                        }
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 2),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Expanded(
-                                child: Row(
-                                  children: [
-                                    if (!isDebit) const SizedBox(width: 16),
-
-                                    if (prefix.isNotEmpty) ...[
-                                      Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 4,
-                                          vertical: 1,
-                                        ),
-                                        decoration: BoxDecoration(
-                                          color: Colors.grey.shade100,
-                                          borderRadius: BorderRadius.circular(
-                                            4,
-                                          ),
-                                        ),
-                                        child: Text(
-                                          prefix,
-                                          style: GoogleFonts.inter(
-                                            fontSize: 8.5,
-                                            fontWeight: FontWeight.w500,
-                                            color: Colors.grey.shade600,
-                                          ),
-                                        ),
-                                      ),
-                                      const SizedBox(width: 4),
-                                    ],
-                                    Expanded(
-                                      child: Text(
-                                        detail.account?.name ?? 'Unknown',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 12,
-                                          fontWeight: isDebit
-                                              ? FontWeight.w600
-                                              : FontWeight.w500,
-                                          color: isDebit
-                                              ? const Color(0xFF1E293B)
-                                              : const Color(0xFF475569),
-                                        ),
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Text(
-                                '${CurrencyFormatter.getCurrencySymbol(detail.currency)} ${CurrencyFormatter.format(isDebit ? detail.debit : detail.credit)}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: accentColor,
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      }),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 10),
-
-                // Footer: Narration & User
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'DESCRIPTION',
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            d.account?.name ?? 'Unknown',
                             style: GoogleFonts.inter(
-                              fontSize: 8,
-                              fontWeight: FontWeight.w700,
-                              color: const Color(0xFF94A3B8),
-                              letterSpacing: 0.5,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF1E293B),
                             ),
-                          ),
-                          const SizedBox(height: 1),
-                          Text(
-                            tx.mainNarration.isNotEmpty
-                                ? tx.mainNarration
-                                : 'None',
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: const Color(0xFF475569),
-                              fontWeight: FontWeight.w500,
-                            ),
-                            maxLines: 1,
                             overflow: TextOverflow.ellipsis,
                           ),
-                        ],
+                        ),
+                        Text(
+                          '${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.debit)}',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF16A34A), // Green
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+
+                // ROW 3: Credits
+                ...credits.map((c) {
+                  String prefix = 'Cr.';
+                  switch (tx.type) {
+                    case VoucherType.payment:
+                      prefix = 'Paid from';
+                      break;
+                    case VoucherType.receipt:
+                      prefix = 'Income from';
+                      break;
+                    case VoucherType.contra:
+                      prefix = 'Transfer from';
+                      break;
+                    default:
+                      prefix = 'Cr.';
+                  }
+
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 4),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 24), // Indent for Credit
+                        Text(
+                          prefix,
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: Colors.grey.shade500,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            c.account?.name ?? 'Unknown',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF1E293B),
+                            ),
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        Text(
+                          '${CurrencyFormatter.getCurrencySymbol(c.currency)} ${CurrencyFormatter.format(c.credit)}',
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFFDC2626), // Red
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }),
+                const SizedBox(height: 8),
+                const Divider(height: 1, color: Color(0xFFF1F5F9)),
+                const SizedBox(height: 8),
+
+                // ROW 4: [Note: (small)] [Main Narration] ... [Type] [Edit]
+                Row(
+                  children: [
+                    // Note
+                    Expanded(
+                      child: RichText(
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        text: TextSpan(
+                          style: GoogleFonts.inter(
+                            fontSize: 11,
+                            color: Colors.grey.shade700,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: 'Note: ',
+                              style: TextStyle(
+                                fontSize: 10,
+                                color: Colors.grey.shade400,
+                              ),
+                            ),
+                            TextSpan(
+                              text: tx.mainNarration.isNotEmpty
+                                  ? tx.mainNarration
+                                  : 'None',
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                    const SizedBox(width: 12),
+
+                    const SizedBox(width: 8),
+
+                    // Type Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 8,
@@ -587,6 +544,47 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                         ],
                       ),
                     ),
+
+                    // Edit Button (if owner/admin)
+                    if (tx.createdBy.trim().toLowerCase() ==
+                            currentUser.email.trim().toLowerCase() ||
+                        currentUser.isAdmin) ...[
+                      const SizedBox(width: 8),
+                      Material(
+                        color: const Color(0xFFF1F5F9),
+                        borderRadius: BorderRadius.circular(6),
+                        child: InkWell(
+                          onTap: () {
+                            Navigator.of(context)
+                                .push(
+                                  MaterialPageRoute(
+                                    builder: (context) =>
+                                        TransactionEntryScreen(transaction: tx),
+                                  ),
+                                )
+                                .then((_) {
+                                  if (mounted) {
+                                    context
+                                        .read<TransactionProvider>()
+                                        .fetchHistory(
+                                          currentUser,
+                                          forceRefresh: true,
+                                        );
+                                  }
+                                });
+                          },
+                          borderRadius: BorderRadius.circular(6),
+                          child: const Padding(
+                            padding: EdgeInsets.all(4),
+                            child: Icon(
+                              LucideIcons.edit3,
+                              size: 14,
+                              color: Color(0xFF64748B),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ],
@@ -711,21 +709,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           );
         }
       });
-    }
-  }
-
-  String _getModernDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final yesterday = today.subtract(const Duration(days: 1));
-    final checkDate = DateTime(date.year, date.month, date.day);
-
-    if (checkDate == today) {
-      return 'Today, ${DateFormat('dd MMM').format(date)}';
-    } else if (checkDate == yesterday) {
-      return 'Yesterday, ${DateFormat('dd MMM').format(date)}';
-    } else {
-      return DateFormat('dd MMM, yyyy').format(date);
     }
   }
 
