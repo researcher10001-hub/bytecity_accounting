@@ -27,7 +27,11 @@ class ApiService {
       // Simple Request with Manual Redirect Handling
       // 1. Initial POST
       final response = await http
-          .post(finalUrl, body: jsonEncode(data))
+          .post(
+            finalUrl,
+            headers: {'Content-Type': 'application/json; charset=UTF-8'},
+            body: jsonEncode(data),
+          )
           .timeout(const Duration(seconds: 60));
 
       print('API Response Code: ${response.statusCode}');
