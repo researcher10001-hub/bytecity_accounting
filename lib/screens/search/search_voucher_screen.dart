@@ -2,9 +2,12 @@
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../models/transaction_model.dart';
 import '../transaction/transaction_detail_screen.dart';
 import '../../core/utils/currency_formatter.dart';
+
+import '../../providers/user_provider.dart';
 
 class SearchVoucherScreen extends StatefulWidget {
   const SearchVoucherScreen({super.key});
@@ -18,6 +21,15 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
   String _searchQuery = '';
 
   @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      // Fetch users to know roles for filtering
+      context.read<UserProvider>().fetchUsers();
+    });
+  }
+
+  @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
@@ -27,10 +39,48 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
   Widget build(BuildContext context) {
     final transactionProvider = context.watch<TransactionProvider>();
 
-    // Filter transactions by voucher number
+    final userProvider = context.watch<UserProvider>();
+    final currentUser = context.read<AuthProvider>().user;
+
+    // Build Email -> Role Map
+    final Map<String, String> userRoles = {
+      for (var u in userProvider.users) u.email.trim().toLowerCase(): u.role,
+    };
+
+    // 1. Get Base List based on Role
+    List<TransactionModel> baseList = [];
+
+    if (currentUser == null) {
+      baseList = [];
+    } else if (currentUser.isAdmin ||
+        currentUser.isManagement ||
+        currentUser.isViewer) {
+      // Admin, Management, Viewer -> See ALL
+      baseList = transactionProvider.transactions;
+    } else {
+      // Associate -> See entries created by ANY Associate
+      baseList = transactionProvider.transactions.where((tx) {
+        final creatorEmail = tx.createdBy.trim().toLowerCase();
+
+        // 1. Own entries always visible
+        if (creatorEmail == currentUser.email.trim().toLowerCase()) return true;
+
+        // 2. Check if creator is also an Associate
+        final creatorRole = userRoles[creatorEmail];
+        if (creatorRole != null &&
+            (creatorRole == 'Associate' ||
+                creatorRole == 'Business Operations Associate')) {
+          return true;
+        }
+
+        return false;
+      }).toList();
+    }
+
+    // 2. Filter by Search Query
     final List<TransactionModel> filteredTransactions = _searchQuery.isEmpty
         ? []
-        : transactionProvider.transactions
+        : baseList
               .where(
                 (tx) => tx.voucherNo.toLowerCase().contains(
                   _searchQuery.toLowerCase(),
