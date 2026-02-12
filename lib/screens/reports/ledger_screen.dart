@@ -729,98 +729,102 @@ class _LedgerScreenState extends State<LedgerScreen> {
               borderRadius: BorderRadius.circular(12),
               child: Padding(
                 padding: const EdgeInsets.all(16),
-                child: Row(
+                child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // LEFT SIDE: Date + Separator
+                    // ROW 1: [Date] | [Voucher ID] [Amount] [Dr/Cr]
                     Row(
                       children: [
-                        Text(
-                          dateStr,
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF1E293B),
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          '|',
-                          style: GoogleFonts.inter(
-                            fontSize: 13,
-                            color: const Color(0xFFCBD5E1), // Light Grey
-                          ),
-                        ),
-                        const SizedBox(width: 6),
-                      ],
-                    ),
-
-                    // RIGHT SIDE: Account, ID, Amounts
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // ROW 1 Part B: [Against Account] [Voucher ID]
-                          Row(
+                        // Date + Separator (Fixed Width for Alignment)
+                        SizedBox(
+                          width: 75,
+                          child: Row(
                             children: [
-                              Expanded(
-                                child: Text(
-                                  againstAccount,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                    color: const Color(0xFF0F172A),
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
+                              Text(
+                                dateStr,
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                              ),
+                              const Spacer(),
+                              Text(
+                                '|',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: const Color(0xFFCBD5E1),
                                 ),
                               ),
                               const SizedBox(width: 8),
-                              Text(
-                                voucherNo,
-                                style: GoogleFonts.inter(
-                                  fontSize: 11,
-                                  color: const Color(0xFF94A3B8), // Dim
-                                ),
-                              ),
                             ],
                           ),
-                          const SizedBox(height: 8),
-
-                          // ROW 2: [Debit Amount] [Dr] [Credit Amount] [Cr]
-                          // Indented 5 spaces (approx 20-30px) "from Account Title"
-                          // Since we are inside the Column that STARTS at Account Title,
-                          // we just add padding left.
-                          Padding(
-                            padding: const EdgeInsets.only(
-                              left: 20,
-                            ), // ~5 spaces
-                            child: Row(
-                              mainAxisAlignment: isDebit
-                                  ? MainAxisAlignment.start
-                                  : MainAxisAlignment.end,
-                              children: [
-                                Text(
-                                  formattedAmount,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: isDebit ? Colors.green : Colors.red,
-                                  ),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  isDebit ? 'Dr' : 'Cr',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    color: Colors.grey,
-                                  ),
-                                ),
-                              ],
+                        ),
+                        // Voucher ID
+                        Expanded(
+                          child: Text(
+                            voucherNo,
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: const Color(0xFF94A3B8),
                             ),
                           ),
-                        ],
-                      ),
+                        ),
+                        // Amount (Side based on isDebit)
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              formattedAmount,
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.bold,
+                                color: isDebit ? Colors.green : Colors.red,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              isDebit ? 'Dr' : 'Cr',
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                color: Colors.grey,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 4),
+
+                    // ROW 2: [Against : ] [Against account title (unfocused)]
+                    Row(
+                      children: [
+                        SizedBox(
+                          width: 75,
+                          child: Text(
+                            'Against :',
+                            style: GoogleFonts.inter(
+                              fontSize: 11,
+                              color: const Color(0xFF94A3B8), // Dim
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          child: Text(
+                            againstAccount,
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                              color: const Color(
+                                0xFF94A3B8,
+                              ), // Unfocused (Grey)
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
