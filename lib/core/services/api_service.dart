@@ -29,7 +29,9 @@ class ApiService {
       final response = await http
           .post(
             finalUrl,
-            headers: {'Content-Type': 'application/json; charset=UTF-8'},
+            // Use text/plain to avoid CORS preflight (OPTIONS) on Web.
+            // Google Apps Script doesn't handle OPTIONS, but parses postData.contents fine.
+            headers: {'Content-Type': 'text/plain; charset=UTF-8'},
             body: jsonEncode(data),
           )
           .timeout(const Duration(seconds: 60));

@@ -125,6 +125,10 @@ class AuthProvider with ChangeNotifier {
   // --- SESSION MONITOR ---
   void _startSessionMonitor() {
     _stopSessionMonitor(); // Ensure no duplicate timers
+
+    // Check immediately to sync latest permissions/status
+    _checkSessionValidity();
+
     // Check every 5 minutes (Production Mode)
     _sessionTimer = Timer.periodic(const Duration(minutes: 5), (_) {
       _checkSessionValidity();
@@ -141,11 +145,28 @@ class AuthProvider with ChangeNotifier {
 
     try {
       // Intentionally NOT using _isLoading/notifyListeners to keep it silent
-      await _apiService.postRequest(ApiConstants.actionCheckSession, {
-        'email': _user!.email,
-        'session_token': _user!.sessionToken,
-      });
-      // If success, do nothing. If fail (401/Unauthorized), ApiService.onUnauthorized will trigger logout().
+      final response = await _apiService.postRequest(
+        ApiConstants.actionCheckSession,
+        {'email': _user!.email, 'session_token': _user!.sessionToken},
+      );
+
+      if (response != null && response is Map<String, dynamic>) {
+        if (response['valid'] == true) {
+          // Sync User Data (Permissions, Role, Status)
+          // We can just re-parse the user from the response as it now returns full profile
+          final updatedUser = User.fromJson(response);
+
+          // Check for changes that imply a need to update state
+          if (updatedUser.allowForeignCurrency != _user!.allowForeignCurrency ||
+              updatedUser.role != _user!.role ||
+              updatedUser.status != _user!.status) {
+            _user = updatedUser;
+            await _sessionManager.saveUser(_user!);
+            notifyListeners();
+          }
+        }
+      }
+      // If fail (401/Unauthorized), ApiService.onUnauthorized will trigger logout().
     } catch (e) {
       // If network error, ignore (don't logout for just bad internet once)
       // But if it's unauthorized (handled by ApiService), it will logout.

@@ -158,6 +158,7 @@ function doPost(e) {
 }
 
 // --- CHECK SESSION (Heartbeat) ---
+// --- CHECK SESSION (Heartbeat) ---
 function checkSession(e) {
   try {
      const data = JSON.parse(e.postData.contents);
@@ -166,16 +167,45 @@ function checkSession(e) {
      
      if (!email) return errorResponse("Missing email");
      
-     if (isValidSession(email, token)) {
-        // Also check if active
-        if (isUserActive(email)) {
-            return successResponse({'valid': true});
-        } else {
-            return errorResponse("Unauthorized: User suspended.");
+     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+     if (!sheet) return errorResponse("Users sheet not found");
+     
+     const rows = sheet.getDataRange().getValues();
+     
+     for (let i = 1; i < rows.length; i++) {
+        const row = rows[i];
+        if (row[1].toString() == email) {
+           const storedToken = (row.length > 6) ? row[6].toString() : "";
+           const status = row[4].toString();
+           
+           if (storedToken === token) {
+              if (status === "Active") {
+                  // Return FULL user data to sync permissions
+                  const groupIds = (row.length > 5) ? row[5].toString() : "";
+                  const designation = (row.length > 7) ? row[7].toString() : "";
+                  const allowForeignCurrency = (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false;
+
+                  return successResponse({
+                      'valid': true,
+                      'name': row[0],
+                      'email': email,
+                      'role': row[3],
+                      'status': "Active",
+                      'active': true,
+                      'group_ids': groupIds,
+                      'session_token': token,
+                      'designation': designation,
+                      'allow_foreign_currency': allowForeignCurrency
+                  });
+              } else {
+                  return errorResponse("Unauthorized: User suspended.");
+              }
+           } else {
+              return errorResponse("Unauthorized: Session invalid.");
+           }
         }
-     } else {
-        return errorResponse("Unauthorized: Session invalid.");
      }
+     return errorResponse("User not found.");
   } catch (err) {
      return errorResponse("Server error: " + err.toString());
   }
