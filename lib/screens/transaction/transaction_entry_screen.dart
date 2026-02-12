@@ -385,6 +385,13 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             onPressed: provider.isLoading
                 ? null
                 : () async {
+                    if (provider.selectedDate == null) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Please select a date')),
+                      );
+                      return;
+                    }
+
                     if (!provider.isBalanced) {
                       ScaffoldMessenger.of(context).showSnackBar(
                         const SnackBar(
@@ -395,6 +402,11 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                         ),
                       );
                       return;
+                    }
+
+                    // Default Note Logic
+                    if (provider.mainNarration.trim().isEmpty) {
+                      provider.setMainNarration("No remark.");
                     }
 
                     TransactionModel? savedTx;
