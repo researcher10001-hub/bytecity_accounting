@@ -12,6 +12,7 @@ import '../../providers/user_provider.dart';
 
 import '../transaction/transaction_entry_screen.dart';
 import '../transaction/transaction_detail_screen.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class TransactionHistoryScreen extends StatefulWidget {
   const TransactionHistoryScreen({super.key});
@@ -517,9 +518,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 ),
                               ),
                               Text(
-                                NumberFormat('#,##0.000').format(
-                                  isDebit ? detail.debit : detail.credit,
-                                ),
+                                '${CurrencyFormatter.getCurrencySymbol(detail.currency)} ${CurrencyFormatter.format(isDebit ? detail.debit : detail.credit)}',
                                 style: GoogleFonts.inter(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w600,

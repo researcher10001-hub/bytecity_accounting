@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../models/transaction_model.dart';
 import '../transaction/transaction_detail_screen.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class SearchVoucherScreen extends StatefulWidget {
   const SearchVoucherScreen({super.key});
@@ -192,7 +193,7 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
                               ),
                               const SizedBox(height: 4),
                               Text(
-                                '${tx.currency} ${tx.totalDebit.toStringAsFixed(2)}',
+                                '${tx.currency} ${CurrencyFormatter.format(tx.totalDebit)}',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w600,

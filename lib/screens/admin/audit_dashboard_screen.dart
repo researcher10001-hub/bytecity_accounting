@@ -7,6 +7,7 @@ import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../models/transaction_model.dart';
 import '../transaction/transaction_detail_screen.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class AuditDashboardScreen extends StatefulWidget {
   const AuditDashboardScreen({super.key});
@@ -242,7 +243,7 @@ class _AuditDashboardScreenState extends State<AuditDashboardScreen> {
                     ],
                   ),
                   Text(
-                    "${NumberFormat('#,##0').format(tx.totalDebit)} ${tx.currency}",
+                    "${CurrencyFormatter.format(tx.totalDebit)} ${tx.currency}",
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

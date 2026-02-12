@@ -14,6 +14,7 @@ import '../../models/account_model.dart';
 import '../../services/permission_service.dart';
 import 'widgets/account_autocomplete.dart';
 import '../reports/transaction_history_screen.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class TransactionEntryScreen extends StatefulWidget {
   final TransactionModel? transaction; // Optional transaction for editing
@@ -400,6 +401,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                     if (provider.isEditing) {
                       final success = await provider.editTransaction(user);
                       if (success) {
+                        if (!context.mounted) return;
                         // For edit, we don't hold the return object easily yet, but can construct a dummy or just use current state
                         // To Reuse the dialog, let's create a minimal object from provider state
                         // Actually editTransaction updates the history list.
@@ -654,6 +656,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           FormattedAmountField(
             initialValue: provider.simpleAmount,
             label: 'Amount (BDT)',
+            currency: 'BDT',
             isLarge: true,
             onChanged: (val) => provider.setSimpleAmount(val),
           ),
@@ -737,7 +740,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                 child: Column(
                   children: [
                     Text(
-                      'Debit BDT: ৳${NumberFormat('#,##0.000').format(provider.totalDestBDT)}',
+                      'Debit BDT: ৳ ${CurrencyFormatter.format(provider.totalDestBDT)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueGrey,
@@ -745,7 +748,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       ),
                     ),
                     Text(
-                      'Credit BDT: ৳${NumberFormat('#,##0.000').format(provider.totalSourceBDT)}',
+                      'Credit BDT: ৳ ${CurrencyFormatter.format(provider.totalSourceBDT)}',
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.blueGrey,
@@ -757,7 +760,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               ),
             if (!provider.isBalanced)
               Text(
-                'BDT Difference: ${NumberFormat('#,##0.000').format((provider.totalSourceBDT - provider.totalDestBDT).abs())}',
+                'BDT Difference: ${CurrencyFormatter.format((provider.totalSourceBDT - provider.totalDestBDT).abs())}',
                 style: const TextStyle(
                   color: Colors.red,
                   fontWeight: FontWeight.bold,
@@ -836,7 +839,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                 ),
               ),
               Text(
-                'Total: ${NumberFormat('#,##0.000').format(total)} $currency',
+                'Total: ${CurrencyFormatter.format(total)} $currency',
                 style: const TextStyle(fontWeight: FontWeight.bold),
               ),
             ],
@@ -857,7 +860,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                   border: Border.all(color: Colors.grey.shade200),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.02),
+                      color: Colors.black.withValues(alpha: 0.02),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
                     ),
@@ -1000,6 +1003,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       key: ValueKey('amount_${entry.id}'),
                       initialValue: entry.amount,
                       label: 'Amount in ${entry.currency}',
+                      currency: entry.currency,
                       onChanged: (val) => onUpdateAmount(index, val),
                     ),
 
@@ -1018,7 +1022,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                               ),
                             ),
                             Text(
-                              '৳${NumberFormat('#,##0.00').format(entry.bdtAmount)}',
+                              '৳ ${CurrencyFormatter.format(entry.bdtAmount)}',
                               style: TextStyle(
                                 fontSize: 13,
                                 color: Colors.green.shade700,
@@ -1048,6 +1052,7 @@ class FormattedAmountField extends StatefulWidget {
   final double initialValue;
   final ValueChanged<double> onChanged;
   final String label;
+  final String currency;
   final bool isLarge;
 
   const FormattedAmountField({
@@ -1055,6 +1060,7 @@ class FormattedAmountField extends StatefulWidget {
     required this.initialValue,
     required this.onChanged,
     required this.label,
+    this.currency = 'BDT',
     this.isLarge = false,
   });
 
@@ -1073,7 +1079,7 @@ class _FormattedAmountFieldState extends State<FormattedAmountField> {
     _controller = TextEditingController(
       text: widget.initialValue == 0
           ? ''
-          : NumberFormat('#,##0.000').format(widget.initialValue),
+          : CurrencyFormatter.format(widget.initialValue),
     );
 
     _focusNode.addListener(() {
@@ -1090,14 +1096,14 @@ class _FormattedAmountFieldState extends State<FormattedAmountField> {
     if (!_focusNode.hasFocus && widget.initialValue != oldWidget.initialValue) {
       _controller.text = widget.initialValue == 0
           ? ''
-          : NumberFormat('#,##0.000').format(widget.initialValue);
+          : CurrencyFormatter.format(widget.initialValue);
     }
   }
 
   void _formatValue() {
     final text = _controller.text.replaceAll(',', '');
     double val = double.tryParse(text) ?? 0;
-    _controller.text = val == 0 ? '' : NumberFormat('#,##0.000').format(val);
+    _controller.text = val == 0 ? '' : CurrencyFormatter.format(val);
   }
 
   @override
@@ -1116,7 +1122,18 @@ class _FormattedAmountFieldState extends State<FormattedAmountField> {
         labelText: widget.label,
         hintText: widget.isLarge ? null : 'Amount',
         border: const OutlineInputBorder(),
-        prefixIcon: widget.isLarge ? const Icon(Icons.attach_money) : null,
+        prefixIcon: Container(
+          width: widget.isLarge ? 48 : 32,
+          alignment: Alignment.center,
+          child: Text(
+            CurrencyFormatter.getCurrencySymbol(widget.currency),
+            style: TextStyle(
+              fontSize: widget.isLarge ? 20 : 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey[700],
+            ),
+          ),
+        ),
         isDense: true,
         contentPadding: widget.isLarge
             ? const EdgeInsets.all(16)

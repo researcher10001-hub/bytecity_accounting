@@ -10,6 +10,7 @@ import '../../models/user_model.dart';
 
 import 'widgets/approval_timeline_widget.dart';
 import 'widgets/approval_action_widget.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
   final TransactionModel transaction;
@@ -279,7 +280,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                         style: TextStyle(color: Colors.blueGrey, fontSize: 11),
                       ),
                       Text(
-                        "${_currentTransaction.currency} ${NumberFormat('#,##0.000').format(_currentTransaction.totalDebit)}",
+                        "${CurrencyFormatter.getCurrencySymbol(_currentTransaction.currency)} ${CurrencyFormatter.format(_currentTransaction.totalDebit)}",
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                           fontSize: 16,
@@ -303,8 +304,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       ),
                       Text(
                         d.debit > 0
-                            ? "Dr ${NumberFormat('#,##0.000').format(d.debit)}"
-                            : "Cr ${NumberFormat('#,##0.000').format(d.credit)}",
+                            ? "Dr ${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.debit)}"
+                            : "Cr ${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.credit)}",
                         style: TextStyle(
                           fontSize: 12,
                           color: d.debit > 0 ? Colors.black : Colors.grey,

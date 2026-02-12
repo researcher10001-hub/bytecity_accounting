@@ -9,6 +9,7 @@ import '../../../models/transaction_model.dart';
 import '../../../models/message_model.dart';
 import '../../notifications/notifications_screen.dart';
 import '../../transaction/transaction_detail_screen.dart';
+import '../../../core/utils/currency_formatter.dart';
 
 class MessageCard extends StatefulWidget {
   const MessageCard({super.key});
@@ -306,9 +307,9 @@ class _MessageCardState extends State<MessageCard>
                               displayMsg == 'No messages yet';
 
                           if (isAutomated) {
-                            final amountStr = NumberFormat(
-                              '#,##0',
-                            ).format(tx.totalDebit);
+                            final amountStr = CurrencyFormatter.format(
+                              tx.totalDebit,
+                            );
                             displayMsg =
                                 '$amountStr ${tx.currency}${tx.mainNarration.isNotEmpty ? ' - ${tx.mainNarration}' : ''}';
                           }

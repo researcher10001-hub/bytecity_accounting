@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:intl/intl.dart';
+
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../models/transaction_model.dart';
 import '../../../models/message_model.dart';
 import '../transaction/transaction_detail_screen.dart';
+import '../../core/utils/currency_formatter.dart';
 
 class PendingTransactionsScreen extends StatefulWidget {
   const PendingTransactionsScreen({super.key});
@@ -269,7 +270,7 @@ class _PendingTransactionsScreenState extends State<PendingTransactionsScreen> {
     if (displayMsg.toLowerCase().contains('transaction created') ||
         displayMsg.toLowerCase().contains('self-entry') ||
         displayMsg == 'No messages yet') {
-      final amountStr = NumberFormat('#,##0').format(tx.totalDebit);
+      final amountStr = CurrencyFormatter.format(tx.totalDebit);
       final narration = tx.mainNarration.trim();
       displayMsg =
           '$amountStr ${tx.currency}${narration.isNotEmpty ? ' - $narration' : ''}';

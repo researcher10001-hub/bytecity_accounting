@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
+
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/account_provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/permission_service.dart';
 import '../../reports/ledger_screen.dart';
+import '../../../../core/utils/currency_formatter.dart';
 
 class OwnedAccountsScreen extends StatefulWidget {
   const OwnedAccountsScreen({super.key});
@@ -287,7 +288,7 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                   crossAxisAlignment: CrossAxisAlignment.end,
                                   children: [
                                     Text(
-                                      '৳ ${NumberFormat('#,##0.000').format(balance.abs())}',
+                                      '৳ ${CurrencyFormatter.format(balance.abs())}',
                                       style: GoogleFonts.inter(
                                         fontSize: 13,
                                         fontWeight: FontWeight.w700,

@@ -14,6 +14,7 @@ import '../../models/account_model.dart';
 import '../../services/permission_service.dart';
 
 import '../../models/transaction_model.dart';
+import '../../core/utils/currency_formatter.dart';
 import '../transaction/transaction_entry_screen.dart';
 import '../transaction/transaction_detail_screen.dart';
 import '../admin/account_groups_screen.dart';
@@ -409,7 +410,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                 ? Colors.red
                                 : Colors.green;
                             final String formattedAmount =
-                                '৳${NumberFormat('#,##0.000').format(txAmount)}';
+                                '৳${CurrencyFormatter.format(txAmount)}';
 
                             // Status Logic Simulation (since 'status' might not be in model yet)
                             // If 'originalTx' has a status field, use it.
@@ -995,7 +996,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
           ),
           const SizedBox(height: 4),
           Text(
-            '${NumberFormat('#,##0').format(value)} BDT',
+            '${CurrencyFormatter.format(value)} BDT',
             style: GoogleFonts.inter(
               fontSize: 14,
               fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
