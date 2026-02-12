@@ -732,145 +732,93 @@ class _LedgerScreenState extends State<LedgerScreen> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Date
-                    SizedBox(
-                      width: 50,
-                      child: Text(
-                        dateStr,
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF1E293B),
+                    // LEFT SIDE: Date + Separator
+                    Row(
+                      children: [
+                        Text(
+                          dateStr,
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF1E293B),
+                          ),
                         ),
-                      ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '|',
+                          style: GoogleFonts.inter(
+                            fontSize: 13,
+                            color: const Color(0xFFCBD5E1), // Light Grey
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    // Main Content
+
+                    // RIGHT SIDE: Account, ID, Amounts
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            againstAccount,
-                            style: GoogleFonts.inter(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w500,
-                              color: const Color(0xFF0F172A),
-                            ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          const SizedBox(height: 4),
+                          // ROW 1 Part B: [Against Account] [Voucher ID]
                           Row(
                             children: [
+                              Expanded(
+                                child: Text(
+                                  againstAccount,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                    color: const Color(0xFF0F172A),
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
                               Text(
                                 voucherNo,
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
-                                  color: const Color(0xFF94A3B8),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Container(
-                                width: 8,
-                                height: 8,
-                                decoration: BoxDecoration(
-                                  color: statusColor,
-                                  shape: BoxShape.circle,
+                                  color: const Color(0xFF94A3B8), // Dim
                                 ),
                               ),
                             ],
                           ),
-                        ],
-                      ),
-                    ),
-                    // Ledger Columns: Debit & Credit
-                    SizedBox(
-                      width: 85,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (isDebit) ...[
-                            Text(
-                              formattedAmount,
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: amountColor,
-                              ),
-                            ),
-                            if (isDebit && currency != 'BDT') ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                '$currency ${NumberFormat('#,##0.00').format(originalAmount)}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  color: Colors.grey.shade600,
-                                  fontStyle: FontStyle.italic,
+                          const SizedBox(height: 8),
+
+                          // ROW 2: [Debit Amount] [Dr] [Credit Amount] [Cr]
+                          // Indented 5 spaces (approx 20-30px) "from Account Title"
+                          // Since we are inside the Column that STARTS at Account Title,
+                          // we just add padding left.
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              left: 20,
+                            ), // ~5 spaces
+                            child: Row(
+                              mainAxisAlignment: isDebit
+                                  ? MainAxisAlignment.start
+                                  : MainAxisAlignment.end,
+                              children: [
+                                Text(
+                                  formattedAmount,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: isDebit ? Colors.green : Colors.red,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                '@ $rate',
-                                style: GoogleFonts.inter(
-                                  fontSize: 9,
-                                  color: Colors.grey.shade500,
+                                const SizedBox(width: 4),
+                                Text(
+                                  isDebit ? 'Dr' : 'Cr',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    color: Colors.grey,
+                                  ),
                                 ),
-                              ),
-                            ],
-                            Text(
-                              'Dr',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF94A3B8),
-                              ),
+                              ],
                             ),
-                          ],
-                        ],
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    SizedBox(
-                      width: 85,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (!isDebit) ...[
-                            Text(
-                              formattedAmount,
-                              style: GoogleFonts.inter(
-                                fontSize: 13,
-                                fontWeight: FontWeight.w700,
-                                color: amountColor,
-                              ),
-                            ),
-                            if (!isDebit && currency != 'BDT') ...[
-                              const SizedBox(height: 2),
-                              Text(
-                                '$currency ${NumberFormat('#,##0.00').format(originalAmount)}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 10,
-                                  color: Colors.grey.shade600,
-                                  fontStyle: FontStyle.italic,
-                                ),
-                              ),
-                              Text(
-                                '@ $rate',
-                                style: GoogleFonts.inter(
-                                  fontSize: 9,
-                                  color: Colors.grey.shade500,
-                                ),
-                              ),
-                            ],
-                            Text(
-                              'Cr',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                                color: const Color(0xFF94A3B8),
-                              ),
-                            ),
-                          ],
+                          ),
                         ],
                       ),
                     ),
@@ -942,8 +890,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
 
   Widget _buildStatusBar(double debit, double credit, double balance) {
     return Container(
-      margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.circular(16),
@@ -957,53 +905,82 @@ class _LedgerScreenState extends State<LedgerScreen> {
         border: Border.all(color: const Color(0xFFE2E8F0)),
       ),
       child: SafeArea(
-        child: Row(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
-            _buildStatusItem("DEBIT", debit, const Color(0xFF64748B)),
-            Container(width: 1, height: 24, color: const Color(0xFFE2E8F0)),
-            _buildStatusItem("CREDIT", credit, const Color(0xFF64748B)),
-            Container(width: 1, height: 24, color: const Color(0xFFE2E8F0)),
-            _buildStatusItem(
-              "BALANCE",
-              balance,
-              balance < 0 ? const Color(0xFFEF4444) : const Color(0xFF10B981),
-              isBold: true,
+            // Row 1: Debit
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Debit',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: const Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  '৳${CurrencyFormatter.format(debit)}',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.green,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            // Row 2: Credit
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Credit',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: const Color(0xFF64748B),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                Text(
+                  '৳${CurrencyFormatter.format(credit)}',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+            const Padding(
+              padding: EdgeInsets.symmetric(vertical: 8),
+              child: Divider(height: 1, thickness: 1),
+            ),
+            // Row 3: Balance
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Balance',
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: const Color(0xFF1E293B),
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                Text(
+                  '৳${CurrencyFormatter.format(balance)}',
+                  style: GoogleFonts.inter(
+                    fontSize: 15,
+                    color: balance < 0 ? Colors.red : Colors.green,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildStatusItem(
-    String label,
-    double value,
-    Color color, {
-    bool isBold = false,
-  }) {
-    return Expanded(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text(
-            label,
-            style: GoogleFonts.inter(
-              fontSize: 10,
-              color: const Color(0xFF94A3B8),
-              fontWeight: FontWeight.w700,
-              letterSpacing: 0.5,
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            '${CurrencyFormatter.format(value)} BDT',
-            style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: isBold ? FontWeight.w800 : FontWeight.w700,
-              color: color,
-            ),
-          ),
-        ],
       ),
     );
   }
