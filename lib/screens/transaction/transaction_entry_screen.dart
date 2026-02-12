@@ -632,6 +632,15 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       default:
     }
 
+    // Filter for BDT accounts only
+    final simpleModeAccounts = accounts
+        .where(
+          (acc) =>
+              acc.defaultCurrency != null &&
+              acc.defaultCurrency!.toUpperCase() == 'BDT',
+        )
+        .toList();
+
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
@@ -644,11 +653,12 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           // Debit (Dest) First
           AccountAutocomplete(
             key: const ValueKey('simple_dest'),
-            initialValue: accounts.contains(provider.simpleDestAccount)
+            initialValue:
+                simpleModeAccounts.contains(provider.simpleDestAccount)
                 ? provider.simpleDestAccount
                 : null,
             label: toLabel,
-            options: accounts,
+            options: simpleModeAccounts,
             groupProvider: groupProvider,
             onSelected: (acc) => provider.setSimpleDestAccount(acc),
           ),
@@ -656,11 +666,12 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           // Credit (Source) Second
           AccountAutocomplete(
             key: const ValueKey('simple_source'),
-            initialValue: accounts.contains(provider.simpleSourceAccount)
+            initialValue:
+                simpleModeAccounts.contains(provider.simpleSourceAccount)
                 ? provider.simpleSourceAccount
                 : null,
             label: fromLabel,
-            options: accounts,
+            options: simpleModeAccounts,
             groupProvider: groupProvider,
             onSelected: (acc) => provider.setSimpleSourceAccount(acc),
           ),
