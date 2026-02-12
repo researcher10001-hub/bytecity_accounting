@@ -729,9 +729,43 @@ function createEntry(e) {
       return errorResponse("Voucher unbalanced (BDT): Debit(" + totalDrBDT.toFixed(2) + ") != Credit(" + totalCrBDT.toFixed(2) + ")");
     }
     
-    // ===== SELF-ENTRY DETECTION =====
+    // ===== DYNAMIC MESSAGE DATA (Phase 4) =====
+    // Fetch User mapping for names
+    const userMap = {};
+    const userSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+    if (userSheet) {
+      const userData = userSheet.getDataRange().getValues();
+      for (let j = 1; j < userData.length; j++) {
+        userMap[userData[j][1].toString().toLowerCase()] = userData[j][0].toString();
+      }
+    }
+    const creatorName = userMap[userEmail.toLowerCase()] || userEmail;
+
+    // Fetch Owner names for notification message
+    const ownersNotifiedSet = new Set();
     const accountsArray = Array.from(accountsInvolved);
     const selfEntryCheck = checkSelfEntry(userEmail, accountsArray);
+    
+    // Get unique owner names from accounts sheet
+    const accSheetRaw = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ACCOUNTS);
+    if (accSheetRaw) {
+      const accData = accSheetRaw.getDataRange().getValues();
+      accountsArray.forEach(accName => {
+        for (let rowIdx = 1; rowIdx < accData.length; rowIdx++) {
+          if (accData[rowIdx][0].toString() === accName) {
+            const ownersStr = accData[rowIdx][1] ? accData[rowIdx][1].toString() : '';
+            ownersStr.split(',').forEach(o => {
+              const emailTrim = o.trim().toLowerCase();
+              if (emailTrim && emailTrim !== userEmail.toLowerCase()) {
+                ownersNotifiedSet.add(userMap[emailTrim] || emailTrim);
+              }
+            });
+            break;
+          }
+        }
+      });
+    }
+    const notifiedNames = Array.from(ownersNotifiedSet).join(' & ') || 'Admin';
     
     let initialStatus = 'Pending';
     let autoLog = [];
@@ -742,7 +776,7 @@ function createEntry(e) {
       autoLog = [
         {
           'sender_email': 'System',
-          'sender_name': 'ByteCity App',
+          'sender_name': creatorName,
           'sender_role': 'System',
           'message': 'Self-entry auto-approved (creator is sole owner)',
           'timestamp': new Date().toISOString(),
@@ -752,13 +786,14 @@ function createEntry(e) {
       ];
     } else if (selfEntryCheck.isSelfEntry && selfEntryCheck.otherOwners.length > 0) {
       // Self-entry with other owners - PENDING for other owners
+      const otherOwnerNames = selfEntryCheck.otherOwners.map(email => userMap[email.toLowerCase()] || email).join(' & ');
       initialStatus = 'Pending';
       autoLog = [
         {
           'sender_email': 'System',
-          'sender_name': 'ByteCity App',
+          'sender_name': creatorName,
           'sender_role': 'System',
-          'message': 'Self-entry created. Awaiting approval from co-owners.',
+          'message': 'Transaction Created. Notifying to ' + otherOwnerNames,
           'timestamp': new Date().toISOString(),
           'resulting_status': 'Pending',
           'action_type': 'auto_notify'
@@ -766,12 +801,13 @@ function createEntry(e) {
       ];
     } else {
       // Normal entry - PENDING
+      initialStatus = 'Pending'; // Explicitly set for safety
       autoLog = [
         {
           'sender_email': 'System',
-          'sender_name': 'ByteCity App',
+          'sender_name': creatorName,
           'sender_role': 'System',
-          'message': 'Transaction Created. Notifying Owner & Admin.',
+          'message': 'Transaction Created. Notifying to ' + notifiedNames,
           'timestamp': new Date().toISOString(),
           'resulting_status': 'Pending',
           'action_type': 'auto_notify'

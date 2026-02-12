@@ -337,24 +337,27 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                 ),
               ),
               const Divider(),
-              RichText(
-                text: TextSpan(
-                  style: TextStyle(
-                    fontStyle: FontStyle.italic,
-                    color: Colors.grey[600],
-                    fontSize: 14,
+              Align(
+                alignment: Alignment.centerLeft,
+                child: RichText(
+                  text: TextSpan(
+                    style: TextStyle(
+                      fontStyle: FontStyle.italic,
+                      color: Colors.grey[600],
+                      fontSize: 14,
+                    ),
+                    children: [
+                      const TextSpan(
+                        text: "Note: ",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      TextSpan(
+                        text: _currentTransaction.mainNarration.isNotEmpty
+                            ? _currentTransaction.mainNarration
+                            : "No Narration",
+                      ),
+                    ],
                   ),
-                  children: [
-                    const TextSpan(
-                      text: "Note: ",
-                      style: TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                    TextSpan(
-                      text: _currentTransaction.mainNarration.isNotEmpty
-                          ? _currentTransaction.mainNarration
-                          : "No Narration",
-                    ),
-                  ],
                 ),
               ),
 
@@ -363,28 +366,6 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(_currentTransaction.status),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _currentTransaction.status
-                          .toString()
-                          .split('.')
-                          .last
-                          .toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
                   Builder(
                     builder: (context) {
                       final userProvider = context.read<UserProvider>();
@@ -410,6 +391,28 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                         ),
                       );
                     },
+                  ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: _getStatusColor(_currentTransaction.status),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Text(
+                      _currentTransaction.status
+                          .toString()
+                          .split('.')
+                          .last
+                          .toUpperCase(),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
                   ),
                 ],
               ),
