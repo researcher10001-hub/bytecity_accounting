@@ -11,6 +11,7 @@ import '../../models/user_model.dart';
 import 'widgets/approval_timeline_widget.dart';
 import 'widgets/approval_action_widget.dart';
 import '../../core/utils/currency_formatter.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
   final TransactionModel transaction;
@@ -298,18 +299,37 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "${d.account?.name}",
-                        style: const TextStyle(fontSize: 13),
+                      Padding(
+                        padding: EdgeInsets.only(
+                          left: d.debit > 0 ? 0 : 24.0,
+                        ), // Indent for Credit
+                        child: Text(
+                          "${d.account?.name}",
+                          style: const TextStyle(fontSize: 13),
+                        ),
                       ),
-                      Text(
-                        d.debit > 0
-                            ? "Dr ${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.debit)}"
-                            : "Cr ${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.credit)}",
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                          color: d.debit > 0 ? Colors.green : Colors.red,
+                      RichText(
+                        text: TextSpan(
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: d.debit > 0 ? Colors.green : Colors.red,
+                            fontFamily: GoogleFonts.inter().fontFamily,
+                          ),
+                          children: [
+                            TextSpan(
+                              text: d.debit > 0
+                                  ? "${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.debit)} "
+                                  : "${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.credit)} ",
+                            ),
+                            TextSpan(
+                              text: d.debit > 0 ? "Dr" : "Cr",
+                              style: const TextStyle(
+                                fontSize: 9, // Smaller font for Dr/Cr
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ],
@@ -326,7 +346,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   ),
                   children: [
                     const TextSpan(
-                      text: "Description: ",
+                      text: "Note: ",
                       style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     TextSpan(
