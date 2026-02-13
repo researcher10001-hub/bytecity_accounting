@@ -472,7 +472,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                             child: Text(
                               _currentTransaction.mainNarration.isNotEmpty
                                   ? _currentTransaction.mainNarration
-                                  : "No Narration Provided",
+                                  : "No additional notes",
                               style: GoogleFonts.inter(
                                 height: 1.3,
                                 fontSize: 12,

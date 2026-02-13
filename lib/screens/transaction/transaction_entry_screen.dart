@@ -789,7 +789,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
   void _submitForm(TransactionProvider provider, dynamic user) async {
     // Moved the logic from the old button here for clarity
     if (provider.mainNarration.trim().isEmpty) {
-      provider.setMainNarration("No remark.");
+      provider.setMainNarration("No additional notes");
     }
 
     TransactionModel? savedTx;
