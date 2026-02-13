@@ -8,8 +8,9 @@ import '../../providers/transaction_provider.dart';
 import '../../core/constants/role_constants.dart';
 import '../transaction/transaction_entry_screen.dart';
 import '../settings/settings_screen.dart';
-import '../reports/ledger_screen.dart';
 import '../reports/transaction_history_screen.dart';
+import '../reports/ledger_screen.dart';
+import '../search/search_voucher_screen.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../models/user_model.dart';
@@ -78,10 +79,11 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final role = user.role;
-    final navItems = _getNavItems(role);
-    // Safety check: Reset to 0 if out of bounds (e.g. role change)
+    const navItemCount = 4; // Home, Trans, Accounts, Settings
+
+    // Safety check: Reset to 0 if out of bounds
     var effectiveIndex = _currentIndex;
-    if (effectiveIndex >= navItems.length) {
+    if (effectiveIndex >= navItemCount) {
       effectiveIndex = 0;
     }
 
@@ -93,7 +95,7 @@ class _HomeScreenState extends State<HomeScreen> {
             role: role,
             currentIndex: effectiveIndex,
             onNavIndexChanged: (index) {
-              if (index < navItems.length) {
+              if (index < navItemCount) {
                 setState(() => _currentIndex = index);
               }
             },
@@ -140,72 +142,18 @@ class _HomeScreenState extends State<HomeScreen> {
               actions: [
                 // User Identity Widget
                 UserIdentityWidget(user: user),
-                const SizedBox(width: 4),
                 // Notification Icon
                 const SizedBox(width: 8),
               ],
             ),
             body: _buildBody(role, effectiveIndex),
-            bottomNavigationBar: BottomNavigationBar(
-              currentIndex: effectiveIndex,
-              onTap: (index) {
-                if (index < navItems.length) {
-                  setState(() => _currentIndex = index);
-                }
-              },
-              backgroundColor: Colors.white,
-              selectedItemColor: const Color(0xFF1E88E5),
-              unselectedItemColor: Colors.grey[400],
-              type: BottomNavigationBarType.fixed,
-              showUnselectedLabels: true,
-              selectedLabelStyle: GoogleFonts.inter(
-                fontWeight: FontWeight.w600,
-                fontSize: 12,
-              ),
-              unselectedLabelStyle: GoogleFonts.inter(
-                fontWeight: FontWeight.w500,
-                fontSize: 12,
-              ),
-              items: navItems,
-            ),
+            bottomNavigationBar: _buildCustomBottomBar(effectiveIndex, role),
             floatingActionButton: _shouldShowFAB(role)
-                ? FloatingActionButton(
-                    onPressed: () async {
-                      await Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const TransactionEntryScreen(),
-                        ),
-                      );
-                      // Refresh on return
-                      if (context.mounted) {
-                        await context.read<AccountProvider>().fetchAccounts(
-                          user,
-                        );
-                        await context.read<TransactionProvider>().fetchHistory(
-                          user,
-                          forceRefresh: true,
-                        );
-                        if (context.mounted) {
-                          context
-                              .read<NotificationProvider>()
-                              .refreshNotifications(
-                                user,
-                                context.read<TransactionProvider>(),
-                                context.read<UserProvider>(),
-                                accountProvider: context
-                                    .read<AccountProvider>(),
-                              );
-                        }
-                      }
-                    },
-                    backgroundColor: const Color(0xFF1E88E5),
-                    elevation: 4,
-                    child: const Icon(Icons.add, color: Colors.white),
-                  )
+                ? _buildGradientFAB()
                 : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
+            extendBody: true,
           );
         }
       },
@@ -333,115 +281,184 @@ class _HomeScreenState extends State<HomeScreen> {
             ActionGrid(userRole: role),
 
             const SizedBox(height: 32),
+            // Padding for floating bottom bar
+            const SizedBox(height: 80),
           ],
         ),
       );
     }
 
-    // Other tabs based on role
-    if (role.toLowerCase() == AppRoles.admin.toLowerCase()) {
-      switch (currentIndex) {
-        case 1:
+    final bool isAdmin =
+        role.trim().toLowerCase() == AppRoles.admin.toLowerCase();
+
+    // Other tabs based on new fixed indices
+    switch (currentIndex) {
+      case 1: // Trans (Admin) or Search (Non-Admin)
+        if (isAdmin) {
           return const TransactionHistoryScreen();
-        case 2:
-          return const LedgerScreen();
-        case 3:
+        } else {
+          return const SearchVoucherScreen();
+        }
+      case 2: // Accounts (Admin) or Ledger (Non-Admin)
+        if (isAdmin) {
           return const AccountsScreen();
-        case 4:
-          return const SettingsScreen();
-        default:
-          return const SizedBox();
-      }
-    } else if (role.toLowerCase() == AppRoles.management.toLowerCase()) {
-      switch (currentIndex) {
-        case 1:
-          return const TransactionHistoryScreen();
-        case 2:
+        } else {
           return const LedgerScreen();
-        case 3:
+        }
+      case 3: // Settings (Admin) or History (Non-Admin)
+        if (isAdmin) {
           return const SettingsScreen();
-        default:
-          return const SizedBox();
-      }
-    } else if (role.toLowerCase() ==
-        AppRoles.businessOperationsAssociate.toLowerCase()) {
-      switch (currentIndex) {
-        case 1:
+        } else {
           return const TransactionHistoryScreen();
-        case 2:
-          return const SettingsScreen();
-        default:
-          return const SizedBox();
-      }
-    } else {
-      // Viewer
-      switch (currentIndex) {
-        case 1:
-          return const TransactionHistoryScreen();
-        case 2:
-          return const SettingsScreen();
-        default:
-          return const SizedBox();
-      }
+        }
+      default:
+        return const SizedBox();
     }
   }
 
-  List<BottomNavigationBarItem> _getNavItems(String role) {
-    final homeItem = const BottomNavigationBarItem(
-      icon: Icon(Icons.home_rounded),
-      label: 'Home',
-    );
-    final historyItem = const BottomNavigationBarItem(
-      icon: Icon(Icons.history_rounded),
-      label: 'History',
-    );
+  Widget _buildCustomBottomBar(int currentIndex, String role) {
+    final bool isAdmin =
+        role.trim().toLowerCase() == AppRoles.admin.toLowerCase();
 
-    final normalizedRole = role.trim().toLowerCase();
+    return Container(
+      height: 100, // Sufficient height for the bulge
+      margin: const EdgeInsets.only(bottom: 20, left: 16, right: 16),
+      child: Stack(
+        clipBehavior: Clip.none,
+        alignment: Alignment.bottomCenter,
+        children: [
+          // Background with Convex shape
+          CustomPaint(
+            size: Size(MediaQuery.of(context).size.width - 32, 70),
+            painter: _ConvexPillBackgroundPainter(),
+          ),
+          // Navigation Items
+          Container(
+            height: 70,
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                _buildNavItem(0, Icons.home_rounded, 'Home', currentIndex == 0),
+                _buildDivider(),
+                _buildNavItem(
+                  1,
+                  isAdmin ? Icons.swap_horiz_rounded : Icons.search_rounded,
+                  isAdmin ? 'Trans.' : 'Search',
+                  currentIndex == 1,
+                ),
+                const SizedBox(width: 60), // Space for FAB
+                _buildNavItem(
+                  2,
+                  isAdmin
+                      ? Icons.account_balance_wallet_rounded
+                      : Icons.analytics_rounded,
+                  isAdmin ? 'Accounts' : 'Ledger',
+                  currentIndex == 2,
+                ),
+                _buildDivider(),
+                _buildNavItem(
+                  3,
+                  isAdmin ? Icons.settings_rounded : Icons.history_rounded,
+                  isAdmin ? 'Settings' : 'History',
+                  currentIndex == 3,
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    if (normalizedRole == AppRoles.admin.toLowerCase()) {
-      return [
-        homeItem,
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.swap_horiz_rounded),
-          label: 'Trans.',
+  Widget _buildNavItem(
+    int index,
+    IconData icon,
+    String label,
+    bool isSelected,
+  ) {
+    final color = isSelected
+        ? const Color(0xFF1E88E5)
+        : const Color(0xFF94A3B8);
+    return Expanded(
+      child: InkWell(
+        onTap: () => setState(() => _currentIndex = index),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 28),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                color: color,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
+              ),
+            ),
+          ],
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.analytics_rounded),
-          label: 'Reports',
+      ),
+    );
+  }
+
+  Widget _buildDivider() {
+    return Container(width: 1, height: 30, color: Colors.grey[200]);
+  }
+
+  Widget _buildGradientFAB() {
+    return Container(
+      width: 64,
+      height: 64,
+      margin: const EdgeInsets.only(
+        top: 75,
+      ), // Push it further down into the bulge
+      decoration: BoxDecoration(
+        shape: BoxShape.circle,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF4299E1), Color(0xFF3182CE)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.account_balance_wallet_rounded),
-          label: 'Accounts',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.settings_rounded),
-          label: 'Settings',
-        ),
-      ];
-    } else if (normalizedRole == AppRoles.management.toLowerCase()) {
-      return [
-        homeItem,
-        historyItem,
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.analytics_rounded),
-          label: 'Reports',
-        ),
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.settings_rounded),
-          label: 'Settings',
-        ),
-      ];
-    } else {
-      // BOA / Viewer
-      return [
-        homeItem,
-        historyItem,
-        const BottomNavigationBarItem(
-          icon: Icon(Icons.settings_rounded),
-          label: 'Settings',
-        ),
-      ];
-    }
+        boxShadow: [
+          BoxShadow(
+            color: const Color(0xFF3182CE).withOpacity(0.4),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: FloatingActionButton(
+        onPressed: () async {
+          final user = context.read<AuthProvider>().user;
+          if (user == null) return;
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const TransactionEntryScreen(),
+            ),
+          );
+          if (mounted && context.mounted) {
+            await context.read<AccountProvider>().fetchAccounts(user);
+            await context.read<TransactionProvider>().fetchHistory(
+              user,
+              forceRefresh: true,
+            );
+            if (context.mounted) {
+              context.read<NotificationProvider>().refreshNotifications(
+                user,
+                context.read<TransactionProvider>(),
+                context.read<UserProvider>(),
+                accountProvider: context.read<AccountProvider>(),
+              );
+            }
+          }
+        },
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        child: const Icon(Icons.add, color: Colors.white, size: 32),
+      ),
+    );
   }
 
   bool _shouldShowFAB(String rawRole) {
@@ -451,4 +468,57 @@ class _HomeScreenState extends State<HomeScreen> {
         role == AppRoles.businessOperationsAssociate.toLowerCase() ||
         role == AppRoles.admin.toLowerCase();
   }
+}
+
+// Custom Painter for the Convex Pill Background
+class _ConvexPillBackgroundPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = Colors.white
+      ..style = PaintingStyle.fill;
+
+    final shadowPaint = Paint()
+      ..color = Colors.black.withOpacity(0.08)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+
+    final path = Path();
+    const cornerRadius = 32.0;
+    const bulgeRadius = 45.0; // Slightly wider bulge
+    const bulgeHeight = 18.0; // Slightly taller bulge to match image better
+
+    // The shape is a pill with a central outward bulge
+    path.moveTo(cornerRadius, 0);
+    // Top flat part before bulge
+    path.lineTo(size.width / 2 - bulgeRadius, 0);
+
+    // The concave/convex bulge
+    path.quadraticBezierTo(
+      size.width / 2,
+      -bulgeHeight * 2,
+      size.width / 2 + bulgeRadius,
+      0,
+    );
+
+    path.lineTo(size.width - cornerRadius, 0);
+    path.quadraticBezierTo(size.width, 0, size.width, cornerRadius);
+    path.lineTo(size.width, size.height - cornerRadius);
+    path.quadraticBezierTo(
+      size.width,
+      size.height,
+      size.width - cornerRadius,
+      size.height,
+    );
+    path.lineTo(cornerRadius, size.height);
+    path.quadraticBezierTo(0, size.height, 0, size.height - cornerRadius);
+    path.lineTo(0, cornerRadius);
+    path.quadraticBezierTo(0, 0, cornerRadius, 0);
+
+    // Draw shadow first
+    canvas.drawPath(path.shift(const Offset(0, 8)), shadowPaint);
+    canvas.drawPath(path, paint);
+  }
+
+  @override
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }

@@ -18,103 +18,103 @@ class ActionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Determine which actions to show based on role
+    final bool isAdmin = userRole.trim().toLowerCase() == 'admin';
     final canCreateTransaction = _canCreateTransaction(userRole);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // Row 1: New Transaction + Transaction History
-          Row(
-            children: [
-              if (canCreateTransaction)
+          // Row 1: New Transaction + Transaction History (Hidden for non-admins as they are in Nav)
+          if (isAdmin) ...[
+            Row(
+              children: [
+                if (canCreateTransaction)
+                  Expanded(
+                    child: _buildActionCard(
+                      context,
+                      icon: Icons.add_circle_outline,
+                      label: 'New Transaction',
+                      color: Colors.blue,
+                      onTap: () async {
+                        await Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const TransactionEntryScreen(),
+                          ),
+                        );
+                        if (context.mounted) {
+                          final auth = context.read<AuthProvider>();
+                          if (auth.user != null) {
+                            context.read<AccountProvider>().fetchAccounts(
+                              auth.user!,
+                            );
+                            context.read<TransactionProvider>().fetchHistory(
+                              auth.user!,
+                              forceRefresh: true,
+                            );
+                          }
+                        }
+                      },
+                    ),
+                  ),
+                if (canCreateTransaction) const SizedBox(width: 12),
                 Expanded(
                   child: _buildActionCard(
                     context,
-                    icon: Icons.add_circle_outline,
-                    label: 'New Transaction',
-                    color: Colors.blue,
-                    onTap: () async {
-                      await Navigator.push(
+                    icon: Icons.history_rounded,
+                    label: 'Transaction History',
+                    color: Colors.purple,
+                    onTap: () {
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (_) => const TransactionEntryScreen(),
+                          builder: (_) => const TransactionHistoryScreen(),
                         ),
                       );
-                      if (context.mounted) {
-                        final auth = context.read<AuthProvider>();
-                        if (auth.user != null) {
-                          context.read<AccountProvider>().fetchAccounts(
-                            auth.user!,
-                          );
-                          context.read<TransactionProvider>().fetchHistory(
-                            auth.user!,
-                            forceRefresh: true,
-                          );
-                        }
-                      }
                     },
                   ),
                 ),
-              if (canCreateTransaction) const SizedBox(width: 12),
-              Expanded(
-                child: _buildActionCard(
-                  context,
-                  icon: Icons.history_rounded,
-                  label: 'Transaction History',
-                  color: Colors.purple,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const TransactionHistoryScreen(),
-                      ),
-                    );
-                  },
+              ],
+            ),
+            const SizedBox(height: 12),
+            // Row 2: Ledger + Search Voucher
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    icon: Icons.account_balance_wallet_rounded,
+                    label: 'Ledger',
+                    color: Colors.green,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (_) => const LedgerScreen()),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-
-          const SizedBox(height: 12),
-
-          // Row 2: Ledger + Search Voucher
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  context,
-                  icon: Icons.account_balance_wallet_rounded,
-                  label: 'Ledger',
-                  color: Colors.green,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LedgerScreen()),
-                    );
-                  },
+                const SizedBox(width: 12),
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    icon: Icons.search_rounded,
+                    label: 'Search Voucher',
+                    color: Colors.orange,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SearchVoucherScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: _buildActionCard(
-                  context,
-                  icon: Icons.search_rounded,
-                  label: 'Search Voucher',
-                  color: Colors.orange,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SearchVoucherScreen(),
-                      ),
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
+              ],
+            ),
+          ],
 
           if ((userRole.toLowerCase() == 'admin' ||
                   userRole.toLowerCase() == 'management') &&
