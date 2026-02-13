@@ -1,10 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../models/user_model.dart';
 import '../../core/constants/role_constants.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/account_provider.dart';
+import '../../services/permission_service.dart';
 import '../main.dart';
+import '../screens/profile/profile_screen.dart';
 
 /// Compact user identity widget for AppBar
 /// Shows user initials with role badge, minimal space usage
@@ -17,7 +22,7 @@ class UserIdentityWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return InkWell(
-      onTap: onTap ?? () => _showUserMenu(context),
+      onTap: onTap ?? () => _showUserBottomSheet(context),
       borderRadius: BorderRadius.circular(20),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -103,126 +108,242 @@ class UserIdentityWidget extends StatelessWidget {
     }
   }
 
-  /// Show user menu dropdown
-  void _showUserMenu(BuildContext context) {
-    final RenderBox button = context.findRenderObject() as RenderBox;
-    final RenderBox overlay =
-        Overlay.of(context).context.findRenderObject() as RenderBox;
-    final RelativeRect position = RelativeRect.fromRect(
-      Rect.fromPoints(
-        button.localToGlobal(Offset.zero, ancestor: overlay),
-        button.localToGlobal(
-          button.size.bottomRight(Offset.zero),
-          ancestor: overlay,
-        ),
-      ),
-      Offset.zero & overlay.size,
-    );
+  /// Show modern user bottom sheet
+  void _showUserBottomSheet(BuildContext context) {
+    final accountProvider = context.read<AccountProvider>();
+    final ownedCount = accountProvider.accounts
+        .where((a) => PermissionService().isOwner(user, a))
+        .length;
 
-    showMenu<String>(
+    showModalBottomSheet(
       context: context,
-      position: position,
-      items: [
-        // User info header
-        PopupMenuItem<String>(
-          enabled: false,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                user.name,
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14,
-                  color: Colors.black87,
-                ),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFFF7FAFC),
+          borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 12),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
               ),
-              const SizedBox(height: 2),
-              Text(
-                user.email,
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[600]),
-              ),
-              const SizedBox(height: 4),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: _getRoleColor(user.role).withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  user.role,
-                  style: GoogleFonts.inter(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
+            ),
+            const SizedBox(height: 32),
+            // Header
+            Column(
+              children: [
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
                     color: _getRoleColor(user.role),
+                    boxShadow: [
+                      BoxShadow(
+                        color: _getRoleColor(user.role).withValues(alpha: 0.3),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    _getInitials(user.name),
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 28,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ).animate().scale(curve: Curves.easeOutBack),
+                const SizedBox(height: 16),
+                Text(
+                  user.name,
+                  style: GoogleFonts.inter(
+                    fontSize: 20,
+                    fontWeight: FontWeight.w800,
+                    color: const Color(0xFF2D3748),
                   ),
                 ),
+                const SizedBox(height: 4),
+                Text(
+                  user.email,
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    color: const Color(0xFF718096),
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: _getRoleColor(user.role).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Text(
+                    user.role.toUpperCase(),
+                    style: GoogleFonts.inter(
+                      fontSize: 10,
+                      fontWeight: FontWeight.w800,
+                      color: _getRoleColor(user.role),
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 32),
+            // Quick Stats
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: const Color(0xFFEDF2F7)),
+                ),
+                child: Row(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(10),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFF4299E1).withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        LucideIcons.briefcase,
+                        size: 20,
+                        color: Color(0xFF4299E1),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Accounts Owned',
+                            style: GoogleFonts.inter(
+                              fontSize: 12,
+                              fontWeight: FontWeight.w600,
+                              color: const Color(0xFF718096),
+                            ),
+                          ),
+                          Text(
+                            ownedCount.toString(),
+                            style: GoogleFonts.inter(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF2D3748),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
-              const Divider(height: 16),
-            ],
-          ),
-        ),
-        // Menu items
-        PopupMenuItem<String>(
-          value: 'profile',
-          child: Row(
-            children: [
-              Icon(Icons.person_outline, size: 18, color: Colors.grey[700]),
-              const SizedBox(width: 12),
-              Text('Profile', style: GoogleFonts.inter(fontSize: 14)),
-            ],
-          ),
-        ),
-        PopupMenuItem<String>(
-          value: 'settings',
-          child: Row(
-            children: [
-              Icon(Icons.settings_outlined, size: 18, color: Colors.grey[700]),
-              const SizedBox(width: 12),
-              Text('Settings', style: GoogleFonts.inter(fontSize: 14)),
-            ],
-          ),
-        ),
-        const PopupMenuDivider(),
-        PopupMenuItem<String>(
-          value: 'logout',
-          child: Row(
-            children: [
-              const Icon(Icons.logout, size: 18, color: Colors.red),
-              const SizedBox(width: 12),
-              Text(
-                'Logout',
-                style: GoogleFonts.inter(fontSize: 14, color: Colors.red),
+            ).animate().fadeIn(delay: 200.ms).slideY(begin: 0.1, end: 0),
+            const SizedBox(height: 32),
+            // Actions
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                children: [
+                  _buildMenuAction(
+                    context,
+                    label: 'View Profile',
+                    icon: LucideIcons.user,
+                    gradient: const [Color(0xFF4299E1), Color(0xFF3182CE)],
+                    onTap: () {
+                      Navigator.pop(context);
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 12),
+                  _buildMenuAction(
+                    context,
+                    label: 'Logout Account',
+                    icon: LucideIcons.logOut,
+                    gradient: const [Color(0xFFE53E3E), Color(0xFFC53030)],
+                    onTap: () {
+                      Navigator.pop(context);
+                      _showLogoutConfirmation(context);
+                    },
+                  ),
+                ],
               ),
-            ],
-          ),
+            ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, end: 0),
+            const SizedBox(height: 48),
+          ],
         ),
-      ],
-    ).then((value) {
-      if (value != null) {
-        _handleMenuAction(context, value);
-      }
-    });
+      ),
+    );
   }
 
-  /// Handle menu actions
-  void _handleMenuAction(BuildContext context, String action) {
-    switch (action) {
-      case 'profile':
-        // Navigate to profile screen (to be implemented)
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile screen coming soon')),
-        );
-        break;
-      case 'settings':
-        // Navigate to settings screen
-        Navigator.pushNamed(context, '/settings');
-        break;
-      case 'logout':
-        // Show logout confirmation
-        _showLogoutConfirmation(context);
-        break;
-    }
+  Widget _buildMenuAction(
+    BuildContext context, {
+    required String label,
+    required IconData icon,
+    required List<Color> gradient,
+    required VoidCallback onTap,
+  }) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          gradient: LinearGradient(
+            colors: gradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: gradient[0].withValues(alpha: 0.3),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white, size: 20),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: GoogleFonts.inter(
+                fontSize: 15,
+                fontWeight: FontWeight.w700,
+                color: Colors.white,
+              ),
+            ),
+            const Spacer(),
+            const Icon(LucideIcons.chevronRight, color: Colors.white, size: 18),
+          ],
+        ),
+      ),
+    );
   }
 
   /// Show logout confirmation dialog
@@ -230,7 +351,11 @@ class UserIdentityWidget extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('Logout', style: GoogleFonts.inter()),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text(
+          'Logout',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w800),
+        ),
         content: Text(
           'Are you sure you want to logout?',
           style: GoogleFonts.inter(),
@@ -238,9 +363,12 @@ class UserIdentityWidget extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: Text('Cancel', style: GoogleFonts.inter()),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(color: Colors.grey[600]),
+            ),
           ),
-          TextButton(
+          ElevatedButton(
             onPressed: () {
               Navigator.pop(context); // Close dialog
               // Perform logout
@@ -253,7 +381,14 @@ class UserIdentityWidget extends StatelessWidget {
                 }
               });
             },
-            child: Text('Logout', style: GoogleFonts.inter(color: Colors.red)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            child: const Text('Logout'),
           ),
         ],
       ),

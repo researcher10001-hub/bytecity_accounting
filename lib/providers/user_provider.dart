@@ -220,4 +220,25 @@ class UserProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> changePassword(String email, String newPassword) async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      final payload = {'email': email, 'newPassword': newPassword};
+
+      await _apiService.postRequest(ApiConstants.actionChangePassword, payload);
+
+      _isLoading = false;
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
 }
