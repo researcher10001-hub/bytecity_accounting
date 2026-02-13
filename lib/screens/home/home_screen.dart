@@ -411,8 +411,8 @@ class _HomeScreenState extends State<HomeScreen> {
       width: 64,
       height: 64,
       margin: const EdgeInsets.only(
-        top: 75,
-      ), // Push it further down into the bulge
+        top: 95,
+      ), // Push it even further down into the bulge
       decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: const LinearGradient(

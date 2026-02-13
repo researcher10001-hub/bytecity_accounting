@@ -48,9 +48,13 @@ class _MessageCardState extends State<MessageCard>
         final fullSent = notifProvider.sentForReview(user.email);
         final fullFlagged = notifProvider.flaggedMessages;
 
-        final receivedMessages = fullReceived.take(3).toList();
-        final sentMessages = fullSent.take(3).toList();
-        final flaggedMessages = fullFlagged.take(3).toList();
+        final bool isAdmin = user.role.trim().toLowerCase() == 'admin';
+        final int limit = isAdmin ? 3 : 5;
+        final double listHeight = isAdmin ? 210 : 350;
+
+        final receivedMessages = fullReceived.take(limit).toList();
+        final sentMessages = fullSent.take(limit).toList();
+        final flaggedMessages = fullFlagged.take(limit).toList();
 
         return Container(
           margin: const EdgeInsets.all(16),
@@ -119,7 +123,7 @@ class _MessageCardState extends State<MessageCard>
 
               // Tab Content
               SizedBox(
-                height: 210,
+                height: listHeight,
                 child: TabBarView(
                   controller: _tabController,
                   children: [
