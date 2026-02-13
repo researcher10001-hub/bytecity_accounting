@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import '../../../models/account_model.dart';
 import '../../../providers/group_provider.dart';
 
@@ -64,13 +65,51 @@ class _AccountAutocompleteState extends State<AccountAutocomplete> {
           controller: controller,
           focusNode: focusNode,
           textInputAction: TextInputAction.next,
+          style: const TextStyle(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: Color(0xFF2D3748),
+          ),
           decoration: InputDecoration(
-            labelText: widget.label,
-            border: const OutlineInputBorder(),
-            prefixIcon: const Icon(Icons.search, color: Colors.grey),
+            labelText: widget.label.toUpperCase(),
+            labelStyle: const TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w800,
+              color: Color(0xFF718096),
+              letterSpacing: 0.5,
+            ),
+            hintText: 'Search for account...',
+            hintStyle: const TextStyle(color: Color(0xFFA0AEC0), fontSize: 13),
+            filled: true,
+            fillColor: const Color(0xFFF7FAFC),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: const BorderSide(
+                color: Color(0xFF4299E1),
+                width: 1.5,
+              ),
+            ),
+            prefixIcon: const Icon(
+              LucideIcons.search,
+              size: 18,
+              color: Color(0xFF718096),
+            ),
+            contentPadding: const EdgeInsets.all(16),
             suffixIcon: controller.text.isNotEmpty
                 ? IconButton(
-                    icon: const Icon(Icons.clear, size: 18),
+                    icon: const Icon(
+                      LucideIcons.x,
+                      size: 16,
+                      color: Color(0xFF718096),
+                    ),
                     onPressed: () => controller.clear(),
                   )
                 : null,

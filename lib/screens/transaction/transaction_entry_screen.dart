@@ -3,7 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:lucide_icons/lucide_icons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../main.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/account_provider.dart';
@@ -13,7 +14,6 @@ import '../../models/transaction_model.dart';
 import '../../models/account_model.dart';
 import '../../services/permission_service.dart';
 import 'widgets/account_autocomplete.dart';
-import '../reports/transaction_history_screen.dart';
 import '../home/widgets/side_menu.dart';
 import '../../core/utils/currency_formatter.dart';
 
@@ -80,7 +80,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
         if (isDesktop) {
           return Scaffold(
-            backgroundColor: Colors.grey[50],
+            backgroundColor: const Color(0xFFF7FAFC),
             body: Row(
               children: [
                 SideMenu(
@@ -100,7 +100,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                         decoration: const BoxDecoration(
                           color: Colors.white,
                           border: Border(
-                            bottom: BorderSide(color: Colors.black12),
+                            bottom: BorderSide(color: Color(0xFFEDF2F7)),
                           ),
                         ),
                         child: Row(
@@ -110,18 +110,33 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                               title,
                               style: GoogleFonts.inter(
                                 fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.black87,
+                                fontWeight: FontWeight.w700,
+                                color: const Color(0xFF2D3748),
                               ),
                             ),
                             Row(
                               children: [
-                                const SizedBox(width: 8),
+                                Text(
+                                  user.name,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF718096),
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
                                 CircleAvatar(
-                                  backgroundColor: Colors.grey[200],
-                                  child: const Icon(
-                                    Icons.person,
-                                    color: Colors.grey,
+                                  radius: 16,
+                                  backgroundColor: const Color(
+                                    0xFF4299E1,
+                                  ).withValues(alpha: 0.1),
+                                  child: Text(
+                                    user.name.substring(0, 1).toUpperCase(),
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w700,
+                                      color: const Color(0xFF4299E1),
+                                    ),
                                   ),
                                 ),
                               ],
@@ -156,9 +171,30 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
         // Mobile Layout
         return Scaffold(
-          appBar: AppBar(title: Text(title), centerTitle: true),
+          backgroundColor: const Color(0xFFF7FAFC),
+          appBar: AppBar(
+            title: Text(
+              title,
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF2D3748),
+                fontSize: 18,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
+            leading: IconButton(
+              icon: const Icon(
+                LucideIcons.chevronLeft,
+                color: Color(0xFF2D3748),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(20.0),
             child: _buildFormBody(
               transactionProvider,
               accountProvider,
@@ -202,32 +238,32 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(12),
+            color: const Color(0xFFEDF2F7),
+            borderRadius: BorderRadius.circular(16),
           ),
-          padding: const EdgeInsets.all(4),
+          padding: const EdgeInsets.all(6),
           child: Row(
             children: [
               _buildSegmentButton(
                 provider,
                 VoucherType.payment,
                 'Payment',
-                Icons.arrow_upward,
-                Colors.redAccent,
+                LucideIcons.arrowUp,
+                const Color(0xFFE53E3E),
               ),
               _buildSegmentButton(
                 provider,
                 VoucherType.receipt,
                 'Receipt',
-                Icons.arrow_downward,
-                Colors.green,
+                LucideIcons.arrowDown,
+                const Color(0xFF38A169),
               ),
               _buildSegmentButton(
                 provider,
                 VoucherType.contra,
                 'Transfer',
-                Icons.swap_horiz,
-                Colors.blue,
+                LucideIcons.repeat,
+                const Color(0xFF3182CE),
               ),
             ],
           ),
@@ -253,13 +289,13 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
             color: isSelected ? Colors.white : Colors.transparent,
-            borderRadius: BorderRadius.circular(10),
+            borderRadius: BorderRadius.circular(12),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.05),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
+                      color: Colors.black.withValues(alpha: 0.06),
+                      blurRadius: 10,
+                      offset: const Offset(0, 4),
                     ),
                   ]
                 : [],
@@ -355,96 +391,31 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Row(
-          children: [
-            Expanded(
-              child: InkWell(
-                onTap: canEditDate
-                    ? () async {
-                        final date = await showDatePicker(
-                          context: context,
-                          initialDate: provider.selectedDate,
-                          firstDate: DateTime(2000),
-                          lastDate: DateTime(2100),
-                          builder: (context, child) => Theme(
-                            data: ThemeData(
-                              useMaterial3: true,
-                              colorSchemeSeed: const Color(0xFF2563EB),
-                              brightness: Brightness.light,
-                              textTheme: GoogleFonts.interTextTheme(),
-                              datePickerTheme: DatePickerThemeData(
-                                headerBackgroundColor: const Color(0xFF2563EB),
-                                headerForegroundColor: Colors.white,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(28),
-                                ),
-                                dayStyle: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ),
-                            child: child!,
-                          ),
-                        );
-                        if (date != null) provider.setDate(date);
-                      }
-                    : null,
-                child: InputDecorator(
-                  decoration: InputDecoration(
-                    labelText: 'Date',
-                    border: const OutlineInputBorder(),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 12,
-                      vertical: 12,
+        _buildSectionCard(
+          title: 'General Details',
+          icon: LucideIcons.fileText,
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDatePicker(context, provider, canEditDate),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildReadOnlyField(
+                      label: 'Voucher No',
+                      value: provider.voucherNo,
+                      suffix: provider.voucherNo == 'AUTO'
+                          ? 'Prefix: ${DateFormat('yyMM').format(provider.selectedDate)}'
+                          : null,
                     ),
-                    fillColor: canEditDate ? null : Colors.grey.shade100,
-                    filled: !canEditDate,
                   ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        DateFormat('yyyy-MM-dd').format(provider.selectedDate),
-                      ),
-                      if (canEditDate)
-                        const Icon(Icons.calendar_today, size: 18)
-                      else
-                        const Icon(Icons.lock, size: 16, color: Colors.grey),
-                    ],
-                  ),
-                ),
+                ],
               ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: TextFormField(
-                key: ValueKey(
-                  provider.voucherNo,
-                ), // Force rebuild on changes mainly for initial value
-                initialValue: provider.voucherNo,
-                readOnly: true,
-                decoration: InputDecoration(
-                  labelText: 'Voucher No',
-                  border: const OutlineInputBorder(),
-                  filled: true,
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 12,
-                  ),
-                  suffixText: provider.voucherNo == 'AUTO'
-                      ? 'Prefix: ${DateFormat('yyMM').format(provider.selectedDate)}'
-                      : null,
-                  suffixStyle: TextStyle(
-                    color: Colors.grey.shade600,
-                    fontSize: 11,
-                    fontStyle: FontStyle.italic,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
         // Per-line currency is now handled inside each form (simple/split)
         const SizedBox(height: 12),
@@ -476,236 +447,445 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
         const SizedBox(height: 24),
 
-        TextFormField(
-          maxLines: 2,
-          onChanged: provider.setMainNarration,
-          decoration: const InputDecoration(
-            labelText: 'Note / Remarks',
-            border: OutlineInputBorder(),
-          ),
-        ),
+        _buildSectionCard(
+              title: 'Observations',
+              icon: LucideIcons.messageSquare,
+              child: TextFormField(
+                maxLines: 2,
+                onChanged: provider.setMainNarration,
+                initialValue: provider.mainNarration,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF2D3748),
+                ),
+                decoration: InputDecoration(
+                  hintText: 'Add some notes or details here...',
+                  hintStyle: GoogleFonts.inter(
+                    fontSize: 14,
+                    color: const Color(0xFFA0AEC0),
+                  ),
+                  filled: true,
+                  fillColor: const Color(0xFFF7FAFC),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.all(16),
+                ),
+              ),
+            )
+            .animate()
+            .fadeIn(duration: 400.ms, delay: 200.ms)
+            .slideY(begin: 0.1, end: 0),
 
         const SizedBox(height: 32),
 
-        SizedBox(
-          width: double.infinity,
-          height: 50,
-          child: ElevatedButton(
-            onPressed: provider.isLoading
-                ? null
-                : () async {
-                    if (!provider.isBalanced) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(
-                          content: Text(
-                            'Voucher is not balanced! Debit must equal Credit.',
-                          ),
-                          backgroundColor: Colors.red,
-                        ),
-                      );
-                      return;
-                    }
+        _buildGradientSaveButton(provider, user),
 
-                    // Default Note Logic
-                    if (provider.mainNarration.trim().isEmpty) {
-                      provider.setMainNarration("No remark.");
-                    }
+        const SizedBox(height: 48),
+      ],
+    );
+  }
 
-                    TransactionModel? savedTx;
-                    if (provider.isEditing) {
-                      final success = await provider.editTransaction(user);
-                      if (success) {
-                        if (!context.mounted) return;
-                        // For edit, we don't hold the return object easily yet, but can construct a dummy or just use current state
-                        // To Reuse the dialog, let's create a minimal object from provider state
-                        // Actually editTransaction updates the history list.
-                        // We can just pop.
-                        context.read<AccountProvider>().fetchAccounts(user);
-                        context.read<TransactionProvider>().fetchHistory(
-                          user,
-                          forceRefresh: true,
-                        );
-                        Navigator.pop(context); // Go back to history
-                        return;
-                      }
-                    } else {
-                      try {
-                        savedTx = await provider.saveTransaction(user);
-                        if (savedTx != null && context.mounted) {
-                          context.read<AccountProvider>().fetchAccounts(user);
-                          context.read<TransactionProvider>().fetchHistory(
-                            user,
-                            forceRefresh: true,
-                          );
-                        }
-                      } catch (e) {
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Failed to save: ${e.toString()}'),
-                              backgroundColor: Colors.red,
-                              duration: const Duration(seconds: 4),
-                            ),
-                          );
-                        }
-                      }
-                    }
-
-                    if (savedTx != null && context.mounted) {
-                      // Show Smart Success Dialog
-                      showDialog(
-                        context: context,
-                        barrierDismissible: false,
-                        builder: (ctx) => AlertDialog(
-                          title: const Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.green),
-                              SizedBox(width: 8),
-                              Text('Success'),
-                            ],
-                          ),
-                          content: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                'Voucher saved successfully!',
-                                style: GoogleFonts.inter(fontSize: 14),
-                              ),
-                              const SizedBox(height: 12),
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: Colors.grey.shade300,
-                                  ),
-                                ),
-                                child: Column(
-                                  children: [
-                                    _rowDetail(
-                                      'Voucher No',
-                                      savedTx!.voucherNo,
-                                    ),
-                                    const Divider(),
-                                    _rowDetail(
-                                      'Date',
-                                      DateFormat(
-                                        'yyyy-MM-dd',
-                                      ).format(savedTx.date),
-                                    ),
-                                    const Divider(),
-                                    _rowDetail(
-                                      'Amount',
-                                      '${provider.currency} ${NumberFormat('#,##0.00').format(savedTx.totalDebit)}',
-                                    ),
-                                    const Divider(),
-                                    _rowDetail(
-                                      'Type',
-                                      savedTx.type
-                                          .toString()
-                                          .split('.')
-                                          .last
-                                          .toUpperCase(),
-                                    ),
-                                    if (savedTx.mainNarration.isNotEmpty) ...[
-                                      const Divider(),
-                                      _rowDetail('Note', savedTx.mainNarration),
-                                    ],
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'What would you like to do next?',
-                                style: GoogleFonts.inter(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 13,
-                                ),
-                              ),
-                            ],
-                          ),
-                          actions: [
-                            TextButton(
-                              onPressed: () {
-                                provider.resetForm();
-                                Navigator.pop(ctx);
-                                Navigator.pop(context); // Home
-                              },
-                              style: TextButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                              ),
-                              child: const Text(
-                                'Go to Home',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            TextButton(
-                              onPressed: () {
-                                provider.resetForm();
-                                Navigator.pop(ctx);
-                                Navigator.pushReplacement(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (_) =>
-                                        const TransactionHistoryScreen(),
-                                  ),
-                                );
-                              },
-                              style: TextButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                              ),
-                              child: const Text(
-                                'View History',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                            ),
-                            ElevatedButton.icon(
-                              onPressed: () {
-                                provider.resetForm(keepDate: true); // Reset
-                                Navigator.pop(ctx); // Close Dialog
-                              },
-                              icon: const Icon(Icons.add, size: 14),
-                              label: const Text(
-                                'Add Another',
-                                style: TextStyle(fontSize: 12),
-                              ),
-                              style: ElevatedButton.styleFrom(
-                                visualDensity: VisualDensity.compact,
-                                backgroundColor: Theme.of(context).primaryColor,
-                                foregroundColor: Colors.white,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 8,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    }
-                  },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Theme.of(context).primaryColor,
-              foregroundColor: Colors.white,
-              elevation: 0,
-            ),
-            child: provider.isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : Text(
-                    provider.isEditing
-                        ? 'UPDATE TRANSACTION'
-                        : 'SAVE TRANSACTION',
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+  Widget _buildDatePicker(
+    BuildContext context,
+    TransactionProvider provider,
+    bool canEditDate,
+  ) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'DATE',
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF718096),
+            letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 50),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: canEditDate
+              ? () async {
+                  final date = await showDatePicker(
+                    context: context,
+                    initialDate: provider.selectedDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                    builder: (context, child) => Theme(
+                      data: ThemeData(
+                        useMaterial3: true,
+                        colorSchemeSeed: const Color(0xFF4299E1),
+                        brightness: Brightness.light,
+                        textTheme: GoogleFonts.interTextTheme(),
+                      ),
+                      child: child!,
+                    ),
+                  );
+                  if (date != null) provider.setDate(date);
+                }
+              : null,
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7FAFC),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: canEditDate
+                    ? const Color(0xFFE2E8F0)
+                    : Colors.transparent,
+              ),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  DateFormat('yyyy-MM-dd').format(provider.selectedDate),
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: const Color(0xFF2D3748),
+                  ),
+                ),
+                Icon(
+                  canEditDate ? LucideIcons.calendar : LucideIcons.lock,
+                  size: 16,
+                  color: const Color(0xFF718096),
+                ),
+              ],
+            ),
+          ),
+        ),
       ],
+    );
+  }
+
+  Widget _buildReadOnlyField({
+    required String label,
+    required String value,
+    String? suffix,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label.toUpperCase(),
+          style: GoogleFonts.inter(
+            fontSize: 11,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF718096),
+            letterSpacing: 0.5,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: const Color(0xFFEDF2F7).withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            children: [
+              Text(
+                value,
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF4A5568),
+                ),
+              ),
+              if (suffix != null) ...[
+                const Spacer(),
+                Text(
+                  suffix,
+                  style: GoogleFonts.inter(
+                    fontSize: 10,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF718096),
+                    fontStyle: FontStyle.italic,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSectionCard({
+    required String title,
+    required IconData icon,
+    required Widget child,
+    Widget? trailing,
+  }) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            child: Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF4299E1).withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Icon(icon, size: 18, color: const Color(0xFF4299E1)),
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  title,
+                  style: GoogleFonts.inter(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF2D3748),
+                  ),
+                ),
+                if (trailing != null) ...[const Spacer(), trailing],
+              ],
+            ),
+          ),
+          Padding(padding: const EdgeInsets.all(20), child: child),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGradientSaveButton(TransactionProvider provider, dynamic user) {
+    return InkWell(
+          onTap: provider.isLoading
+              ? null
+              : () async {
+                  // ... keep existing validation/logic from button below
+                  if (!provider.isBalanced) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Voucher is not balanced!'),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
+                    return;
+                  }
+                  // Trigger final save logic (mimicking the elevated button)
+                  _submitForm(provider, user);
+                },
+          borderRadius: BorderRadius.circular(20),
+          child: Container(
+            width: double.infinity,
+            height: 60,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: LinearGradient(
+                colors: provider.isEditing
+                    ? [const Color(0xFF3182CE), const Color(0xFF2B6CB0)]
+                    : [const Color(0xFF38A169), const Color(0xFF2F855A)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color:
+                      (provider.isEditing
+                              ? const Color(0xFF3182CE)
+                              : const Color(0xFF38A169))
+                          .withValues(alpha: 0.3),
+                  blurRadius: 12,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            alignment: Alignment.center,
+            child: provider.isLoading
+                ? const CircularProgressIndicator(color: Colors.white)
+                : Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        provider.isEditing
+                            ? LucideIcons.save
+                            : LucideIcons.check,
+                        color: Colors.white,
+                        size: 20,
+                      ),
+                      const SizedBox(width: 12),
+                      Text(
+                        provider.isEditing
+                            ? 'UPDATE TRANSACTION'
+                            : 'SAVE TRANSACTION',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                          letterSpacing: 1,
+                        ),
+                      ),
+                    ],
+                  ),
+          ),
+        )
+        .animate()
+        .fadeIn(delay: 400.ms)
+        .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
+  }
+
+  void _submitForm(TransactionProvider provider, dynamic user) async {
+    // Moved the logic from the old button here for clarity
+    if (provider.mainNarration.trim().isEmpty) {
+      provider.setMainNarration("No remark.");
+    }
+
+    TransactionModel? savedTx;
+    if (provider.isEditing) {
+      final success = await provider.editTransaction(user);
+      if (success) {
+        if (!context.mounted) return;
+        context.read<AccountProvider>().fetchAccounts(user);
+        context.read<TransactionProvider>().fetchHistory(
+          user,
+          forceRefresh: true,
+        );
+        Navigator.pop(context);
+        return;
+      }
+    } else {
+      try {
+        savedTx = await provider.saveTransaction(user);
+        if (savedTx != null && context.mounted) {
+          context.read<AccountProvider>().fetchAccounts(user);
+          context.read<TransactionProvider>().fetchHistory(
+            user,
+            forceRefresh: true,
+          );
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to save: ${e.toString()}'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    }
+
+    if (savedTx != null && context.mounted) {
+      _showSuccessDialog(context, savedTx, provider);
+    }
+  }
+
+  void _showSuccessDialog(
+    BuildContext context,
+    TransactionModel tx,
+    TransactionProvider provider,
+  ) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            const Icon(LucideIcons.checkCircle, color: Color(0xFF38A169)),
+            const SizedBox(width: 12),
+            Text(
+              'Success!',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Voucher saved successfully!',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: const Color(0xFF718096),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7FAFC),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFFEDF2F7)),
+              ),
+              child: Column(
+                children: [
+                  _rowDetail('Voucher No', tx.voucherNo),
+                  const Divider(height: 24),
+                  _rowDetail('Date', DateFormat('yyyy-MM-dd').format(tx.date)),
+                  const Divider(height: 24),
+                  _rowDetail(
+                    'Amount',
+                    '${provider.currency} ${NumberFormat('#,##0.00').format(tx.totalDebit)}',
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              provider.resetForm();
+              Navigator.pop(ctx);
+              Navigator.pop(context);
+            },
+            child: Text(
+              'HOME',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF718096),
+                fontSize: 12,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              provider.resetForm(keepDate: true);
+              Navigator.pop(ctx);
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF38A169),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              'ADD ANOTHER',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -743,51 +923,48 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         )
         .toList();
 
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        children: [
-          // Debit (Dest) First
-          AccountAutocomplete(
-            key: const ValueKey('simple_dest'),
-            initialValue:
-                simpleModeAccounts.contains(provider.simpleDestAccount)
-                ? provider.simpleDestAccount
-                : null,
-            label: toLabel,
-            options: simpleModeAccounts,
-            groupProvider: groupProvider,
-            onSelected: (acc) => provider.setSimpleDestAccount(acc),
+    return _buildSectionCard(
+          title: 'Transaction Details',
+          icon: LucideIcons.layers,
+          child: Column(
+            children: [
+              AccountAutocomplete(
+                key: const ValueKey('simple_dest'),
+                initialValue:
+                    simpleModeAccounts.contains(provider.simpleDestAccount)
+                    ? provider.simpleDestAccount
+                    : null,
+                label: toLabel,
+                options: simpleModeAccounts,
+                groupProvider: groupProvider,
+                onSelected: (acc) => provider.setSimpleDestAccount(acc),
+              ),
+              const SizedBox(height: 16),
+              AccountAutocomplete(
+                key: const ValueKey('simple_source'),
+                initialValue:
+                    simpleModeAccounts.contains(provider.simpleSourceAccount)
+                    ? provider.simpleSourceAccount
+                    : null,
+                label: fromLabel,
+                options: simpleModeAccounts,
+                groupProvider: groupProvider,
+                onSelected: (acc) => provider.setSimpleSourceAccount(acc),
+              ),
+              const SizedBox(height: 16),
+              FormattedAmountField(
+                initialValue: provider.simpleAmount,
+                label: 'Amount (BDT)',
+                currency: 'BDT',
+                isLarge: true,
+                onChanged: (val) => provider.setSimpleAmount(val),
+              ),
+            ],
           ),
-          const SizedBox(height: 20),
-          // Credit (Source) Second
-          AccountAutocomplete(
-            key: const ValueKey('simple_source'),
-            initialValue:
-                simpleModeAccounts.contains(provider.simpleSourceAccount)
-                ? provider.simpleSourceAccount
-                : null,
-            label: fromLabel,
-            options: simpleModeAccounts,
-            groupProvider: groupProvider,
-            onSelected: (acc) => provider.setSimpleSourceAccount(acc),
-          ),
-          const SizedBox(height: 20),
-          FormattedAmountField(
-            initialValue: provider.simpleAmount,
-            label: 'Amount (BDT)',
-            currency: 'BDT',
-            isLarge: true,
-            onChanged: (val) => provider.setSimpleAmount(val),
-          ),
-        ],
-      ),
-    );
+        )
+        .animate()
+        .fadeIn(duration: 400.ms, delay: 100.ms)
+        .slideY(begin: 0.1, end: 0);
   }
 
   Widget _buildTwoListSplitForm(
@@ -959,13 +1136,12 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           margin: const EdgeInsets.only(bottom: 16),
           decoration: BoxDecoration(
             color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: Colors.grey.shade200),
+            borderRadius: BorderRadius.circular(24),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withValues(alpha: 0.04),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 15,
+                offset: const Offset(0, 8),
               ),
             ],
           ),
@@ -1463,36 +1639,57 @@ class _FormattedAmountFieldState extends State<FormattedAmountField> {
     return TextFormField(
       controller: _controller,
       focusNode: _focusNode,
+      style: GoogleFonts.inter(
+        fontSize: widget.isLarge ? 18 : 14,
+        fontWeight: widget.isLarge ? FontWeight.w800 : FontWeight.w600,
+        color: const Color(0xFF2D3748),
+      ),
       decoration: InputDecoration(
-        labelText: widget.label,
+        labelText: widget.label.toUpperCase(),
+        labelStyle: GoogleFonts.inter(
+          fontSize: 11,
+          fontWeight: FontWeight.w800,
+          color: const Color(0xFF718096),
+          letterSpacing: 0.5,
+        ),
         hintText: widget.isLarge ? null : 'Amount',
-        border: const OutlineInputBorder(),
+        hintStyle: GoogleFonts.inter(
+          color: const Color(0xFFA0AEC0),
+          fontSize: 13,
+        ),
+        filled: true,
+        fillColor: const Color(0xFFF7FAFC),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFFE2E8F0)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: Color(0xFF4299E1), width: 1.5),
+        ),
         prefixIcon: Container(
           width: widget.isLarge ? 48 : 32,
           alignment: Alignment.center,
           child: Text(
             CurrencyFormatter.getCurrencySymbol(widget.currency),
-            style: TextStyle(
-              fontSize: widget.isLarge ? 20 : 14,
-              fontWeight: FontWeight.bold,
-              color: Colors.grey[700],
+            style: GoogleFonts.inter(
+              fontSize: widget.isLarge ? 18 : 14,
+              fontWeight: FontWeight.w800,
+              color: const Color(0xFF4299E1),
             ),
           ),
         ),
         isDense: true,
-        contentPadding: widget.isLarge
-            ? const EdgeInsets.all(16)
-            : const EdgeInsets.all(12),
-        filled: !widget.isLarge,
-        fillColor: widget.isLarge ? null : Colors.white,
+        contentPadding: const EdgeInsets.all(16),
       ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       inputFormatters: [
         FilteringTextInputFormatter.allow(RegExp(r'^\d*,?\d*\.?\d*')),
       ],
-      style: widget.isLarge
-          ? const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)
-          : null,
       onChanged: (val) {
         widget.onChanged(double.tryParse(val.replaceAll(',', '')) ?? 0);
       },
