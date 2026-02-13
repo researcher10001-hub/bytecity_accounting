@@ -15,6 +15,7 @@ import '../../models/account_model.dart';
 import '../../services/permission_service.dart';
 import 'widgets/account_autocomplete.dart';
 import '../home/widgets/side_menu.dart';
+import '../reports/transaction_history_screen.dart';
 import '../../core/utils/currency_formatter.dart';
 
 class TransactionEntryScreen extends StatefulWidget {
@@ -837,6 +838,9 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     TransactionModel tx,
     TransactionProvider provider,
   ) {
+    final debits = tx.details.where((d) => d.debit > 0).toList();
+    final credits = tx.details.where((d) => d.credit > 0).toList();
+
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -848,7 +852,10 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             const SizedBox(width: 12),
             Text(
               'Success!',
-              style: GoogleFonts.inter(fontWeight: FontWeight.w800),
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+              ),
             ),
           ],
         ),
@@ -860,10 +867,11 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               'Voucher saved successfully!',
               style: GoogleFonts.inter(
                 fontSize: 14,
-                color: const Color(0xFF718096),
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFF38A169),
               ),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 16),
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
@@ -873,57 +881,103 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               ),
               child: Column(
                 children: [
-                  _rowDetail('Voucher No', tx.voucherNo),
-                  const Divider(height: 24),
-                  _rowDetail('Date', DateFormat('yyyy-MM-dd').format(tx.date)),
-                  const Divider(height: 24),
-                  _rowDetail(
-                    'Amount',
-                    '${provider.currency} ${NumberFormat('#,##0.00').format(tx.totalDebit)}',
+                  // Debits
+                  ...debits.map(
+                    (d) => _rowDetail(
+                      'Debit: ${d.account?.name ?? 'Unknown'}',
+                      '${d.currency} ${NumberFormat('#,##0.00').format(d.debit)}',
+                      icon: LucideIcons.arrowDown,
+                      iconColor: const Color(0xFF38A169), // Green
+                    ),
                   ),
+                  const Divider(height: 16),
+                  // Credits
+                  ...credits.map(
+                    (c) => _rowDetail(
+                      'Credit: ${c.account?.name ?? 'Unknown'}',
+                      '${c.currency} ${NumberFormat('#,##0.00').format(c.credit)}',
+                      icon: LucideIcons.arrowUp,
+                      iconColor: const Color(0xFFD69E2E), // Orange/Gold
+                    ),
+                  ),
+                  const Divider(height: 16),
+                  _rowDetail('Voucher No', tx.voucherNo),
+                  _rowDetail('Date', DateFormat('yyyy-MM-dd').format(tx.date)),
                 ],
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () {
-              provider.resetForm();
-              Navigator.pop(ctx);
-              Navigator.pop(context);
-            },
-            child: Text(
-              'HOME',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF718096),
-                fontSize: 12,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              TextButton(
+                onPressed: () {
+                  provider.resetForm();
+                  Navigator.pop(ctx); // Pop Dialog
+                  Navigator.pop(context); // Pop Entry Screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const TransactionHistoryScreen(),
+                    ),
+                  );
+                },
+                child: Text(
+                  'HISTORY',
+                  style: GoogleFonts.inter(
+                    fontWeight: FontWeight.w700,
+                    color: const Color(0xFF4299E1),
+                    fontSize: 12,
+                  ),
+                ),
               ),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              provider.resetForm(keepDate: true);
-              Navigator.pop(ctx);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF38A169),
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+              Row(
+                children: [
+                  TextButton(
+                    onPressed: () {
+                      provider.resetForm();
+                      Navigator.pop(ctx);
+                      Navigator.pop(context);
+                    },
+                    child: Text(
+                      'HOME',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w700,
+                        color: const Color(0xFF718096),
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  ElevatedButton(
+                    onPressed: () {
+                      provider.resetForm(keepDate: true);
+                      Navigator.pop(ctx);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF38A169),
+                      foregroundColor: Colors.white,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: Text(
+                      'ADD NEW',
+                      style: GoogleFonts.inter(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              elevation: 0,
-            ),
-            child: Text(
-              'ADD ANOTHER',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w700,
-                fontSize: 12,
-              ),
-            ),
+            ],
           ),
         ],
+        actionsPadding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
       ),
     );
   }
@@ -1131,13 +1185,30 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     );
   }
 
-  Widget _rowDetail(String label, String value) {
+  Widget _rowDetail(
+    String label,
+    String value, {
+    IconData? icon,
+    Color? iconColor,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 4),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey, fontSize: 12)),
+          if (icon != null) ...[
+            Icon(icon, size: 14, color: iconColor ?? Colors.grey),
+            const SizedBox(width: 6),
+          ],
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.grey, fontSize: 12),
+              overflow: TextOverflow.ellipsis,
+              maxLines: 1,
+            ),
+          ),
+          const SizedBox(width: 8),
           Text(
             value,
             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
