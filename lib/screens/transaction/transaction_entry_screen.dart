@@ -744,7 +744,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           onUpdateAmount: provider.updateDestAmount,
           onUpdateCurrency: provider.updateDestCurrency,
           onUpdateRate: provider.updateDestRate,
-          color: Colors.blue.shade50,
+          color: Colors.blue,
           total: provider.totalDestAmount,
           currency: provider.currency,
           canUseForeignCurrency: canUseForeignCurrency,
@@ -762,7 +762,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           onUpdateAmount: provider.updateSourceAmount,
           onUpdateCurrency: provider.updateSourceCurrency,
           onUpdateRate: provider.updateSourceRate,
-          color: Colors.orange.shade50,
+          color: Colors.orange,
           total: provider.totalSourceAmount,
           currency: provider.currency,
           canUseForeignCurrency: canUseForeignCurrency,
@@ -858,241 +858,415 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     required String currency,
     bool canUseForeignCurrency = false,
   }) {
-    // Generate available currencies based on permission
     final List<String> availableCurrencies = canUseForeignCurrency
         ? ['BDT', 'USD', 'RM', 'AED']
         : ['BDT'];
 
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: color,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade300),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                title,
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
-              ),
-              Text(
-                'Total: ${CurrencyFormatter.format(total)} $currency',
-                style: const TextStyle(fontWeight: FontWeight.bold),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth > 700;
+
+        return Container(
+          margin: const EdgeInsets.only(bottom: 16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: Colors.grey.shade200),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.04),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
               ),
             ],
           ),
-          const Divider(),
-          ListView.separated(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: entries.length,
-            separatorBuilder: (ctx, i) => const SizedBox(height: 8),
-            itemBuilder: (ctx, index) {
-              final entry = entries[index];
-              return Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(color: Colors.grey.shade200),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.02),
-                      blurRadius: 4,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
+          clipBehavior: Clip.antiAlias,
+          child: Stack(
+            children: [
+              Positioned(
+                left: 0,
+                top: 0,
+                bottom: 0,
+                child: Container(width: 6, color: color),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 16, 16, 16),
                 child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Row 1: [Account Name] [X Remove]
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Expanded(
-                          child: AccountAutocomplete(
-                            key: ValueKey(entry.id),
-                            initialValue: accounts.contains(entry.account)
-                                ? entry.account
-                                : null,
-                            label: 'Account',
-                            options: accounts,
-                            groupProvider: groupProvider,
-                            onSelected: (acc) => onUpdateAccount(index, acc),
+                        Text(
+                          title,
+                          style: GoogleFonts.inter(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                            color: Colors.black87,
                           ),
                         ),
-                        IconButton(
-                          icon: const Icon(
-                            Icons.remove_circle_outline,
-                            color: Colors.redAccent,
-                            size: 22,
-                          ),
-                          onPressed: () => onRemove(index),
-                          padding: EdgeInsets.zero,
-                          tooltip: 'Remove Line',
-                        ),
+                        _buildTotalBadge(total, currency, color),
                       ],
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 16),
 
-                    // Row 2: [Currency] [Rate]
-                    Row(
-                      children: [
-                        // Currency Selection
-                        Expanded(
-                          flex: 1,
-                          child: Container(
+                    if (entries.isEmpty)
+                      Center(
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Text(
+                            'No entries added yet.',
+                            style: GoogleFonts.inter(
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ),
+                      )
+                    else if (isDesktop)
+                      Column(
+                        children: [
+                          Container(
                             padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 2,
+                              vertical: 8,
+                              horizontal: 12,
                             ),
                             decoration: BoxDecoration(
-                              color: entry.currency != 'BDT'
-                                  ? Colors.amber.shade50
-                                  : Colors.grey.shade50,
-                              borderRadius: BorderRadius.circular(8),
-                              border: Border.all(
-                                color: entry.currency != 'BDT'
-                                    ? Colors.amber.shade300
-                                    : Colors.grey.shade300,
+                              color: Colors.grey.shade50,
+                              border: Border(
+                                bottom: BorderSide(color: Colors.grey.shade200),
                               ),
                             ),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                            child: Row(
                               children: [
-                                const Text(
-                                  'Currency',
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: Colors.grey,
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    'ACCOUNT',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 11,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.grey.shade600,
+                                    ),
                                   ),
                                 ),
-                                DropdownButton<String>(
-                                  value:
-                                      availableCurrencies.contains(
-                                        entry.currency,
-                                      )
-                                      ? entry.currency
-                                      : 'BDT', // Fallback
-                                  isDense: true,
-                                  isExpanded: true,
-                                  underline: const SizedBox(),
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: entry.currency != 'BDT'
-                                        ? Colors.amber.shade900
-                                        : Colors.black87,
-                                  ),
-                                  items: availableCurrencies
-                                      .map(
-                                        (c) => DropdownMenuItem(
-                                          value: c,
-                                          child: Text(c),
-                                        ),
-                                      )
-                                      .toList(),
-                                  onChanged: (val) =>
-                                      onUpdateCurrency(index, val!),
-                                ),
+                                const SizedBox(width: 12),
+                                _headerText('CURRENCY', 1),
+                                const SizedBox(width: 12),
+                                _headerText('RATE', 1),
+                                const SizedBox(width: 12),
+                                _headerText('AMOUNT', 2),
+                                const SizedBox(width: 48),
                               ],
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 12),
-                        // Rate Selection (Visible if foreign or for clarity)
-                        Expanded(
-                          flex: 2,
-                          child: Opacity(
-                            opacity: entry.currency == 'BDT' ? 0.5 : 1.0,
-                            child: TextFormField(
-                              key: ValueKey(
-                                'rate_${entry.id}_${entry.currency}',
-                              ),
-                              initialValue: entry.rate.toString(),
-                              enabled: entry.currency != 'BDT',
-                              decoration: InputDecoration(
-                                labelText: 'Exchange Rate',
-                                isDense: true,
-                                border: const OutlineInputBorder(),
-                                contentPadding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 12,
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            itemCount: entries.length,
+                            itemBuilder: (ctx, index) {
+                              final entry = entries[index];
+                              return Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 8,
                                 ),
-                                suffixText: '→ BDT',
-                                suffixStyle: const TextStyle(
-                                  fontSize: 11,
-                                  color: Colors.grey,
+                                child: Row(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Expanded(
+                                      flex: 3,
+                                      child: AccountAutocomplete(
+                                        key: ValueKey(entry.id),
+                                        initialValue:
+                                            accounts.contains(entry.account)
+                                            ? entry.account
+                                            : null,
+                                        label: 'Account',
+                                        options: accounts,
+                                        groupProvider: groupProvider,
+                                        onSelected: (acc) =>
+                                            onUpdateAccount(index, acc),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      flex: 1,
+                                      child: _buildCurrencyDropdown(
+                                        index,
+                                        entry.currency,
+                                        availableCurrencies,
+                                        onUpdateCurrency,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      flex: 1,
+                                      child: _buildRateField(
+                                        index,
+                                        entry,
+                                        onUpdateRate,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 12),
+                                    Expanded(
+                                      flex: 2,
+                                      child: FormattedAmountField(
+                                        key: ValueKey('amount_${entry.id}'),
+                                        initialValue: entry.amount,
+                                        label: 'Amount',
+                                        currency: entry.currency,
+                                        onChanged: (val) =>
+                                            onUpdateAmount(index, val),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: Icon(
+                                        Icons.close,
+                                        size: 18,
+                                        color: Colors.grey.shade400,
+                                      ),
+                                      onPressed: () => onRemove(index),
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                    decimal: true,
-                                  ),
-                              onChanged: (val) => onUpdateRate(
-                                index,
-                                double.tryParse(val) ?? 1.0,
-                              ),
-                            ),
+                              );
+                            },
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Row 3: [Amount (Currency)]
-                    FormattedAmountField(
-                      key: ValueKey('amount_${entry.id}'),
-                      initialValue: entry.amount,
-                      label: 'Amount in ${entry.currency}',
-                      currency: entry.currency,
-                      onChanged: (val) => onUpdateAmount(index, val),
-                    ),
-
-                    // Show BDT equivalent if foreign
-                    if (entry.currency != 'BDT' && entry.amount > 0)
-                      Padding(
-                        padding: const EdgeInsets.only(top: 8),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(
-                              'BDT Equivalent: ',
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey.shade600,
-                              ),
+                        ],
+                      )
+                    else
+                      ListView.separated(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        itemCount: entries.length,
+                        separatorBuilder: (ctx, i) =>
+                            const SizedBox(height: 12),
+                        itemBuilder: (ctx, index) {
+                          final entry = entries[index];
+                          final isForeign = entry.currency != 'BDT';
+                          return Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey.shade50,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: Colors.grey.shade200),
                             ),
-                            Text(
-                              '৳ ${CurrencyFormatter.format(entry.bdtAmount)}',
-                              style: TextStyle(
-                                fontSize: 13,
-                                color: Colors.green.shade700,
-                                fontWeight: FontWeight.bold,
-                              ),
+                            child: Column(
+                              children: [
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: AccountAutocomplete(
+                                        key: ValueKey(entry.id),
+                                        initialValue:
+                                            accounts.contains(entry.account)
+                                            ? entry.account
+                                            : null,
+                                        label: 'Account',
+                                        options: accounts,
+                                        groupProvider: groupProvider,
+                                        onSelected: (acc) =>
+                                            onUpdateAccount(index, acc),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      icon: const Icon(
+                                        Icons.close,
+                                        color: Colors.redAccent,
+                                        size: 20,
+                                      ),
+                                      onPressed: () => onRemove(index),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 8),
+                                if (isForeign)
+                                  Row(
+                                    children: [
+                                      Expanded(
+                                        flex: 2,
+                                        child: _buildCurrencyDropdown(
+                                          index,
+                                          entry.currency,
+                                          availableCurrencies,
+                                          onUpdateCurrency,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Expanded(
+                                        flex: 3,
+                                        child: _buildRateField(
+                                          index,
+                                          entry,
+                                          onUpdateRate,
+                                        ),
+                                      ),
+                                    ],
+                                  )
+                                else
+                                  const SizedBox.shrink(),
+                                if (isForeign) const SizedBox(height: 8),
+                                FormattedAmountField(
+                                  initialValue: entry.amount,
+                                  label: 'Amount (${entry.currency})',
+                                  currency: entry.currency,
+                                  onChanged: (val) =>
+                                      onUpdateAmount(index, val),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
+                          );
+                        },
                       ),
+                    const SizedBox(height: 12),
+                    TextButton.icon(
+                      onPressed: onAdd,
+                      icon: const Icon(Icons.add, size: 16),
+                      label: Text(
+                        'Add Line',
+                        style: GoogleFonts.inter(fontWeight: FontWeight.bold),
+                      ),
+                    ),
                   ],
                 ),
-              );
-            },
+              ),
+            ],
           ),
-          TextButton.icon(
-            onPressed: onAdd,
-            icon: const Icon(Icons.add, size: 16),
-            label: const Text('Add Line', style: TextStyle(fontSize: 12)),
+        );
+      },
+    );
+  }
+
+  Widget _headerText(String text, int flex) {
+    return Expanded(
+      flex: flex,
+      child: Text(
+        text,
+        style: const TextStyle(
+          fontSize: 11,
+          fontWeight: FontWeight.bold,
+          color: Colors.grey,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCurrencyDropdown(
+    int index,
+    String current,
+    List<String> options,
+    Function(int, String) onUpdate,
+  ) {
+    return InputDecorator(
+      decoration: _buildInputDecoration(
+        labelText: 'Curr',
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      ),
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: options.contains(current) ? current : 'BDT',
+          isDense: true,
+          isExpanded: true,
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: Colors.black87,
           ),
-        ],
+          items: options
+              .map((c) => DropdownMenuItem(value: c, child: Text(c)))
+              .toList(),
+          onChanged: (val) => onUpdate(index, val!),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRateField(
+    int index,
+    SplitEntry entry,
+    Function(int, double) onUpdate,
+  ) {
+    return TextFormField(
+      initialValue: entry.rate.toString(),
+      enabled: entry.currency != 'BDT',
+      decoration: _buildInputDecoration(
+        labelText: 'Rate',
+        isDense: true,
+        contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      ),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      style: GoogleFonts.inter(fontSize: 13),
+      onChanged: (val) => onUpdate(index, double.tryParse(val) ?? 1.0),
+    );
+  }
+
+  InputDecoration _buildInputDecoration({
+    required String labelText,
+    IconData? icon,
+    bool enabled = true,
+    Color? fillColor,
+    bool isDense = false,
+    double? startPadding,
+    EdgeInsetsGeometry? contentPadding,
+  }) {
+    return InputDecoration(
+      labelText: labelText,
+      prefixIcon: icon != null
+          ? Icon(icon, color: Colors.grey.shade500, size: 20)
+          : null,
+      filled: true,
+      fillColor:
+          fillColor ?? (enabled ? Colors.grey.shade50 : Colors.grey.shade100),
+      enabled: enabled,
+      isDense: isDense,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide(
+          color: Theme.of(context).primaryColor,
+          width: 1.5,
+        ),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: BorderSide.none,
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(12),
+        borderSide: const BorderSide(color: Colors.redAccent),
+      ),
+      contentPadding:
+          contentPadding ??
+          (isDense
+              ? EdgeInsets.fromLTRB(startPadding ?? 12, 12, 12, 12)
+              : const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
+      floatingLabelBehavior: FloatingLabelBehavior.auto,
+      labelStyle: GoogleFonts.inter(
+        color: Colors.grey.shade600,
+        fontWeight: FontWeight.w500,
+        fontSize: isDense ? 13 : 14,
+      ),
+    );
+  }
+
+  Widget _buildTotalBadge(double total, String currency, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: color.withValues(alpha: 0.2)),
+      ),
+      child: Text(
+        'Total: ${CurrencyFormatter.format(total)} $currency',
+        style: GoogleFonts.inter(
+          fontWeight: FontWeight.bold,
+          fontSize: 13,
+          color: color.withValues(alpha: 0.8),
+        ),
       ),
     );
   }
