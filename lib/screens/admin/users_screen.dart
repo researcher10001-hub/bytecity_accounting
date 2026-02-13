@@ -524,6 +524,48 @@ class _UsersScreenState extends State<UsersScreen> {
 
               // Date Permission Button
               Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Can Approve Transactions',
+                    style: TextStyle(fontSize: 13, fontWeight: FontWeight.w500),
+                  ),
+                  if (_loadingOperations.contains('approval_${user.email}'))
+                    const Padding(
+                      padding: EdgeInsets.only(right: 8.0),
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                    )
+                  else
+                    Transform.scale(
+                      scale: 0.8,
+                      child: Switch(
+                        value: user.allowAutoApproval,
+                        onChanged: (val) {
+                          _handleSwitchChange(
+                            'approval_${user.email}',
+                            () async {
+                              await provider.toggleAutoApproval(
+                                user.email,
+                                val,
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ),
+                ],
+              ),
+              
+              const SizedBox(height: 8),
+
+              const SizedBox(height: 8),
+
+              // Unlock Access Button
+              Row(
                 children: [
                   Expanded(
                     child: Column(
@@ -1676,7 +1718,7 @@ class _UsersScreenState extends State<UsersScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedRole,
+                    initialValue: selectedRole,
                     items: roles
                         .map((r) => DropdownMenuItem(value: r, child: Text(r)))
                         .toList(),
@@ -1688,7 +1730,7 @@ class _UsersScreenState extends State<UsersScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
-                    value: selectedStatus,
+                    initialValue: selectedStatus,
                     items: statuses
                         .map((s) => DropdownMenuItem(value: s, child: Text(s)))
                         .toList(),
@@ -2136,6 +2178,109 @@ class _UsersScreenState extends State<UsersScreen> {
                   child: Column(
                     children: [
                       // Row 1: Foreign Currency
+                      if (!user.isAdmin) ...[
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(6),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withValues(alpha: 0.1),
+                                    shape: BoxShape.circle,
+                                  ),
+                                  child: const Icon(
+                                    LucideIcons.globe,
+                                    size: 14,
+                                    color: Colors.blue,
+                                  ),
+                                ),
+                                const SizedBox(width: 8),
+                                Text(
+                                  'Foreign Currency Access',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            SizedBox(
+                              height: 24,
+                              child:
+                                  _loadingOperations.contains(
+                                    'currency_${user.email}',
+                                  )
+                                  ? const SizedBox(
+                                      width: 24,
+                                      height: 24,
+                                      child: Padding(
+                                        padding: EdgeInsets.all(4.0),
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                        ),
+                                      ),
+                                    )
+                                  : Switch(
+                                      value: user.allowForeignCurrency,
+                                      thumbColor:
+                                          WidgetStateProperty.resolveWith<
+                                            Color?
+                                          >((states) {
+                                            if (states.contains(
+                                              WidgetState.selected,
+                                            )) {
+                                              return Colors.blue;
+                                            }
+                                            return Theme.of(
+                                              context,
+                                            ).textTheme.bodySmall?.color;
+                                          }),
+                                      trackColor:
+                                          WidgetStateProperty.resolveWith<
+                                            Color?
+                                          >((states) {
+                                            if (states.contains(
+                                              WidgetState.selected,
+                                            )) {
+                                              return Colors.blue.withValues(
+                                                alpha: 0.4,
+                                              );
+                                            }
+                                            return Theme.of(context)
+                                                .dividerColor
+                                                .withValues(alpha: 0.2);
+                                          }),
+                                      onChanged: user.isAdmin
+                                          ? null
+                                          : (val) async {
+                                              setState(() {
+                                                _loadingOperations.add(
+                                                  'currency_${user.email}',
+                                                );
+                                              });
+                                              await provider
+                                                  .toggleCurrencyPermission(
+                                                    user.email,
+                                                    val,
+                                                  );
+                                              if (context.mounted) {
+                                                setState(() {
+                                                  _loadingOperations.remove(
+                                                    'currency_${user.email}',
+                                                  );
+                                                });
+                                              }
+                                            },
+                                    ),
+                            ),
+                          ],
+                        ),
+                        const Divider(height: 16),
+                      ],
+
+                      // Row 3: Approval Permission
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
@@ -2144,18 +2289,18 @@ class _UsersScreenState extends State<UsersScreen> {
                               Container(
                                 padding: const EdgeInsets.all(6),
                                 decoration: BoxDecoration(
-                                  color: Colors.blue.withValues(alpha: 0.1),
+                                  color: Colors.indigo.withValues(alpha: 0.1),
                                   shape: BoxShape.circle,
                                 ),
                                 child: const Icon(
-                                  LucideIcons.globe,
+                                  LucideIcons.checkSquare,
                                   size: 14,
-                                  color: Colors.blue,
+                                  color: Colors.indigo,
                                 ),
                               ),
                               const SizedBox(width: 8),
                               Text(
-                                'Foreign Currency Access',
+                                'Can Approve Transactions',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   fontWeight: FontWeight.w500,
@@ -2167,7 +2312,7 @@ class _UsersScreenState extends State<UsersScreen> {
                             height: 24,
                             child:
                                 _loadingOperations.contains(
-                                  'currency_${user.email}',
+                                  'approval_${user.email}',
                                 )
                                 ? const SizedBox(
                                     width: 24,
@@ -2180,14 +2325,14 @@ class _UsersScreenState extends State<UsersScreen> {
                                     ),
                                   )
                                 : Switch(
-                                    value: user.allowForeignCurrency,
+                                    value: user.allowAutoApproval,
                                     thumbColor:
                                         WidgetStateProperty.resolveWith<Color?>(
                                           (states) {
                                             if (states.contains(
                                               WidgetState.selected,
                                             )) {
-                                              return Colors.blue;
+                                              return Colors.indigo;
                                             }
                                             return Theme.of(
                                               context,
@@ -2200,7 +2345,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                             if (states.contains(
                                               WidgetState.selected,
                                             )) {
-                                              return Colors.blue.withValues(
+                                              return Colors.indigo.withValues(
                                                 alpha: 0.4,
                                               );
                                             }
@@ -2209,27 +2354,24 @@ class _UsersScreenState extends State<UsersScreen> {
                                                 .withValues(alpha: 0.2);
                                           },
                                         ),
-                                    onChanged: user.isAdmin
-                                        ? null
-                                        : (val) async {
-                                            setState(() {
-                                              _loadingOperations.add(
-                                                'currency_${user.email}',
-                                              );
-                                            });
-                                            await provider
-                                                .toggleCurrencyPermission(
-                                                  user.email,
-                                                  val,
-                                                );
-                                            if (context.mounted) {
-                                              setState(() {
-                                                _loadingOperations.remove(
-                                                  'currency_${user.email}',
-                                                );
-                                              });
-                                            }
-                                          },
+                                    onChanged: (val) async {
+                                      setState(() {
+                                        _loadingOperations.add(
+                                          'approval_${user.email}',
+                                        );
+                                      });
+                                      await provider.toggleAutoApproval(
+                                        user.email,
+                                        val,
+                                      );
+                                      if (context.mounted) {
+                                        setState(() {
+                                          _loadingOperations.remove(
+                                            'approval_${user.email}',
+                                          );
+                                        });
+                                      }
+                                    },
                                   ),
                           ),
                         ],

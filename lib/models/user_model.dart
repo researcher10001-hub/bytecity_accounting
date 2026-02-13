@@ -11,6 +11,7 @@ class User {
   final DateTime? dateEditPermissionExpiresAt;
   final List<String> groupIds;
   final String? sessionToken;
+  final bool allowAutoApproval; // New field for Management approval permission
 
   User({
     required this.name,
@@ -23,6 +24,7 @@ class User {
     this.dateEditPermissionExpiresAtString,
     this.groupIds = const [],
     this.sessionToken,
+    this.allowAutoApproval = false,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -73,6 +75,7 @@ class User {
           : null,
       groupIds: parsedGroups,
       sessionToken: json['session_token']?.toString().trim(),
+      allowAutoApproval: json['allow_auto_approval'] == true,
     );
   }
 
@@ -87,6 +90,7 @@ class User {
       'date_edit_expires_at': dateEditPermissionExpiresAt?.toIso8601String(),
       'group_ids': groupIds.join(','),
       'session_token': sessionToken,
+      'allow_auto_approval': allowAutoApproval,
     };
   }
 

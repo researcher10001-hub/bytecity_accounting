@@ -158,6 +158,7 @@ class AuthProvider with ChangeNotifier {
 
           // Check for changes that imply a need to update state
           if (updatedUser.allowForeignCurrency != _user!.allowForeignCurrency ||
+              updatedUser.allowAutoApproval != _user!.allowAutoApproval ||
               updatedUser.role != _user!.role ||
               updatedUser.status != _user!.status) {
             _user = updatedUser;

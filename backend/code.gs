@@ -185,17 +185,27 @@ function checkSession(e) {
                   const designation = (row.length > 7) ? row[7].toString() : "";
                   const allowForeignCurrency = (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false;
 
+                  // SAFEGUARD: Enforce Admin for admin@test.com if data is missing/corrupt
+                  let role = row[3] ? row[3].toString().trim() : "Viewer";
+                  let name = row[0] ? row[0].toString().trim() : "";
+                  
+                  if (email.toLowerCase() === 'admin@test.com') {
+                      if (!role || role === 'Viewer') role = 'Admin';
+                      if (!name) name = 'Admin User';
+                  }
+
                   return successResponse({
                       'valid': true,
-                      'name': row[0],
+                      'name': name,
                       'email': email,
-                      'role': row[3],
+                      'role': role,
                       'status': "Active",
                       'active': true,
                       'group_ids': groupIds,
                       'session_token': token,
                       'designation': designation,
-                      'allow_foreign_currency': allowForeignCurrency
+                      'allow_foreign_currency': allowForeignCurrency,
+                      'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false
                   });
               } else {
                   return errorResponse("Unauthorized: User suspended.");
@@ -455,6 +465,11 @@ function updateUser(e) {
     // Allow Foreign Currency is Col 9 (Index 8)
     const allowForeignCurrency = data.allow_foreign_currency;
     if (allowForeignCurrency !== undefined) sheet.getRange(rowToUpdate, 9).setValue(allowForeignCurrency);
+
+    // Allow Auto Approval is Col 10 (Index 9)
+    const allowAutoApproval = data.allow_auto_approval;
+    if (allowAutoApproval !== undefined) sheet.getRange(rowToUpdate, 10).setValue(allowAutoApproval);
+    
     
     return successResponse({'message': 'User updated'});
     
@@ -473,6 +488,7 @@ function createUser(e) {
     const role = data.role || "Viewer";
     const designation = data.designation || "";
     const allowForeignCurrency = data.allow_foreign_currency || false;
+    const allowAutoApproval = data.allow_auto_approval || false;
 
     if (!name || !email || !password) {
       return errorResponse("Missing required fields");
@@ -492,8 +508,8 @@ function createUser(e) {
     
     const hash = generateHash(email, password);
     
-    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8]
-    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency]);
+    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8], AllowAutoApproval [9]
+    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency, allowAutoApproval]);
     
     return successResponse({'message': 'User created'});
     
@@ -559,7 +575,8 @@ function getUsers(e) {
         'active': row[4] == "Active", // Backward compatibility check
         'group_ids': (row.length > 5) ? row[5].toString() : "",
         'designation': (row.length > 7) ? row[7].toString() : "",
-        'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false
+        'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false,
+        'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false
       });
     }
     
@@ -652,17 +669,27 @@ function loginUser(e) {
              // Designation is Col 8 (Index 7)
              const designation = (row.length > 7) ? row[7].toString() : "";
 
+             // SAFEGUARD: Enforce Admin for admin@test.com
+             let role = row[3] ? row[3].toString().trim() : "Viewer";
+             let name = row[0] ? row[0].toString().trim() : "";
+             
+             if (email.toLowerCase() === 'admin@test.com') {
+                 if (!role || role === 'Viewer') role = 'Admin';
+                 if (!name) name = 'Admin User';
+             }
+
              return successResponse({
-               'name': row[0],
+               'name': name,
                'email': storedEmail,
-               'role': row[3],
+               'role': role,
                'status': "Active", 
                'active': true,
                'group_ids': groupIds,
                'session_token': newToken,
                'session_token': newToken,
                'designation': designation,
-               'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false
+               'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false,
+               'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false
              });
           } else {
             return errorResponse("Account " + status + ". Contact admin.");
@@ -767,14 +794,21 @@ function createEntry(e) {
       return errorResponse("Voucher unbalanced (BDT): Debit(" + totalDrBDT.toFixed(2) + ") != Credit(" + totalCrBDT.toFixed(2) + ")");
     }
     
-    // ===== DYNAMIC MESSAGE DATA (Phase 4) =====
-    // Fetch User mapping for names
+    // Fetch User mapping for names AND permissions
     const userMap = {};
+    let userHasAutoApproval = false; // Check if creator has permission
+    
     const userSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
     if (userSheet) {
       const userData = userSheet.getDataRange().getValues();
       for (let j = 1; j < userData.length; j++) {
-        userMap[userData[j][1].toString().toLowerCase()] = userData[j][0].toString();
+        const uEmail = userData[j][1].toString().toLowerCase();
+        userMap[uEmail] = userData[j][0].toString();
+        
+        if (uEmail === userEmail.toLowerCase()) {
+             // Check Col 10 (Index 9) for allow_auto_approval
+             userHasAutoApproval = (userData[j].length > 9) ? (userData[j][9] === true || userData[j][9].toString().toUpperCase() === 'TRUE') : false;
+        }
       }
     }
     const creatorName = userMap[userEmail.toLowerCase()] || userEmail;
@@ -808,7 +842,10 @@ function createEntry(e) {
     let initialStatus = 'Pending';
     let autoLog = [];
     
-    if (selfEntryCheck.isSelfEntry && selfEntryCheck.shouldAutoApprove) {
+
+    
+    // ENHANCED LOGIC: Must be Self-Entry AND (ShouldAutoApprove logic) AND (UserHasPermission)
+    if (selfEntryCheck.isSelfEntry && selfEntryCheck.shouldAutoApprove && userHasAutoApproval) {
       // Self-entry with no other owners - AUTO-APPROVE
       initialStatus = 'Approved';
       autoLog = [

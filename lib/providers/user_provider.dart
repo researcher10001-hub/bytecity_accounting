@@ -55,6 +55,7 @@ class UserProvider with ChangeNotifier {
         'status': updatedUser.status,
         'group_ids': updatedUser.groupIds.join(','),
         'allow_foreign_currency': updatedUser.allowForeignCurrency,
+        'allow_auto_approval': updatedUser.allowAutoApproval,
       };
 
       await _apiService.postRequest(ApiConstants.actionUpdateUser, payload);
@@ -119,6 +120,27 @@ class UserProvider with ChangeNotifier {
     return false;
   }
 
+  Future<bool> toggleAutoApproval(String email, bool allowed) async {
+    final index = _users.indexWhere((u) => u.email == email);
+    if (index != -1) {
+      final user = _users[index];
+      final newUser = User(
+        email: user.email,
+        name: user.name,
+        role: user.role,
+        designation: user.designation,
+        status: user.status,
+        allowForeignCurrency: user.allowForeignCurrency,
+        dateEditPermissionExpiresAt: user.dateEditPermissionExpiresAt,
+        groupIds: user.groupIds,
+        allowAutoApproval: allowed,
+      );
+
+      return await updateUser(newUser);
+    }
+    return false;
+  }
+
   Future<bool> addUser(
     String name,
     String email,
@@ -147,6 +169,7 @@ class UserProvider with ChangeNotifier {
         role: role,
         designation: designation.trim(),
         status: 'Active',
+        allowAutoApproval: false, // Default false
       );
       _users.add(newUser);
 
@@ -203,6 +226,7 @@ class UserProvider with ChangeNotifier {
           allowForeignCurrency: u.allowForeignCurrency,
           dateEditPermissionExpiresAt: u.dateEditPermissionExpiresAt,
           groupIds: u.groupIds,
+          allowAutoApproval: u.allowAutoApproval,
         );
         notifyListeners();
       }

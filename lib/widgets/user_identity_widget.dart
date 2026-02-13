@@ -38,9 +38,10 @@ class UserIdentityWidget extends StatelessWidget {
               ),
             ),
             const SizedBox(width: 6),
-            // First Name
+            // Name Display
             Text(
-              user.name.split(' ')[0],
+              (user.name.trim().isEmpty ? user.email.split('@')[0] : user.name)
+                  .split(' ')[0],
               style: GoogleFonts.inter(
                 fontSize: 14,
                 fontWeight: FontWeight.w600,
@@ -55,11 +56,18 @@ class UserIdentityWidget extends StatelessWidget {
     );
   }
 
-  /// Get user initials from name
+  /// Get user initials from name or email
   String _getInitials(String name) {
-    if (name.trim().isEmpty) return '?';
+    String displayName = name.trim();
 
-    final parts = name.trim().split(' ');
+    // Fallback to email if name is empty
+    if (displayName.isEmpty) {
+      displayName = user.email.split('@')[0];
+    }
+
+    if (displayName.isEmpty) return '?';
+
+    final parts = displayName.split(' ');
     if (parts.isEmpty) return '?';
 
     if (parts.length == 1) {
@@ -72,6 +80,9 @@ class UserIdentityWidget extends StatelessWidget {
         ? parts[parts.length - 1].substring(0, 1)
         : '';
 
+    // If only one part has an initial, return just that (e.g. "A " -> "A")
+    if (lastInitial.isEmpty) return firstInitial.toUpperCase();
+
     return (firstInitial + lastInitial).toUpperCase();
   }
 
@@ -82,11 +93,13 @@ class UserIdentityWidget extends StatelessWidget {
       return const Color(0xFF9C27B0); // Purple
     } else if (normalizedRole == AppRoles.management.toLowerCase()) {
       return const Color(0xFF4CAF50); // Green
-    } else if (normalizedRole ==
-        AppRoles.businessOperationsAssociate.toLowerCase()) {
+    } else if (normalizedRole == AppRoles.associate.toLowerCase() ||
+        normalizedRole == 'business operations associate') {
       return const Color(0xFF2196F3); // Blue
     } else {
-      return const Color(0xFF757575); // Gray for Viewer
+      return const Color(
+        0xFF607D8B,
+      ); // Blue Grey for Viewer (Distinct from disabled)
     }
   }
 
