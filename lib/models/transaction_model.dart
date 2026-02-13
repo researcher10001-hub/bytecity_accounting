@@ -9,6 +9,7 @@ enum TransactionStatus {
   correction,
   clarification,
   underReview,
+  deleted,
 }
 
 class ApprovalMessage {

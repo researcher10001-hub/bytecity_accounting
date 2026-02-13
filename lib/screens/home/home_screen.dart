@@ -64,8 +64,12 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _initialFetch(User user) async {
-    await context.read<AccountProvider>().fetchAccounts(user);
-    await context.read<TransactionProvider>().fetchHistory(user);
+    final accountProvider = context.read<AccountProvider>();
+    await accountProvider.fetchAccounts(user);
+    await context.read<TransactionProvider>().fetchHistory(
+      user,
+      accountProvider: accountProvider,
+    );
 
     if (context.mounted) {
       context.read<AccountProvider>().updateBalancesFromTransactions(

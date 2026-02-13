@@ -157,6 +157,9 @@ class NotificationProvider with ChangeNotifier {
       _messageThreads = [];
 
       for (var tx in allTransactions) {
+        // Skip deleted transactions for Message Card / Notifications
+        if (tx.status == TransactionStatus.deleted) continue;
+
         bool isMyCreation =
             tx.createdBy.trim().toLowerCase() ==
             user.email.trim().toLowerCase();

@@ -836,6 +836,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         return const Color(0xFF805AD5); // Vibrant Purple
       case TransactionStatus.pending:
         return const Color(0xFF3182CE); // Vibrant Blue
+      case TransactionStatus.deleted:
+        return const Color(0xFF718096); // Grey
     }
   }
 }

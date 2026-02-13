@@ -47,6 +47,8 @@ class ApprovalTimelineWidget extends StatelessWidget {
           final isApprove = msg.actionType == 'approve';
           final isReject = msg.actionType == 'reject';
           final isClarify = msg.actionType == 'clarify';
+          final isEdit = msg.actionType == 'edit';
+          final isForwardLink = msg.actionType == 'forward_link';
           final isSystem =
               msg.actionType.startsWith('auto_') ||
               msg.message.contains('Created');
@@ -55,14 +57,20 @@ class ApprovalTimelineWidget extends StatelessWidget {
           IconData icon = LucideIcons.messageSquare;
 
           if (isApprove) {
-            statusColor = const Color(0xFF38A169);
+            statusColor = const Color(0xFF38A169); // Green
             icon = LucideIcons.checkCircle;
           } else if (isReject) {
-            statusColor = const Color(0xFFE53E3E);
+            statusColor = const Color(0xFFE53E3E); // Red
             icon = LucideIcons.xCircle;
           } else if (isClarify) {
-            statusColor = const Color(0xFFD69E2E);
+            statusColor = const Color(0xFFD69E2E); // Amber
             icon = LucideIcons.helpCircle;
+          } else if (isEdit) {
+            statusColor = const Color(0xFF3182CE); // Blue
+            icon = LucideIcons.edit2;
+          } else if (isForwardLink) {
+            statusColor = const Color(0xFFE53E3E); // Red (Alert)
+            icon = LucideIcons.externalLink;
           } else if (isSystem) {
             statusColor = const Color(0xFF3182CE);
             icon = LucideIcons.info;

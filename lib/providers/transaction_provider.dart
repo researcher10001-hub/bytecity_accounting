@@ -887,19 +887,31 @@ class TransactionProvider with ChangeNotifier {
       // Google Script `getEntries` returns flat rows.
       final data = await _apiService.postRequest(
         ApiConstants.actionGetEntries,
-        {'email': user.email},
+        {'user_email': user.email},
       );
 
       if (data is List) {
         // We need to group flat rows into TransactionModels.
-        // Grouping Logic:
-        Map<String, TransactionModel> voucherMap = {};
+        // Grouping Logic: Use Entry ID (or Voucher No as fallback)
+        // Grouping by Voucher No alone merges different versions (e.g. Deleted vs Active)
+        Map<String, TransactionModel> entryMap = {};
+
+        print("DEBUG: Fetched ${data.length} raw rows from backend.");
 
         for (var item in data) {
           try {
             String vch = item['voucher_no']?.toString() ?? '';
-            if (!voucherMap.containsKey(vch)) {
-              voucherMap[vch] = TransactionModel(
+            String entryId = item['id']?.toString() ?? '';
+            String key = entryId.isNotEmpty ? entryId : vch;
+            String status = item['approval_status']?.toString() ?? 'pending';
+
+            if (status.toLowerCase() == 'deleted') {
+              print("DEBUG: Found DELETED row. ID: $entryId, Vch: $vch");
+            }
+
+            if (!entryMap.containsKey(key)) {
+              entryMap[key] = TransactionModel(
+                id: entryId, // Ensure ID is set
                 voucherNo: vch,
                 date: DateTime.parse(
                   item['date'],
@@ -955,7 +967,6 @@ class TransactionProvider with ChangeNotifier {
                 details: [],
               );
             }
-
             // Add Detail
             // Look up real account to get permissions
             Account? realAccount;
@@ -971,7 +982,7 @@ class TransactionProvider with ChangeNotifier {
               }
             }
 
-            voucherMap[vch]!.details.add(
+            entryMap[key]!.details.add(
               TransactionDetail(
                 account:
                     realAccount ??
@@ -994,7 +1005,7 @@ class TransactionProvider with ChangeNotifier {
           }
         }
 
-        _transactions = voucherMap.values.toList();
+        _transactions = entryMap.values.toList();
         // Sort Date Desc
         _transactions.sort((a, b) => b.date.compareTo(a.date));
       }
