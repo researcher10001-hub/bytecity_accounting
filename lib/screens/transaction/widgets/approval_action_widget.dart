@@ -1,11 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 
 class ApprovalActionWidget extends StatefulWidget {
   final bool isLoading;
   final Function(String message, String action) onAction;
-  final bool isOwner; // New parameter to control approval buttons
-  final bool isAdmin; // New parameter for Phase 3 Flagging
-  final bool isFlagged; // Current flagged status
+  final bool isOwner;
+  final bool isAdmin;
+  final bool isFlagged;
 
   const ApprovalActionWidget({
     super.key,
@@ -26,14 +28,14 @@ class _ApprovalActionWidgetState extends State<ApprovalActionWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       decoration: BoxDecoration(
         color: Colors.white,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.05),
-            offset: const Offset(0, -2),
+            offset: const Offset(0, -4),
             blurRadius: 10,
           ),
         ],
@@ -41,79 +43,108 @@ class _ApprovalActionWidgetState extends State<ApprovalActionWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
-            "DECISION / COMMENT",
-            style: TextStyle(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: Colors.blueGrey,
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 4),
+            child: Row(
+              children: [
+                const Icon(
+                  LucideIcons.edit3,
+                  size: 11,
+                  color: Color(0xFF718096),
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  "DECISION / COMMENT",
+                  style: GoogleFonts.inter(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: const Color(0xFF718096),
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 8),
-          TextField(
-            controller: _controller,
-            maxLines: 2,
-            decoration: InputDecoration(
-              hintText: "Write your reason or comment...",
-              filled: true,
-              fillColor: Colors.grey[50],
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: BorderSide.none,
+          const SizedBox(height: 6),
+          Container(
+            decoration: BoxDecoration(
+              color: const Color(0xFFF7FAFC),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: const Color(0xFFEDF2F7)),
+            ),
+            child: TextField(
+              controller: _controller,
+              maxLines: 2,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: const Color(0xFF2D3748),
               ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 12,
-                vertical: 12,
+              decoration: InputDecoration(
+                hintText: "Write your reason or comment...",
+                hintStyle: GoogleFonts.inter(
+                  color: const Color(0xFFA0AEC0),
+                  fontSize: 12,
+                ),
+                border: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 8,
+                ),
               ),
             ),
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           if (widget.isLoading)
-            const Center(child: CircularProgressIndicator())
+            const Center(
+              child: CircularProgressIndicator(
+                color: Color(0xFF4299E1),
+                strokeWidth: 2,
+              ),
+            )
           else
             SingleChildScrollView(
               scrollDirection: Axis.horizontal,
+              physics: const BouncingScrollPhysics(),
               child: Row(
                 children: [
-                  // Only show Approve/Reject for Owners
                   if (widget.isOwner) ...[
                     _ActionChip(
                       label: "Approve",
-                      color: Colors.green,
-                      icon: Icons.check_circle_outline,
+                      color: const Color(0xFF38A169),
+                      icon: LucideIcons.checkCircle,
                       onTap: () => _submit('approve'),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                     _ActionChip(
                       label: "Reject",
-                      color: Colors.red,
-                      icon: Icons.cancel_outlined,
+                      color: const Color(0xFFE53E3E),
+                      icon: LucideIcons.xCircle,
                       onTap: () => _submit('reject'),
                     ),
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 6),
                   ],
-                  // Everyone can Clarify and Comment
                   _ActionChip(
                     label: "Clarify",
-                    color: Colors.orange,
-                    icon: Icons.help_outline,
+                    color: const Color(0xFFD69E2E),
+                    icon: LucideIcons.helpCircle,
                     onTap: () => _submit('clarify'),
                   ),
-                  const SizedBox(width: 8),
+                  const SizedBox(width: 6),
                   _ActionChip(
                     label: "Comment",
-                    color: Colors.grey,
-                    icon: Icons.comment_outlined,
+                    color: const Color(0xFF718096),
+                    icon: LucideIcons.messageSquare,
                     onTap: () => _submit('comment'),
                   ),
                   if (widget.isAdmin) ...[
-                    const SizedBox(width: 8),
+                    const SizedBox(width: 10),
                     _ActionChip(
                       label: widget.isFlagged
                           ? "Resolve Flag"
                           : "Flag for Audit",
-                      color: Colors.red.shade700,
-                      icon: widget.isFlagged ? Icons.outlined_flag : Icons.flag,
+                      color: const Color(0xFFC53030),
+                      icon: LucideIcons.flag,
                       onTap: () =>
                           _submit(widget.isFlagged ? 'unflag' : 'flag'),
                     ),
@@ -128,45 +159,67 @@ class _ApprovalActionWidgetState extends State<ApprovalActionWidget> {
 
   void _submit(String action) {
     final trimmedText = _controller.text.trim();
-
-    // Approval is allowed without comment. Others require it for audit clarity.
-    // Flagging also REQUIRE a comment.
     if (trimmedText.isEmpty && action != 'approve' && action != 'unflag') {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Explanation is required for audit.")),
+        const SnackBar(
+          content: Text("Explanation is required for audit."),
+          behavior: SnackBarBehavior.floating,
+        ),
       );
       return;
     }
 
     final finalMessage = trimmedText.isEmpty ? "Approved" : trimmedText;
 
-    // Confirmation Dialog for Decision
     if (action != 'comment' && action != 'clarify') {
       showDialog(
         context: context,
         builder: (ctx) => AlertDialog(
-          title: Text("Confirm ${action.toUpperCase()}"),
-          content: const Text(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(24),
+          ),
+          title: Text(
+            "Confirm ${action.toUpperCase()}",
+            style: GoogleFonts.inter(fontWeight: FontWeight.w800, fontSize: 18),
+          ),
+          content: Text(
             "This action is irreversible and will be logged in the audit trail. Proceed?",
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              color: const Color(0xFF4A5568),
+            ),
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx),
-              child: const Text("Cancel"),
+              child: Text(
+                "Cancel",
+                style: GoogleFonts.inter(
+                  color: const Color(0xFF718096),
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
             ),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: action == 'approve'
-                    ? Colors.green
-                    : Colors.red,
+                    ? const Color(0xFF38A169)
+                    : const Color(0xFFE53E3E),
                 foregroundColor: Colors.white,
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
               ),
               onPressed: () {
                 Navigator.pop(ctx);
                 widget.onAction(finalMessage, action);
                 _controller.clear();
               },
-              child: const Text("Confirm"),
+              child: Text(
+                "Confirm",
+                style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+              ),
             ),
           ],
         ),
@@ -195,25 +248,26 @@ class _ActionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return InkWell(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: color.withValues(alpha: 0.3)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withValues(alpha: 0.2), width: 1.5),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
             Icon(icon, size: 16, color: color),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               label,
-              style: TextStyle(
+              style: GoogleFonts.inter(
                 color: color,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                fontSize: 12,
+                letterSpacing: 0.3,
               ),
             ),
           ],

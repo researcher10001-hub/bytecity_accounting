@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/transaction_model.dart';
@@ -96,9 +98,24 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text("Transaction ${_currentTransaction.voucherNo}"),
+        title: Text(
+          "Transaction ${_currentTransaction.voucherNo}",
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            fontSize: 18,
+            color: const Color(0xFF2D3748),
+          ),
+        ),
         centerTitle: true,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        systemOverlayStyle: SystemUiOverlayStyle.dark,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF2D3748)),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
+      backgroundColor: const Color(0xFFF7FAFC),
       body: Stack(
         children: [
           PageView.builder(
@@ -209,11 +226,28 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         if (_currentTransaction.isFlagged)
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-            color: Colors.red.shade50,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              color: const Color(0xFFFFF5F5),
+              border: Border(
+                bottom: BorderSide(color: Colors.red.withValues(alpha: 0.1)),
+              ),
+            ),
             child: Row(
               children: [
-                Icon(Icons.flag, color: Colors.red.shade700, size: 20),
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.red.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    LucideIcons.flag,
+                    color: Color(0xFFE53E3E),
+                    size: 16,
+                  ),
+                ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -221,25 +255,28 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                     children: [
                       Text(
                         "FLAGGED FOR AUDIT",
-                        style: TextStyle(
-                          color: Colors.red.shade700,
-                          fontWeight: FontWeight.bold,
-                          fontSize: 12,
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFFC53030),
+                          fontWeight: FontWeight.w800,
+                          fontSize: 11,
+                          letterSpacing: 0.5,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         _currentTransaction.flagReason ?? "No reason given",
-                        style: TextStyle(
-                          color: Colors.red.shade900,
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF742A2A),
                           fontSize: 13,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                       Text(
                         "By ${_currentTransaction.flaggedBy} at ${DateFormat('MMM d, h:mm a').format(_currentTransaction.flaggedAt ?? DateTime.now())}",
-                        style: TextStyle(
-                          color: Colors.red.shade400,
-                          fontSize: 11,
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFFC53030).withValues(alpha: 0.6),
+                          fontSize: 10,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                     ],
@@ -249,197 +286,341 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
             ),
           ),
 
-        // Header / Summary
-        Container(
-          color: Colors.blue.shade50,
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Date",
-                        style: TextStyle(color: Colors.blueGrey, fontSize: 11),
-                      ),
-                      Text(
-                        DateFormat(
-                          'dd MMM yyyy',
-                        ).format(_currentTransaction.date),
-                        style: const TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                    ],
+        // Transaction Summary Card
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.03),
+                  blurRadius: 10,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: Column(
+              children: [
+                // Header Row
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "Amount",
-                        style: TextStyle(color: Colors.blueGrey, fontSize: 11),
-                      ),
-                      Text(
-                        "${CurrencyFormatter.getCurrencySymbol(_currentTransaction.currency)} ${CurrencyFormatter.format(_currentTransaction.totalDebit)}",
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              // Breakdown
-              ..._currentTransaction.details.map(
-                (d) => Padding(
-                  padding: const EdgeInsets.only(bottom: 4),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Padding(
-                        padding: EdgeInsets.only(
-                          left: d.debit > 0 ? 0 : 24.0,
-                        ), // Indent for Credit
-                        child: Text(
-                          "${d.account?.name}",
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                      ),
-                      RichText(
-                        text: TextSpan(
-                          style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: d.debit > 0 ? Colors.green : Colors.red,
-                            fontFamily: GoogleFonts.inter().fontFamily,
-                          ),
-                          children: [
-                            TextSpan(
-                              text: d.debit > 0
-                                  ? "${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.debit)} "
-                                  : "${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(d.credit)} ",
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            "DATE",
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF718096),
+                              letterSpacing: 0.5,
                             ),
-                            TextSpan(
-                              text: d.debit > 0 ? "Dr" : "Cr",
-                              style: const TextStyle(
-                                fontSize: 9, // Smaller font for Dr/Cr
-                                fontWeight: FontWeight.normal,
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            DateFormat(
+                              'dd MMM yyyy',
+                            ).format(_currentTransaction.date),
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                              color: const Color(0xFF2D3748),
+                            ),
+                          ),
+                        ],
+                      ),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Text(
+                            "TOTAL AMOUNT",
+                            style: GoogleFonts.inter(
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              color: const Color(0xFF718096),
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            "${CurrencyFormatter.getCurrencySymbol(_currentTransaction.currency)} ${CurrencyFormatter.format(_currentTransaction.totalDebit)}",
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 18,
+                              color: const Color(0xFF2D3748),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // Account Detailed Breakdown
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFFF7FAFC),
+                    border: Border.symmetric(
+                      horizontal: BorderSide(color: Color(0xFFEDF2F7)),
+                    ),
+                  ),
+                  child: Column(
+                    children: _currentTransaction.details.map((d) {
+                      final isDebit = d.debit > 0;
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2),
+                        child: Row(
+                          children: [
+                            Container(
+                              width: 24,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color:
+                                    (isDebit
+                                            ? const Color(0xFF38A169)
+                                            : const Color(0xFFE53E3E))
+                                        .withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
                               ),
+                              child: Icon(
+                                isDebit
+                                    ? LucideIcons.arrowDown
+                                    : LucideIcons.arrowUp,
+                                size: 12,
+                                color: isDebit
+                                    ? const Color(0xFF38A169)
+                                    : const Color(0xFFE53E3E),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Text(
+                                d.account?.name ?? 'Unknown Account',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w600,
+                                  color: const Color(0xFF4A5568),
+                                ),
+                              ),
+                            ),
+                            Column(
+                              crossAxisAlignment: CrossAxisAlignment.end,
+                              children: [
+                                Text(
+                                  "${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(isDebit ? d.debit : d.credit)}",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w700,
+                                    color: isDebit
+                                        ? const Color(0xFF2F855A)
+                                        : const Color(0xFFC53030),
+                                  ),
+                                ),
+                                Text(
+                                  isDebit ? "DEBIT" : "CREDIT",
+                                  style: GoogleFonts.inter(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
+                                    color:
+                                        (isDebit
+                                                ? const Color(0xFF2F855A)
+                                                : const Color(0xFFC53030))
+                                            .withValues(alpha: 0.6),
+                                    letterSpacing: 0.5,
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              const Divider(),
-              Align(
-                alignment: Alignment.centerLeft,
-                child: RichText(
-                  text: TextSpan(
-                    style: TextStyle(
-                      fontStyle: FontStyle.italic,
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
-                    children: [
-                      const TextSpan(
-                        text: "Note: ",
-                        style: TextStyle(fontWeight: FontWeight.bold),
-                      ),
-                      TextSpan(
-                        text: _currentTransaction.mainNarration.isNotEmpty
-                            ? _currentTransaction.mainNarration
-                            : "No Narration",
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-
-              const SizedBox(height: 8),
-              // Status Badge & Entry By
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Builder(
-                    builder: (context) {
-                      final userProvider = context.read<UserProvider>();
-                      String creatorName = _currentTransaction.createdBy;
-                      try {
-                        creatorName = userProvider.users
-                            .firstWhere(
-                              (u) =>
-                                  u.email.trim().toLowerCase() ==
-                                  _currentTransaction.createdBy
-                                      .trim()
-                                      .toLowerCase(),
-                            )
-                            .name;
-                      } catch (_) {}
-
-                      return Text(
-                        "Entry by: $creatorName",
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey[600],
-                          fontWeight: FontWeight.w500,
-                        ),
                       );
-                    },
+                    }).toList(),
                   ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _getStatusColor(_currentTransaction.status),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _currentTransaction.status
-                          .toString()
-                          .split('.')
-                          .last
-                          .toUpperCase(),
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 10,
-                        fontWeight: FontWeight.bold,
+                ),
+
+                // Note and Entry Meta
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const Icon(
+                            LucideIcons.messageSquare,
+                            size: 13,
+                            color: Color(0xFFA0AEC0),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _currentTransaction.mainNarration.isNotEmpty
+                                  ? _currentTransaction.mainNarration
+                                  : "No Narration Provided",
+                              style: GoogleFonts.inter(
+                                height: 1.3,
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                                color: const Color(0xFF4A5568),
+                                fontStyle:
+                                    _currentTransaction.mainNarration.isEmpty
+                                    ? FontStyle.italic
+                                    : FontStyle.normal,
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
-                    ),
+                      const SizedBox(height: 12),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 8,
+                                backgroundColor: const Color(
+                                  0xFF4299E1,
+                                ).withValues(alpha: 0.1),
+                                child: Text(
+                                  _currentTransaction.createdBy
+                                      .substring(0, 1)
+                                      .toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                    fontSize: 8,
+                                    fontWeight: FontWeight.w800,
+                                    color: const Color(0xFF4299E1),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 6),
+                              Builder(
+                                builder: (context) {
+                                  final userProvider = context
+                                      .read<UserProvider>();
+                                  String creatorName =
+                                      _currentTransaction.createdBy;
+                                  try {
+                                    creatorName = userProvider.users
+                                        .firstWhere(
+                                          (u) =>
+                                              u.email.trim().toLowerCase() ==
+                                              _currentTransaction.createdBy
+                                                  .trim()
+                                                  .toLowerCase(),
+                                        )
+                                        .name;
+                                  } catch (_) {}
+                                  return Text(
+                                    "Entry by $creatorName",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w600,
+                                      color: const Color(0xFF718096),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
+                          ),
+                          Builder(
+                            builder: (context) {
+                              final statusColor = _getStatusColor(
+                                _currentTransaction.status,
+                              );
+                              return Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 10,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: statusColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(20),
+                                  border: Border.all(
+                                    color: statusColor.withValues(alpha: 0.2),
+                                    width: 1,
+                                  ),
+                                ),
+                                child: Text(
+                                  _currentTransaction.status
+                                      .toString()
+                                      .split('.')
+                                      .last
+                                      .toUpperCase(),
+                                  style: GoogleFonts.inter(
+                                    color: statusColor,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w800,
+                                    letterSpacing: 0.8,
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
-                ],
-              ),
-            ],
+                ),
+              ],
+            ),
           ),
         ),
 
+        const SizedBox(height: 24),
+
         Expanded(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "AUDIT TRAIL / MESSAGES",
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.0,
-                    color: Colors.grey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 24),
+                child: Row(
+                  children: [
+                    const Icon(
+                      LucideIcons.history,
+                      size: 14,
+                      color: Color(0xFF718096),
+                    ),
+                    const SizedBox(width: 8),
+                    Text(
+                      "AUDIT TRAIL / MESSAGES",
+                      style: GoogleFonts.inter(
+                        fontSize: 11,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.0,
+                        color: const Color(0xFF718096),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ApprovalTimelineWidget(
+                    logs: _currentTransaction.approvalLog,
                   ),
                 ),
-                const SizedBox(height: 12),
-                // Display approval log from local state (updates via setState)
-                ApprovalTimelineWidget(logs: _currentTransaction.approvalLog),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
 
@@ -575,15 +756,17 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   Color _getStatusColor(TransactionStatus status) {
     switch (status) {
       case TransactionStatus.approved:
-        return Colors.green;
+        return const Color(0xFF38A169); // Vibrant Green
       case TransactionStatus.rejected:
-        return Colors.red;
+        return const Color(0xFFE53E3E); // Vibrant Red
       case TransactionStatus.clarification:
-        return Colors.orange;
+        return const Color(0xFFDD6B20); // Vibrant Orange
       case TransactionStatus.correction:
-        return Colors.amber;
-      default:
-        return Colors.blueGrey;
+        return const Color(0xFFD69E2E); // Vibrant Amber
+      case TransactionStatus.underReview:
+        return const Color(0xFF805AD5); // Vibrant Purple
+      case TransactionStatus.pending:
+        return const Color(0xFF3182CE); // Vibrant Blue
     }
   }
 }

@@ -115,7 +115,24 @@ class _MessageCardState extends State<MessageCard>
                   fontWeight: FontWeight.w600,
                 ),
                 tabs: [
-                  Tab(text: 'In Review (${fullReceived.length})'),
+                  Tab(
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text('Pending (${fullReceived.length})'),
+                        if (fullReceived.isNotEmpty)
+                          Container(
+                            margin: const EdgeInsets.only(left: 6),
+                            width: 6,
+                            height: 6,
+                            decoration: const BoxDecoration(
+                              color: Colors.orange,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
                   Tab(text: 'Sent Review (${fullSent.length})'),
                   Tab(text: 'Flagged (${fullFlagged.length})'),
                 ],

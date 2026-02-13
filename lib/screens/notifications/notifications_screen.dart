@@ -107,8 +107,8 @@ class _NotificationScreenState extends State<NotificationScreen>
           ),
           tabs: [
             Tab(
-              icon: const Icon(Icons.inbox),
-              text: 'In Review (${receivedMessages.length})',
+              icon: const Icon(Icons.pending_actions),
+              text: 'Pending (${receivedMessages.length})',
             ),
             Tab(
               icon: const Icon(Icons.send),
@@ -168,8 +168,8 @@ class _NotificationScreenState extends State<NotificationScreen>
       String emptyMessage;
 
       if (tabType == 'received') {
-        emptyIcon = Icons.inbox;
-        emptyMessage = "No messages waiting for your review";
+        emptyIcon = Icons.pending_actions_outlined;
+        emptyMessage = "No messages pending your review";
       } else if (tabType == 'sent') {
         emptyIcon = Icons.send;
         emptyMessage = "No messages waiting for response";
