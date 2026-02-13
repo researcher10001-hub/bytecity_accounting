@@ -102,7 +102,10 @@ class _AccountAutocompleteState extends State<AccountAutocomplete> {
               size: 18,
               color: Color(0xFF718096),
             ),
-            contentPadding: const EdgeInsets.all(16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 12,
+              vertical: 12,
+            ),
             suffixIcon: controller.text.isNotEmpty
                 ? IconButton(
                     icon: const Icon(

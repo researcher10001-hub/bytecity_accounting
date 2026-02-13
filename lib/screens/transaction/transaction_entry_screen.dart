@@ -147,7 +147,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       // Form Body
                       Expanded(
                         child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(32.0),
+                          padding: const EdgeInsets.all(24.0),
                           child: Center(
                             child: ConstrainedBox(
                               constraints: const BoxConstraints(maxWidth: 900),
@@ -194,7 +194,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             ),
           ),
           body: SingleChildScrollView(
-            padding: const EdgeInsets.all(20.0),
+            padding: const EdgeInsets.all(16.0),
             child: _buildFormBody(
               transactionProvider,
               accountProvider,
@@ -213,20 +213,35 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     GroupProvider gp,
     dynamic user,
   ) {
+    if (tp.selectedType == null) {
+      return Container(
+        padding: const EdgeInsets.symmetric(vertical: 60),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildEmptyStateHint(),
+            const SizedBox(height: 40),
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 500),
+              child: _buildActionSelector(tp),
+            ),
+          ],
+        ),
+      ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.9, 0.9));
+    }
+
     return GestureDetector(
       onTap: () => FocusScope.of(context).unfocus(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _buildActionSelector(tp),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
 
           if (tp.error != null) _buildErrorBanner(tp),
 
-          if (tp.selectedType == null)
-            _buildEmptyStateHint()
-          else
-            _buildTransactionForm(context, tp, ap, gp, user),
+          _buildTransactionForm(context, tp, ap, gp, user),
         ],
       ),
     );
@@ -325,13 +340,34 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
   }
 
   Widget _buildEmptyStateHint() {
-    return Container(
-      height: 200,
-      alignment: Alignment.center,
-      child: Text(
-        'Please select an action above to start.',
-        style: TextStyle(color: Colors.grey.shade400, fontSize: 16),
-      ),
+    return Column(
+      children: [
+        Icon(
+          LucideIcons.layoutGrid,
+          size: 64,
+          color: const Color(0xFF4299E1).withValues(alpha: 0.2),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          'Select Transaction Type',
+          style: GoogleFonts.inter(
+            fontSize: 22,
+            fontWeight: FontWeight.w800,
+            color: const Color(0xFF2D3748),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Choose how you want to record\nyour entry to get started',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.inter(
+            fontSize: 15,
+            color: const Color(0xFF718096),
+            fontWeight: FontWeight.w500,
+            height: 1.5,
+          ),
+        ),
+      ],
     );
   }
 
@@ -418,7 +454,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
 
         // Per-line currency is now handled inside each form (simple/split)
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
 
         if (provider.isSplitMode)
           _buildTwoListSplitForm(
@@ -471,7 +507,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
-                  contentPadding: const EdgeInsets.all(16),
+                  contentPadding: const EdgeInsets.all(12),
                 ),
               ),
             )
@@ -479,7 +515,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             .fadeIn(duration: 400.ms, delay: 200.ms)
             .slideY(begin: 0.1, end: 0),
 
-        const SizedBox(height: 32),
+        const SizedBox(height: 24),
 
         _buildGradientSaveButton(provider, user),
 
@@ -505,7 +541,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         InkWell(
           onTap: canEditDate
               ? () async {
@@ -529,7 +565,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               : null,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
             decoration: BoxDecoration(
               color: const Color(0xFFF7FAFC),
               borderRadius: BorderRadius.circular(16),
@@ -580,10 +616,10 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             letterSpacing: 0.5,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
           decoration: BoxDecoration(
             color: const Color(0xFFEDF2F7).withValues(alpha: 0.5),
             borderRadius: BorderRadius.circular(16),
@@ -640,7 +676,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
             child: Row(
               children: [
                 Container(
@@ -664,7 +700,10 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               ],
             ),
           ),
-          Padding(padding: const EdgeInsets.all(20), child: child),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: child,
+          ),
         ],
       ),
     );
@@ -691,7 +730,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           borderRadius: BorderRadius.circular(20),
           child: Container(
             width: double.infinity,
-            height: 60,
+            height: 52,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               gradient: LinearGradient(
@@ -826,7 +865,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             ),
             const SizedBox(height: 20),
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: const Color(0xFFF7FAFC),
                 borderRadius: BorderRadius.circular(16),
