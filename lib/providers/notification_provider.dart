@@ -128,6 +128,7 @@ class NotificationProvider with ChangeNotifier {
     dynamic userProvider, {
     required AccountProvider accountProvider,
     bool silent = false,
+    bool forceRefresh = false,
   }) async {
     if (!silent) {
       _isLoading = true;
@@ -136,12 +137,12 @@ class NotificationProvider with ChangeNotifier {
 
     try {
       // 1. Ensure we have accounts for ownership filtering
-      if (accountProvider.accounts.isEmpty) {
+      if (accountProvider.accounts.isEmpty || forceRefresh) {
         await accountProvider.fetchAccounts(user);
       }
 
       // 2. Ensure we have the latest transactions
-      if (silent) {
+      if (silent && !forceRefresh) {
         await transactionProvider.syncHistory(
           user,
           accountProvider: accountProvider,
@@ -150,6 +151,7 @@ class NotificationProvider with ChangeNotifier {
         await transactionProvider.fetchHistory(
           user,
           accountProvider: accountProvider,
+          forceRefresh: forceRefresh,
         );
       }
       final allTransactions = transactionProvider.transactions;

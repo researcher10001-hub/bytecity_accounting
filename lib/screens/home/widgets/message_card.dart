@@ -5,6 +5,8 @@ import 'package:intl/intl.dart';
 import '../../../providers/notification_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
+import '../../../providers/transaction_provider.dart';
+import '../../../providers/account_provider.dart';
 import '../../../models/transaction_model.dart';
 import '../../../models/message_model.dart';
 import '../../notifications/notifications_screen.dart';
@@ -74,7 +76,10 @@ class _MessageCardState extends State<MessageCard>
             children: [
               // Header
               Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Row(
                   children: [
                     Container(
@@ -97,6 +102,38 @@ class _MessageCardState extends State<MessageCard>
                         fontWeight: FontWeight.bold,
                         color: Colors.black87,
                       ),
+                    ),
+                    const Spacer(),
+                    Container(
+                      width: 48,
+                      height: 48,
+                      alignment: Alignment.center,
+                      // When loading, show spinner. Otherwise, show button.
+                      child: notifProvider.isLoading
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.blue,
+                              ),
+                            )
+                          : IconButton(
+                              icon: const Icon(
+                                Icons.refresh,
+                                color: Colors.blue,
+                              ),
+                              onPressed: () {
+                                notifProvider.refreshNotifications(
+                                  user,
+                                  context.read<TransactionProvider>(),
+                                  context.read<UserProvider>(),
+                                  accountProvider: context
+                                      .read<AccountProvider>(),
+                                  forceRefresh: true,
+                                );
+                              },
+                            ),
                     ),
                   ],
                 ),
