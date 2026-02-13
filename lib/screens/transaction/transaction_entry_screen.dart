@@ -972,6 +972,15 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                                 child: Row(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
+                                    Container(
+                                      width: 4,
+                                      height: 48, // Match input height roughly
+                                      margin: const EdgeInsets.only(right: 8),
+                                      decoration: BoxDecoration(
+                                        color: color.withValues(alpha: 0.5),
+                                        borderRadius: BorderRadius.circular(2),
+                                      ),
+                                    ),
                                     Expanded(
                                       flex: 3,
                                       child: AccountAutocomplete(
@@ -1044,73 +1053,96 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                           final entry = entries[index];
                           final isForeign = entry.currency != 'BDT';
                           return Container(
-                            padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
                               color: Colors.grey.shade50,
                               borderRadius: BorderRadius.circular(12),
                               border: Border.all(color: Colors.grey.shade200),
                             ),
-                            child: Column(
+                            clipBehavior: Clip.antiAlias,
+                            child: Stack(
                               children: [
-                                Row(
-                                  children: [
-                                    Expanded(
-                                      child: AccountAutocomplete(
-                                        key: ValueKey(entry.id),
-                                        initialValue:
-                                            accounts.contains(entry.account)
-                                            ? entry.account
-                                            : null,
-                                        label: 'Account',
-                                        options: accounts,
-                                        groupProvider: groupProvider,
-                                        onSelected: (acc) =>
-                                            onUpdateAccount(index, acc),
-                                      ),
-                                    ),
-                                    IconButton(
-                                      icon: const Icon(
-                                        Icons.close,
-                                        color: Colors.redAccent,
-                                        size: 20,
-                                      ),
-                                      onPressed: () => onRemove(index),
-                                    ),
-                                  ],
+                                Positioned(
+                                  left: 0,
+                                  top: 0,
+                                  bottom: 0,
+                                  child: Container(
+                                    width: 4,
+                                    color: color.withValues(alpha: 0.6),
+                                  ),
                                 ),
-                                const SizedBox(height: 8),
-                                if (isForeign)
-                                  Row(
+                                Padding(
+                                  padding: const EdgeInsets.fromLTRB(
+                                    16,
+                                    12,
+                                    12,
+                                    12,
+                                  ),
+                                  child: Column(
                                     children: [
-                                      Expanded(
-                                        flex: 2,
-                                        child: _buildCurrencyDropdown(
-                                          index,
-                                          entry.currency,
-                                          availableCurrencies,
-                                          onUpdateCurrency,
-                                        ),
+                                      Row(
+                                        children: [
+                                          Expanded(
+                                            child: AccountAutocomplete(
+                                              key: ValueKey(entry.id),
+                                              initialValue:
+                                                  accounts.contains(
+                                                    entry.account,
+                                                  )
+                                                  ? entry.account
+                                                  : null,
+                                              label: 'Account',
+                                              options: accounts,
+                                              groupProvider: groupProvider,
+                                              onSelected: (acc) =>
+                                                  onUpdateAccount(index, acc),
+                                            ),
+                                          ),
+                                          IconButton(
+                                            icon: const Icon(
+                                              Icons.close,
+                                              color: Colors.redAccent,
+                                              size: 20,
+                                            ),
+                                            onPressed: () => onRemove(index),
+                                          ),
+                                        ],
                                       ),
-                                      const SizedBox(width: 8),
-                                      Expanded(
-                                        flex: 3,
-                                        child: _buildRateField(
-                                          index,
-                                          entry,
-                                          onUpdateRate,
-                                        ),
+                                      const SizedBox(height: 8),
+                                      if (isForeign)
+                                        Row(
+                                          children: [
+                                            Expanded(
+                                              flex: 2,
+                                              child: _buildCurrencyDropdown(
+                                                index,
+                                                entry.currency,
+                                                availableCurrencies,
+                                                onUpdateCurrency,
+                                              ),
+                                            ),
+                                            const SizedBox(width: 8),
+                                            Expanded(
+                                              flex: 3,
+                                              child: _buildRateField(
+                                                index,
+                                                entry,
+                                                onUpdateRate,
+                                              ),
+                                            ),
+                                          ],
+                                        )
+                                      else
+                                        const SizedBox.shrink(),
+                                      if (isForeign) const SizedBox(height: 8),
+                                      FormattedAmountField(
+                                        initialValue: entry.amount,
+                                        label: 'Amount (${entry.currency})',
+                                        currency: entry.currency,
+                                        onChanged: (val) =>
+                                            onUpdateAmount(index, val),
                                       ),
                                     ],
-                                  )
-                                else
-                                  const SizedBox.shrink(),
-                                if (isForeign) const SizedBox(height: 8),
-                                FormattedAmountField(
-                                  initialValue: entry.amount,
-                                  label: 'Amount (${entry.currency})',
-                                  currency: entry.currency,
-                                  onChanged: (val) =>
-                                      onUpdateAmount(index, val),
+                                  ),
                                 ),
                               ],
                             ),
