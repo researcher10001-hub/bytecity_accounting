@@ -251,33 +251,37 @@ class _MessageCardState extends State<MessageCard>
                             child: Builder(
                               builder: (context) {
                                 final userProvider = context
-                                    .read<UserProvider>();
+                                    .watch<UserProvider>();
                                 final tx = thread.transaction;
+                                final lastMsg = thread.latestMessage;
 
                                 String actionLabel = 'Sent by';
                                 String actorEmail = thread.lastActionBy;
+                                String actorName =
+                                    lastMsg?.senderName ?? actorEmail;
 
                                 if (tx.status == TransactionStatus.approved) {
                                   actionLabel = 'Approved by';
-                                  actorEmail =
-                                      thread.approvedBy ?? thread.lastActionBy;
+                                  actorName = thread.approvedBy ?? actorName;
                                 } else if (tx.status ==
                                     TransactionStatus.rejected) {
                                   actionLabel = 'Rejected by';
-                                  // Note: Assuming rejectedBy info might be in lastActionBy or thread metadata
-                                  actorEmail = thread.lastActionBy;
                                 }
 
-                                String actorName = actorEmail;
-                                try {
-                                  actorName = userProvider.users
-                                      .firstWhere(
-                                        (u) =>
-                                            u.email.trim().toLowerCase() ==
-                                            actorEmail.trim().toLowerCase(),
-                                      )
-                                      .name;
-                                } catch (_) {}
+                                // Fallback: If actorName looks like email, try lookup in users list
+                                if (actorName.contains('@')) {
+                                  try {
+                                    actorName = userProvider.users
+                                        .firstWhere(
+                                          (u) =>
+                                              u.email.trim().toLowerCase() ==
+                                              actorName.trim().toLowerCase(),
+                                        )
+                                        .name;
+                                  } catch (_) {
+                                    // If still email, take the part before @ as last resort or keep as is
+                                  }
+                                }
 
                                 return Text(
                                   '${thread.voucherNo} - $actionLabel $actorName',

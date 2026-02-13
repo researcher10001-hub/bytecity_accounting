@@ -31,6 +31,7 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
+  Timer? _refreshTimer;
 
   @override
   void initState() {
@@ -42,7 +43,23 @@ class _HomeScreenState extends State<HomeScreen> {
       final auth = context.read<AuthProvider>();
       if (auth.user != null) {
         _initialFetch(auth.user!);
+        _startAutoRefresh(auth.user!);
       }
+    });
+  }
+
+  void _startAutoRefresh(User user) {
+    _refreshTimer?.cancel();
+    _refreshTimer = Timer.periodic(const Duration(seconds: 30), (timer) {
+      if (!mounted) return;
+
+      context.read<NotificationProvider>().refreshNotifications(
+        user,
+        context.read<TransactionProvider>(),
+        context.read<UserProvider>(),
+        accountProvider: context.read<AccountProvider>(),
+        silent: true,
+      );
     });
   }
 
@@ -67,6 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    _refreshTimer?.cancel();
     super.dispose();
   }
 
