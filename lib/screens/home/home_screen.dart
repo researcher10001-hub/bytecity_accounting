@@ -368,6 +368,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   isAdmin ? Icons.swap_horiz_rounded : Icons.search_rounded,
                   isAdmin ? 'Trans.' : 'Search',
                   currentIndex == 1,
+                  onTapOverride: isAdmin
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TransactionHistoryScreen(),
+                            ),
+                          );
+                        }
+                      : null,
                 ),
                 const SizedBox(width: 60), // Space for FAB
                 _buildNavItem(
@@ -384,6 +394,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   isAdmin ? Icons.settings_rounded : Icons.history_rounded,
                   isAdmin ? 'Settings' : 'History',
                   currentIndex == 3,
+                  onTapOverride: !isAdmin
+                      ? () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const TransactionHistoryScreen(),
+                            ),
+                          );
+                        }
+                      : null,
                 ),
               ],
             ),
@@ -397,14 +417,15 @@ class _HomeScreenState extends State<HomeScreen> {
     int index,
     IconData icon,
     String label,
-    bool isSelected,
-  ) {
+    bool isSelected, {
+    VoidCallback? onTapOverride,
+  }) {
     final color = isSelected
         ? const Color(0xFF1E88E5)
         : const Color(0xFF94A3B8);
     return Expanded(
       child: InkWell(
-        onTap: () => setState(() => _currentIndex = index),
+        onTap: onTapOverride ?? () => setState(() => _currentIndex = index),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
