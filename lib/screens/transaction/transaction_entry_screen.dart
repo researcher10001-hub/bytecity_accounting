@@ -14,6 +14,7 @@ import '../../models/account_model.dart';
 import '../../services/permission_service.dart';
 import 'widgets/account_autocomplete.dart';
 import '../reports/transaction_history_screen.dart';
+import '../home/widgets/side_menu.dart';
 import '../../core/utils/currency_formatter.dart';
 
 class TransactionEntryScreen extends StatefulWidget {
@@ -54,7 +55,6 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     final transactionProvider = Provider.of<TransactionProvider>(context);
     final accountProvider = Provider.of<AccountProvider>(context);
     final authProvider = Provider.of<AuthProvider>(context);
-    // Access GroupProvider to resolve names
     final groupProvider = Provider.of<GroupProvider>(context);
     final user = authProvider.user;
 
@@ -70,39 +70,128 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(
-          widget.transaction != null ? 'Edit Transaction' : 'New Entry',
-        ),
-        centerTitle: true,
-      ),
-      body: GestureDetector(
-        onTap: () => FocusScope.of(context).unfocus(),
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              _buildActionSelector(transactionProvider),
-              const SizedBox(height: 24),
+    final String title = widget.transaction != null
+        ? 'Edit Transaction'
+        : 'New Entry';
 
-              if (transactionProvider.error != null)
-                _buildErrorBanner(transactionProvider),
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth >= 800;
 
-              if (transactionProvider.selectedType == null)
-                _buildEmptyStateHint()
-              else
-                _buildTransactionForm(
-                  context,
-                  transactionProvider,
-                  accountProvider,
-                  groupProvider,
-                  user,
+        if (isDesktop) {
+          return Scaffold(
+            backgroundColor: Colors.grey[50],
+            body: Row(
+              children: [
+                SideMenu(
+                  role: user.role,
+                  currentIndex: 1, // Defaulting to Transactions index
+                  onItemSelected: (index) {
+                    Navigator.of(context).pop();
+                  },
                 ),
-            ],
+                Expanded(
+                  child: Column(
+                    children: [
+                      // Desktop Header
+                      Container(
+                        height: 64,
+                        padding: const EdgeInsets.symmetric(horizontal: 24),
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          border: Border(
+                            bottom: BorderSide(color: Colors.black12),
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              title,
+                              style: GoogleFonts.inter(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                            ),
+                            Row(
+                              children: [
+                                const SizedBox(width: 8),
+                                CircleAvatar(
+                                  backgroundColor: Colors.grey[200],
+                                  child: const Icon(
+                                    Icons.person,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ),
+                      // Form Body
+                      Expanded(
+                        child: SingleChildScrollView(
+                          padding: const EdgeInsets.all(32.0),
+                          child: Center(
+                            child: ConstrainedBox(
+                              constraints: const BoxConstraints(maxWidth: 900),
+                              child: _buildFormBody(
+                                transactionProvider,
+                                accountProvider,
+                                groupProvider,
+                                user,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+
+        // Mobile Layout
+        return Scaffold(
+          appBar: AppBar(title: Text(title), centerTitle: true),
+          body: SingleChildScrollView(
+            padding: const EdgeInsets.all(16.0),
+            child: _buildFormBody(
+              transactionProvider,
+              accountProvider,
+              groupProvider,
+              user,
+            ),
           ),
-        ),
+        );
+      },
+    );
+  }
+
+  Widget _buildFormBody(
+    TransactionProvider tp,
+    AccountProvider ap,
+    GroupProvider gp,
+    dynamic user,
+  ) {
+    return GestureDetector(
+      onTap: () => FocusScope.of(context).unfocus(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildActionSelector(tp),
+          const SizedBox(height: 24),
+
+          if (tp.error != null) _buildErrorBanner(tp),
+
+          if (tp.selectedType == null)
+            _buildEmptyStateHint()
+          else
+            _buildTransactionForm(context, tp, ap, gp, user),
+        ],
       ),
     );
   }
