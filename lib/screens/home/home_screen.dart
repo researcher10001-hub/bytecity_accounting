@@ -387,6 +387,16 @@ class _HomeScreenState extends State<HomeScreen> {
                       : Icons.analytics_rounded,
                   isAdmin ? 'Accounts' : 'Ledger',
                   currentIndex == 2,
+                  onTapOverride: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => isAdmin
+                            ? const AccountsScreen()
+                            : const LedgerScreen(),
+                      ),
+                    );
+                  },
                 ),
                 _buildDivider(),
                 _buildNavItem(

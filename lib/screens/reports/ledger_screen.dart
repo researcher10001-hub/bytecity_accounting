@@ -151,6 +151,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
             }
 
             runningBalance += movement;
+            totalDebit += detail.debitBDT;
+            totalCredit += detail.creditBDT;
 
             // Determine "Against" accounts (all other accounts in the transaction)
             final otherDetails = tx.details
