@@ -12,6 +12,7 @@ import '../../models/user_model.dart';
 
 import 'widgets/approval_timeline_widget.dart';
 import 'widgets/approval_action_widget.dart';
+import 'transaction_entry_screen.dart'; // Import TransactionEntryScreen
 import '../../core/utils/currency_formatter.dart';
 import 'package:google_fonts/google_fonts.dart';
 
@@ -114,6 +115,74 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF2D3748)),
           onPressed: () => Navigator.pop(context),
         ),
+        actions: [
+          if (isCreator || user.isAdmin)
+            PopupMenuButton<String>(
+              icon: const Icon(
+                LucideIcons.moreVertical,
+                color: Color(0xFF2D3748),
+              ),
+              onSelected: (value) async {
+                if (value == 'edit') {
+                  await Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TransactionEntryScreen(
+                        transaction: _currentTransaction,
+                      ),
+                    ),
+                  );
+                  // Refresh data after returning from edit
+                  if (context.mounted) {
+                    // Re-fetch transactions to get updated data
+                    // We might need to refresh the specific transaction in the list
+                    // For now, let's trigger a rebuild or fetch if the provider updates.
+                    // Actually, TransactionEntryScreen refreshes the provider on save.
+                    // So we just need to ensure our local _currentTransaction is updated.
+                    // We can check the provider for the updated transaction or just re-fetch.
+                    // Since _transactions is local, we should probably re-fetch or listen to provider.
+                    // But simpler: just setState if we can get the updated obj from provider.
+
+                    final updatedTx = context
+                        .read<TransactionProvider>()
+                        .transactions
+                        .firstWhere(
+                          (t) => t.voucherNo == _currentTransaction.voucherNo,
+                          orElse: () => _currentTransaction,
+                        );
+
+                    setState(() {
+                      _currentTransaction = updatedTx;
+                      _transactions[_currentIndex] = updatedTx;
+                    });
+                  }
+                }
+              },
+              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                PopupMenuItem<String>(
+                  value: 'edit',
+                  child: Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.edit,
+                        size: 16,
+                        color: Color(0xFF4A5568),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Edit Entry',
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFF2D3748),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          const SizedBox(width: 8),
+        ],
       ),
       backgroundColor: const Color(0xFFF7FAFC),
       body: Stack(
