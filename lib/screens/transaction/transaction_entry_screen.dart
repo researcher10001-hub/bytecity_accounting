@@ -109,78 +109,87 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
   Widget _buildActionSelector(TransactionProvider provider) {
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Text(
-          'SELECT ACTION',
-          style: GoogleFonts.inter(
-            fontSize: 12,
-            fontWeight: FontWeight.bold,
-            color: Colors.grey,
+        Container(
+          decoration: BoxDecoration(
+            color: Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(12),
           ),
-        ),
-        const SizedBox(height: 12),
-        Row(
-          children: [
-            _buildActionCard(
-              provider,
-              VoucherType.payment,
-              'Payment',
-              Icons.arrow_upward,
-              Colors.redAccent,
-            ),
-            const SizedBox(width: 12),
-            _buildActionCard(
-              provider,
-              VoucherType.receipt,
-              'Receipt',
-              Icons.arrow_downward,
-              Colors.green,
-            ),
-            const SizedBox(width: 12),
-            _buildActionCard(
-              provider,
-              VoucherType.contra,
-              'Transfer Money',
-              Icons.swap_horiz,
-              Colors.blue,
-            ),
-          ],
+          padding: const EdgeInsets.all(4),
+          child: Row(
+            children: [
+              _buildSegmentButton(
+                provider,
+                VoucherType.payment,
+                'Payment',
+                Icons.arrow_upward,
+                Colors.redAccent,
+              ),
+              _buildSegmentButton(
+                provider,
+                VoucherType.receipt,
+                'Receipt',
+                Icons.arrow_downward,
+                Colors.green,
+              ),
+              _buildSegmentButton(
+                provider,
+                VoucherType.contra,
+                'Transfer',
+                Icons.swap_horiz,
+                Colors.blue,
+              ),
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildActionCard(
+  Widget _buildSegmentButton(
     TransactionProvider provider,
     VoucherType type,
     String label,
     IconData icon,
-    Color color,
+    Color activeColor,
   ) {
     final isSelected = provider.selectedType == type;
     return Expanded(
-      child: InkWell(
+      child: GestureDetector(
         onTap: () => provider.setVoucherType(type),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 24),
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 200),
+          curve: Curves.easeInOut,
+          padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? color.withValues(alpha: 0.1) : Colors.white,
-            border: Border.all(
-              color: isSelected ? color : Colors.grey.shade200,
-              width: isSelected ? 2 : 1,
-            ),
-            borderRadius: BorderRadius.circular(12),
+            color: isSelected ? Colors.white : Colors.transparent,
+            borderRadius: BorderRadius.circular(10),
+            boxShadow: isSelected
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.05),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ]
+                : [],
           ),
-          child: Column(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(icon, color: isSelected ? color : Colors.grey, size: 32),
-              const SizedBox(height: 8),
+              Icon(
+                icon,
+                size: 18,
+                color: isSelected ? activeColor : Colors.grey.shade500,
+              ),
+              const SizedBox(width: 8),
               Text(
                 label,
-                textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
-                  fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                  color: isSelected ? color : Colors.black87,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                  color: isSelected ? activeColor : Colors.grey.shade600,
                 ),
               ),
             ],
