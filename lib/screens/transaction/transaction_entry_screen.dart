@@ -243,8 +243,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     final entryAccounts = accountProvider.accounts.where((acc) {
       if (!PermissionService().canEnterTransaction(user, acc)) return false;
 
-      // If user lacks Foreign Currency permission, hide non-BDT accounts
-      if (!user.allowForeignCurrency) {
+      // If user lacks Foreign Currency permission (and is not Admin), hide non-BDT accounts
+      if (!user.allowForeignCurrency && !user.isAdmin) {
         if (acc.defaultCurrency != null &&
             acc.defaultCurrency!.isNotEmpty &&
             acc.defaultCurrency != 'BDT') {
@@ -357,7 +357,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             provider,
             entryAccounts,
             groupProvider,
-            canUseForeignCurrency: user.allowForeignCurrency,
+            canUseForeignCurrency: user.allowForeignCurrency || user.isAdmin,
           )
         else
           _buildSimpleForm(context, provider, entryAccounts, groupProvider),
