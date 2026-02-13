@@ -22,7 +22,6 @@ class _UsersScreenState extends State<UsersScreen> {
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _showDeleted = false;
-  final Set<String> _loadingOperations = {}; // Track async actions
 
   @override
   void initState() {
@@ -114,87 +113,103 @@ class _UsersScreenState extends State<UsersScreen> {
         ],
       ),
       // ...
-      backgroundColor: Colors.grey[50],
-      body: Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search by Name or Email...',
-                prefixIcon: const Icon(Icons.search),
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
-                  borderSide: BorderSide.none,
+      backgroundColor: const Color(0xFFF8F9FA),
+      body: SafeArea(
+        child: Column(
+          children: [
+            // Search Bar
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: TextField(
+                controller: _searchController,
+                decoration: InputDecoration(
+                  hintText: 'Search by Name or Email...',
+                  prefixIcon: const Icon(Icons.search, color: Colors.blueGrey),
+                  filled: true,
+                  fillColor: Colors.white,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(color: Colors.grey.shade200),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: const BorderSide(
+                      color: Colors.indigo,
+                      width: 2,
+                    ),
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 14),
+                style: const TextStyle(color: Colors.black87),
               ),
             ),
-          ),
 
-          Expanded(
-            child: userProvider.isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ListView(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    children: [
-                      if (admins.isNotEmpty)
-                        _buildSection(
-                          'Administrators',
-                          admins,
-                          userProvider,
-                          accountProvider,
-                        ),
-                      if (management.isNotEmpty)
-                        _buildSection(
-                          'Management',
-                          management,
-                          userProvider,
-                          accountProvider,
-                        ),
-                      if (boas.isNotEmpty)
-                        _buildSection(
-                          'Associates',
-                          boas,
-                          userProvider,
-                          accountProvider,
-                        ),
-                      if (viewers.isNotEmpty)
-                        _buildSection(
-                          'Viewers',
-                          viewers,
-                          userProvider,
-                          accountProvider,
-                        ),
-                      if (others.isNotEmpty)
-                        _buildSection(
-                          'Others',
-                          others,
-                          userProvider,
-                          accountProvider,
-                        ),
-
-                      if (filteredUsers.isEmpty)
-                        const Center(
-                          child: Padding(
-                            padding: EdgeInsets.all(32.0),
-                            child: Text('No users found matching your search.'),
+            Expanded(
+              child: userProvider.isLoading
+                  ? const Center(child: CircularProgressIndicator())
+                  : ListView(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      children: [
+                        if (admins.isNotEmpty)
+                          _buildSection(
+                            'Administrators',
+                            admins,
+                            userProvider,
+                            accountProvider,
                           ),
-                        ),
-                    ],
-                  ),
-          ),
-        ],
+                        if (management.isNotEmpty)
+                          _buildSection(
+                            'Management',
+                            management,
+                            userProvider,
+                            accountProvider,
+                          ),
+                        if (boas.isNotEmpty)
+                          _buildSection(
+                            'Associates',
+                            boas,
+                            userProvider,
+                            accountProvider,
+                          ),
+                        if (viewers.isNotEmpty)
+                          _buildSection(
+                            'Viewers',
+                            viewers,
+                            userProvider,
+                            accountProvider,
+                          ),
+                        if (others.isNotEmpty)
+                          _buildSection(
+                            'Others',
+                            others,
+                            userProvider,
+                            accountProvider,
+                          ),
+
+                        if (filteredUsers.isEmpty)
+                          const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(32.0),
+                              child: Text(
+                                'No users found matching your search.',
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+            ),
+          ],
+        ),
       ),
 
       floatingActionButton: FloatingActionButton(
         onPressed: () => _showAddUserDialog(context),
         backgroundColor: Colors.indigo,
-        child: const Icon(Icons.person_add),
+        child: const Icon(Icons.person_add, color: Colors.white),
       ),
     );
   }
@@ -213,12 +228,12 @@ class _UsersScreenState extends State<UsersScreen> {
         Padding(
           padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4),
           child: Text(
-            title,
+            title.toUpperCase(),
             style: GoogleFonts.inter(
-              fontSize: 14,
-              fontWeight: FontWeight.bold,
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
               color: Colors.blueGrey[700],
-              letterSpacing: 0.5,
+              letterSpacing: 1.2,
             ),
           ),
         ),
@@ -648,20 +663,6 @@ class _UsersScreenState extends State<UsersScreen> {
   }
   */
 
-  Color _getRoleColor(String role) {
-    if (role.toLowerCase() == AppRoles.admin.toLowerCase()) {
-      return Colors.orange;
-    } else if (role.toLowerCase() == AppRoles.management.toLowerCase()) {
-      return Colors.green;
-    } else if (role.toLowerCase() ==
-        AppRoles.businessOperationsAssociate.toLowerCase()) {
-      return Colors.teal;
-    } else if (role.toLowerCase() == AppRoles.viewer.toLowerCase()) {
-      return Colors.blue;
-    }
-    return Colors.grey;
-  }
-
   void _showGroupDialog(BuildContext context, User user) {
     // Ensure groups are loaded
     context.read<GroupProvider>().fetchGroups();
@@ -903,7 +904,7 @@ class _UsersScreenState extends State<UsersScreen> {
                 borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 20,
                     offset: const Offset(0, 10),
                   ),
@@ -1878,614 +1879,395 @@ class _UsersScreenState extends State<UsersScreen> {
     ).isAdmin;
 
     return Container(
-          margin: const EdgeInsets.only(bottom: 16),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey.withValues(alpha: 0.1),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
-            border: Border.all(color: Colors.grey.shade200),
+      margin: const EdgeInsets.only(bottom: 24),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(32),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.04),
+            blurRadius: 24,
+            offset: const Offset(0, 12),
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            Row(
               children: [
-                Stack(
-                  children: [
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Avatar
-                        Container(
-                          width: 50,
-                          height: 50,
-                          decoration: BoxDecoration(
-                            color: _getRoleColor(
-                              user.role,
-                            ).withValues(alpha: 0.1),
-                            shape: BoxShape.circle,
-                          ),
-                          alignment: Alignment.center,
-                          child: Text(
-                            user.name.isNotEmpty
-                                ? user.name[0].toUpperCase()
-                                : '?',
-                            style: GoogleFonts.inter(
-                              fontSize: 20,
-                              fontWeight: FontWeight.bold,
-                              color: _getRoleColor(user.role),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(width: 16),
-
-                        // Name & Details
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  right: isAdmin ? 110 : 0,
-                                ),
-                                child: Text(
-                                  user.name,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Theme.of(
-                                      context,
-                                    ).textTheme.bodyLarge?.color,
-                                  ),
-                                  maxLines: 1,
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                              ),
-                              if (user.designation.isNotEmpty)
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    top: 2,
-                                    right: isAdmin ? 110 : 0,
-                                  ),
-                                  child: Text(
-                                    user.designation,
-                                    style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                      color: Theme.of(
-                                        context,
-                                      ).colorScheme.primary,
-                                    ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
-                                  ),
-                                ),
-                              const SizedBox(height: 4),
-                              Padding(
-                                padding: EdgeInsets.only(
-                                  right: isAdmin ? 110 : 0,
-                                ),
-                                child: Row(
-                                  children: [
-                                    Icon(
-                                      LucideIcons.mail,
-                                      size: 12,
-                                      color: Theme.of(
-                                        context,
-                                      ).textTheme.bodySmall?.color,
-                                    ),
-                                    const SizedBox(width: 4),
-                                    Expanded(
-                                      child: Text(
-                                        user.email,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 12,
-                                          color: Theme.of(
-                                            context,
-                                          ).textTheme.bodySmall?.color,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              const SizedBox(height: 8),
-                              // Badges (Using Wrap to prevent overflow)
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 4,
-                                children: [
-                                  _buildStatusBadge(user),
-                                  _buildRoleBadge(user.role),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ),
-                      ],
-                    ),
-                    if (isAdmin)
-                      Positioned(
-                        top: 0,
-                        right: 0,
-                        child: Container(
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardTheme.color,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Theme.of(
-                                context,
-                              ).dividerColor.withValues(alpha: 0.1),
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withValues(alpha: 0.05),
-                                blurRadius: 4,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 4,
-                            vertical: 4,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              // Edit User
-                              IconButton(
-                                icon: const Icon(LucideIcons.edit3, size: 18),
-                                color: Theme.of(context).colorScheme.primary,
-                                tooltip: 'Edit User',
-                                constraints: const BoxConstraints(),
-                                padding: const EdgeInsets.all(8),
-                                onPressed: () =>
-                                    _showEditUserDialog(context, user),
-                              ),
-                              // Reset Password
-                              IconButton(
-                                icon: const Icon(LucideIcons.key, size: 18),
-                                color: Colors.orange,
-                                tooltip: 'Reset Password',
-                                constraints: const BoxConstraints(),
-                                padding: const EdgeInsets.all(8),
-                                onPressed: () =>
-                                    _showResetPasswordDialog(context, user),
-                              ),
-                              // Force Logout
-                              IconButton(
-                                icon: const Icon(LucideIcons.logOut, size: 18),
-                                color: Colors.red,
-                                tooltip: 'Force Logout',
-                                constraints: const BoxConstraints(),
-                                padding: const EdgeInsets.all(8),
-                                onPressed: () => _confirmForceLogout(
-                                  context,
-                                  provider,
-                                  user,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: Divider(height: 1),
-                ),
-
-                // Manage Buttons (Groups & Ownership)
-                Row(
-                  children: [
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showGroupDialog(context, user),
-                        icon: const Icon(LucideIcons.users, size: 16),
-                        label: Text(
-                          'Groups (${user.groupIds.length})',
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary,
-                          side: BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.primary.withValues(alpha: 0.1),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.primary.withValues(alpha: 0.02),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showOwnershipDialog(context, user),
-                        icon: const Icon(LucideIcons.wallet, size: 16),
-                        label: Text(
-                          'Ownership (${accountProvider.accounts.where((a) => a.owners.contains(user.email)).length})',
-                          style: const TextStyle(fontSize: 13),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          foregroundColor: Theme.of(
-                            context,
-                          ).colorScheme.secondary,
-                          side: BorderSide(
-                            color: Theme.of(
-                              context,
-                            ).colorScheme.secondary.withValues(alpha: 0.1),
-                          ),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          backgroundColor: Theme.of(
-                            context,
-                          ).colorScheme.secondary.withValues(alpha: 0.02),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-
-                if (!user.isAdmin) ...[
-                  const SizedBox(height: 12),
-                  SizedBox(
-                    width: double.infinity,
-                    child: OutlinedButton.icon(
-                      onPressed: () =>
-                          _confirmDeleteUser(context, provider, user),
-                      icon: const Icon(LucideIcons.trash2, size: 16),
-                      label: const Text('Delete User'),
-                      style: OutlinedButton.styleFrom(
-                        foregroundColor: Colors.red,
-                        side: BorderSide(color: Colors.red.shade100),
-                        padding: const EdgeInsets.symmetric(vertical: 12),
-                        backgroundColor: Colors.red.withValues(alpha: 0.02),
-                      ),
-                    ),
-                  ),
-                ],
-
-                const SizedBox(height: 12),
-
-                // Settings Panel (Foreign Currency & Lock) - Show for all, restricted inside
+                // Avatar with Gradient
                 Container(
-                  padding: const EdgeInsets.all(12),
+                  width: 90,
+                  height: 90,
                   decoration: BoxDecoration(
-                    color: Theme.of(
-                      context,
-                    ).dividerColor.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Theme.of(
-                        context,
-                      ).dividerColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                    gradient: const LinearGradient(
+                      colors: [Color(0xFF2D3748), Color(0xFF4299E1)],
+                      begin: Alignment.bottomRight,
+                      end: Alignment.topLeft,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF4299E1).withValues(alpha: 0.4),
+                        blurRadius: 15,
+                        offset: const Offset(0, 8),
+                      ),
+                    ],
+                  ),
+                  alignment: Alignment.center,
+                  child: Text(
+                    user.name.isNotEmpty ? user.name[0].toUpperCase() : '?',
+                    style: GoogleFonts.inter(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
                     ),
                   ),
+                ),
+                const SizedBox(width: 24),
+                // User Details
+                Expanded(
                   child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Row 1: Foreign Currency
-                      if (!user.isAdmin) ...[
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      Text(
+                        user.name,
+                        style: GoogleFonts.inter(
+                          fontSize: 24,
+                          fontWeight: FontWeight.w800,
+                          color: const Color(0xFF2D3748),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user.role.toUpperCase(),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF718096),
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        user.email,
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          color: const Color(0xFFA0AEC0),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      // Admin Mini Actions
+                      if (isAdmin)
+                        Wrap(
+                          spacing: 12,
+                          runSpacing: 8,
                           children: [
-                            Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(6),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: const Icon(
-                                    LucideIcons.globe,
-                                    size: 14,
-                                    color: Colors.blue,
-                                  ),
-                                ),
-                                const SizedBox(width: 8),
-                                Text(
-                                  'Foreign Currency Access',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
+                            _buildSoftUIIconButton(
+                              onPressed: () =>
+                                  _showEditUserDialog(context, user),
+                              icon: LucideIcons.edit3,
+                              gradient: [
+                                const Color(0xFF4299E1),
+                                const Color(0xFF3182CE),
                               ],
                             ),
-                            SizedBox(
-                              height: 24,
-                              child:
-                                  _loadingOperations.contains(
-                                    'currency_${user.email}',
-                                  )
-                                  ? const SizedBox(
-                                      width: 24,
-                                      height: 24,
-                                      child: Padding(
-                                        padding: EdgeInsets.all(4.0),
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
-                                        ),
-                                      ),
-                                    )
-                                  : Switch(
-                                      value: user.allowForeignCurrency,
-                                      thumbColor:
-                                          WidgetStateProperty.resolveWith<
-                                            Color?
-                                          >((states) {
-                                            if (states.contains(
-                                              WidgetState.selected,
-                                            )) {
-                                              return Colors.blue;
-                                            }
-                                            return Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall?.color;
-                                          }),
-                                      trackColor:
-                                          WidgetStateProperty.resolveWith<
-                                            Color?
-                                          >((states) {
-                                            if (states.contains(
-                                              WidgetState.selected,
-                                            )) {
-                                              return Colors.blue.withValues(
-                                                alpha: 0.4,
-                                              );
-                                            }
-                                            return Theme.of(context)
-                                                .dividerColor
-                                                .withValues(alpha: 0.2);
-                                          }),
-                                      onChanged: user.isAdmin
-                                          ? null
-                                          : (val) async {
-                                              setState(() {
-                                                _loadingOperations.add(
-                                                  'currency_${user.email}',
-                                                );
-                                              });
-                                              await provider
-                                                  .toggleCurrencyPermission(
-                                                    user.email,
-                                                    val,
-                                                  );
-                                              if (context.mounted) {
-                                                setState(() {
-                                                  _loadingOperations.remove(
-                                                    'currency_${user.email}',
-                                                  );
-                                                });
-                                              }
-                                            },
-                                    ),
+                            _buildSoftUIIconButton(
+                              onPressed: () =>
+                                  _showResetPasswordDialog(context, user),
+                              icon: LucideIcons.lock,
+                              gradient: [
+                                const Color(0xFF4299E1),
+                                const Color(0xFF3182CE),
+                              ],
                             ),
-                          ],
-                        ),
-                        const Divider(height: 16),
-                      ],
-
-                      // Row 3: Approval Permission
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color: Colors.indigo.withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: const Icon(
-                                  LucideIcons.checkSquare,
-                                  size: 14,
-                                  color: Colors.indigo,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                'Can Approve Transactions',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                          SizedBox(
-                            height: 24,
-                            child:
-                                _loadingOperations.contains(
-                                  'approval_${user.email}',
-                                )
-                                ? const SizedBox(
-                                    width: 24,
-                                    height: 24,
-                                    child: Padding(
-                                      padding: EdgeInsets.all(4.0),
-                                      child: CircularProgressIndicator(
-                                        strokeWidth: 2,
-                                      ),
-                                    ),
-                                  )
-                                : Switch(
-                                    value: user.allowAutoApproval,
-                                    thumbColor:
-                                        WidgetStateProperty.resolveWith<Color?>(
-                                          (states) {
-                                            if (states.contains(
-                                              WidgetState.selected,
-                                            )) {
-                                              return Colors.indigo;
-                                            }
-                                            return Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall?.color;
-                                          },
-                                        ),
-                                    trackColor:
-                                        WidgetStateProperty.resolveWith<Color?>(
-                                          (states) {
-                                            if (states.contains(
-                                              WidgetState.selected,
-                                            )) {
-                                              return Colors.indigo.withValues(
-                                                alpha: 0.4,
-                                              );
-                                            }
-                                            return Theme.of(context)
-                                                .dividerColor
-                                                .withValues(alpha: 0.2);
-                                          },
-                                        ),
-                                    onChanged: (val) async {
-                                      setState(() {
-                                        _loadingOperations.add(
-                                          'approval_${user.email}',
-                                        );
-                                      });
-                                      final success = await provider
-                                          .toggleAutoApproval(user.email, val);
-                                      if (context.mounted) {
-                                        setState(() {
-                                          _loadingOperations.remove(
-                                            'approval_${user.email}',
-                                          );
-                                        });
-
-                                        if (!success) {
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Failed to update permission: ${provider.error ?? "Unknown error"}',
-                                              ),
-                                              backgroundColor: Colors.red,
-                                            ),
-                                          );
-                                        }
-                                      }
-                                    },
-                                  ),
-                          ),
-                        ],
-                      ),
-                      const Divider(height: 16),
-                      // Row 2: Date Lock
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(6),
-                                decoration: BoxDecoration(
-                                  color:
-                                      (user.canEditDate
-                                              ? Colors.green
-                                              : Theme.of(context)
-                                                        .textTheme
-                                                        .bodySmall
-                                                        ?.color ??
-                                                    Colors.grey)
-                                          .withValues(alpha: 0.1),
-                                  shape: BoxShape.circle,
-                                ),
-                                child: Icon(
-                                  user.canEditDate
-                                      ? LucideIcons.unlock
-                                      : LucideIcons.lock,
-                                  size: 14,
-                                  color: user.canEditDate
-                                      ? Colors.green
-                                      : Theme.of(
-                                          context,
-                                        ).textTheme.bodySmall?.color,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Date Entry',
-                                    style: GoogleFonts.inter(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                  Text(
-                                    user.isAdmin
-                                        ? 'Always Unlocked'
-                                        : (user.canEditDate
-                                              ? 'Unlocked (24h)'
-                                              : 'Locked to Today'),
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: user.canEditDate
-                                          ? Colors.green
-                                          : Theme.of(
-                                              context,
-                                            ).textTheme.bodySmall?.color,
-                                    ),
-                                  ),
+                            _buildSoftUIIconButton(
+                              onPressed: () =>
+                                  _confirmForceLogout(context, provider, user),
+                              icon: LucideIcons.power,
+                              gradient: [
+                                const Color(0xFFE53E3E),
+                                const Color(0xFFC53030),
+                              ],
+                            ),
+                            if (!user.isAdmin) ...[
+                              _buildSoftUIIconButton(
+                                onPressed: () =>
+                                    _confirmDeleteUser(context, provider, user),
+                                icon: LucideIcons.trash2,
+                                gradient: [
+                                  const Color(0xFFE53E3E),
+                                  const Color(0xFFC53030),
                                 ],
                               ),
                             ],
-                          ),
-                          if (!user.isAdmin && !user.canEditDate)
-                            TextButton(
-                              onPressed: () =>
-                                  provider.grantDatePermission(user.email),
-                              style: TextButton.styleFrom(
-                                backgroundColor: Colors.orange.withValues(
-                                  alpha: 0.1,
-                                ),
-                                foregroundColor: Colors.deepOrange,
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 4,
-                                ),
-                                minimumSize: const Size(0, 28),
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                              ),
-                              child: const Text(
-                                'Unlock 24h',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
+                          ],
+                        ),
                     ],
                   ),
                 ),
               ],
             ),
+            const SizedBox(height: 24),
+            // Permissions Box
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7FAFC),
+                borderRadius: BorderRadius.circular(24),
+                border: Border.all(color: const Color(0xFFEDF2F7), width: 1.5),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        'Permissions',
+                        style: GoogleFonts.inter(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: const Color(0xFF4A5568),
+                        ),
+                      ),
+                      _buildStatusBadge(user),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Wrap(
+                    spacing: 12,
+                    runSpacing: 12,
+                    alignment: WrapAlignment.spaceAround,
+                    children: [
+                      if (user.isAdmin)
+                        _buildSoftUIToggle(
+                          label: 'Admin',
+                          value: user.isAdmin,
+                          gradient: [
+                            const Color(0xFF4299E1),
+                            const Color(0xFF3182CE),
+                          ],
+                          onChanged: null,
+                        ),
+                      _buildSoftUIToggle(
+                        label: 'Currency',
+                        value: user.allowForeignCurrency,
+                        gradient: [
+                          const Color(0xFF48BB78),
+                          const Color(0xFF38A169),
+                        ],
+                        onChanged: user.isAdmin
+                            ? null
+                            : (val) async {
+                                await provider.toggleCurrencyPermission(
+                                  user.email,
+                                  val,
+                                );
+                              },
+                      ),
+                      _buildSoftUIToggle(
+                        label: 'Approval',
+                        value: user.allowAutoApproval,
+                        gradient: [
+                          const Color(0xFFED8936),
+                          const Color(0xFFDD6B20),
+                        ],
+                        onChanged: (val) async {
+                          await provider.toggleAutoApproval(user.email, val);
+                        },
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Bottom Buttons
+            Wrap(
+              spacing: 12,
+              runSpacing: 12,
+              children: [
+                SizedBox(
+                  width:
+                      (MediaQuery.of(context).size.width - 72) /
+                      2, // Approximate half width
+                  child: _buildSoftUIButton(
+                    onPressed: () => _showGroupDialog(context, user),
+                    icon: LucideIcons.users,
+                    label: 'Grps (${user.groupIds.length})',
+                    gradient: [
+                      const Color(0xFF4299E1),
+                      const Color(0xFF3182CE),
+                    ],
+                  ),
+                ),
+                SizedBox(
+                  width: (MediaQuery.of(context).size.width - 72) / 2,
+                  child: _buildSoftUIButton(
+                    onPressed: () => _showOwnershipDialog(context, user),
+                    icon: LucideIcons.award,
+                    label:
+                        'Owns (${accountProvider.accounts.where((a) => a.owners.contains(user.email)).length})',
+                    gradient: [
+                      const Color(0xFFD69E2E),
+                      const Color(0xFFB7791F),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    ).animate().fadeIn(duration: 300.ms).slideX(begin: 0.05, end: 0);
+  }
+
+  Widget _buildSoftUIToggle({
+    required String label,
+    required bool value,
+    required List<Color> gradient,
+    required Function(bool)? onChanged,
+  }) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: const Color(0xFF4A5568),
           ),
-        )
-        .animate()
-        .fadeIn(duration: 300.ms)
-        .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad);
+        ),
+        const SizedBox(height: 8),
+        GestureDetector(
+          onTap: () => onChanged?.call(!value),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 200),
+            width: 70,
+            height: 34,
+            padding: const EdgeInsets.all(4),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(20),
+              gradient: value
+                  ? LinearGradient(
+                      colors: gradient,
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    )
+                  : LinearGradient(
+                      colors: [Colors.grey[300]!, Colors.grey[400]!],
+                    ),
+              boxShadow: [
+                BoxShadow(
+                  color: (value ? gradient[0] : Colors.grey[400]!).withValues(
+                    alpha: 0.3,
+                  ),
+                  blurRadius: 8,
+                  offset: const Offset(0, 4),
+                ),
+              ],
+            ),
+            child: AnimatedAlign(
+              duration: const Duration(milliseconds: 200),
+              alignment: value ? Alignment.centerRight : Alignment.centerLeft,
+              child: Container(
+                width: 26,
+                height: 26,
+                decoration: const BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 4,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildSoftUIButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required String label,
+    required List<Color> gradient,
+  }) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: gradient,
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: gradient[0].withValues(alpha: 0.4),
+              blurRadius: 10,
+              offset: const Offset(0, 5),
+            ),
+          ],
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Flexible(
+              child: Text(
+                label.toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.white,
+                  letterSpacing: 0.5,
+                ),
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Icon(icon, size: 14, color: Colors.white),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSoftUIIconButton({
+    required VoidCallback onPressed,
+    required IconData icon,
+    required List<Color> gradient,
+  }) {
+    return InkWell(
+      onTap: onPressed,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(12),
+          color: Colors.white,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.05),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Icon(icon, size: 22, color: gradient[0]),
+      ),
+    );
   }
 
   Widget _buildStatusBadge(User user) {
@@ -2505,46 +2287,25 @@ class _UsersScreenState extends State<UsersScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
+        borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 12, color: color),
-          const SizedBox(width: 4),
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 6),
           Text(
-            text,
-            style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.bold,
+            text.toUpperCase(),
+            style: GoogleFonts.inter(
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
               color: color,
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildRoleBadge(String role) {
-    final color = _getRoleColor(role);
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: color.withValues(alpha: 0.2)),
-      ),
-      child: Text(
-        role.toUpperCase(),
-        style: TextStyle(
-          fontSize: 10,
-          fontWeight: FontWeight.bold,
-          color: color,
-        ),
       ),
     );
   }
