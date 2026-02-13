@@ -2360,16 +2360,27 @@ class _UsersScreenState extends State<UsersScreen> {
                                           'approval_${user.email}',
                                         );
                                       });
-                                      await provider.toggleAutoApproval(
-                                        user.email,
-                                        val,
-                                      );
+                                      final success = await provider
+                                          .toggleAutoApproval(user.email, val);
                                       if (context.mounted) {
                                         setState(() {
                                           _loadingOperations.remove(
                                             'approval_${user.email}',
                                           );
                                         });
+
+                                        if (!success) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Failed to update permission: ${provider.error ?? "Unknown error"}',
+                                              ),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
                                       }
                                     },
                                   ),

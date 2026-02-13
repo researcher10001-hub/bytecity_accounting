@@ -116,10 +116,10 @@ class ActionGrid extends StatelessWidget {
             ],
           ),
 
-          if (userRole.toLowerCase() == 'admin' ||
-              (userRole.toLowerCase() == 'management' &&
-                  context.watch<AuthProvider>().user?.allowAutoApproval ==
-                      true)) ...[
+          if ((userRole.toLowerCase() == 'admin' ||
+                  userRole.toLowerCase() == 'management') &&
+              context.watch<AuthProvider>().user?.allowAutoApproval ==
+                  true) ...[
             const SizedBox(height: 12),
             Row(
               children: [
