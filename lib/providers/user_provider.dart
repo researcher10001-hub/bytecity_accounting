@@ -43,8 +43,14 @@ class UserProvider with ChangeNotifier {
   }
 
   Future<bool> updateUser(User updatedUser) async {
-    // _isLoading = true; // Don't block the whole UI for an update
-    // notifyListeners();
+    // Optimistic Update: Update local list immediately to keep UI responsive
+    final index = _users.indexWhere((u) => u.email == updatedUser.email);
+    User? previousUser;
+    if (index != -1) {
+      previousUser = _users[index];
+      _users[index] = updatedUser;
+      notifyListeners();
+    }
 
     try {
       final payload = {
@@ -59,20 +65,14 @@ class UserProvider with ChangeNotifier {
       };
 
       await _apiService.postRequest(ApiConstants.actionUpdateUser, payload);
-
-      // Optimistic Update
-      final index = _users.indexWhere((u) => u.email == updatedUser.email);
-      if (index != -1) {
-        _users[index] = updatedUser;
-      }
-
-      // _isLoading = false;
-      notifyListeners();
       return true;
     } catch (e) {
       _error = e.toString();
-      // _isLoading = false;
-      notifyListeners();
+      // Rollback on failure
+      if (index != -1 && previousUser != null) {
+        _users[index] = previousUser;
+        notifyListeners();
+      }
       return false;
     }
   }
@@ -104,18 +104,7 @@ class UserProvider with ChangeNotifier {
     final index = _users.indexWhere((u) => u.email == email);
     if (index != -1) {
       final user = _users[index];
-      final newUser = User(
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        designation: user.designation,
-        status: user.status,
-        allowForeignCurrency: allowed,
-        dateEditPermissionExpiresAt: user.dateEditPermissionExpiresAt,
-        groupIds: user.groupIds,
-      );
-
-      return await updateUser(newUser);
+      return await updateUser(user.copyWith(allowForeignCurrency: allowed));
     }
     return false;
   }
@@ -124,19 +113,7 @@ class UserProvider with ChangeNotifier {
     final index = _users.indexWhere((u) => u.email == email);
     if (index != -1) {
       final user = _users[index];
-      final newUser = User(
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        designation: user.designation,
-        status: user.status,
-        allowForeignCurrency: user.allowForeignCurrency,
-        dateEditPermissionExpiresAt: user.dateEditPermissionExpiresAt,
-        groupIds: user.groupIds,
-        allowAutoApproval: allowed,
-      );
-
-      return await updateUser(newUser);
+      return await updateUser(user.copyWith(allowAutoApproval: allowed));
     }
     return false;
   }
@@ -218,16 +195,7 @@ class UserProvider with ChangeNotifier {
       final index = _users.indexWhere((u) => u.email == email);
       if (index != -1) {
         final u = _users[index];
-        _users[index] = User(
-          name: u.name,
-          email: u.email,
-          role: u.role,
-          status: status, // Update status
-          allowForeignCurrency: u.allowForeignCurrency,
-          dateEditPermissionExpiresAt: u.dateEditPermissionExpiresAt,
-          groupIds: u.groupIds,
-          allowAutoApproval: u.allowAutoApproval,
-        );
+        _users[index] = u.copyWith(status: status);
         notifyListeners();
       }
       return true;

@@ -238,7 +238,13 @@ class _UsersScreenState extends State<UsersScreen> {
           ),
         ),
         ...users.map(
-          (user) => _buildUserCardNew(context, provider, accountProvider, user),
+          (user) => _buildUserCardNew(
+            context,
+            provider,
+            accountProvider,
+            user,
+            key: ValueKey(user.email),
+          ),
         ),
         const SizedBox(height: 12),
       ],
@@ -1871,8 +1877,9 @@ class _UsersScreenState extends State<UsersScreen> {
     BuildContext context,
     UserProvider provider,
     AccountProvider accountProvider,
-    User user,
-  ) {
+    User user, {
+    Key? key,
+  }) {
     final bool isAdmin = Provider.of<AuthProvider>(
       context,
       listen: false,
@@ -2122,7 +2129,7 @@ class _UsersScreenState extends State<UsersScreen> {
           ],
         ),
       ),
-    ).animate().fadeIn(duration: 300.ms).slideX(begin: 0.05, end: 0);
+    );
   }
 
   Widget _buildSoftUIToggle({
@@ -2145,7 +2152,8 @@ class _UsersScreenState extends State<UsersScreen> {
         GestureDetector(
           onTap: () => onChanged?.call(!value),
           child: AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
+            duration: const Duration(milliseconds: 350),
+            curve: Curves.easeInOutBack,
             width: 70,
             height: 34,
             padding: const EdgeInsets.all(4),
@@ -2165,28 +2173,41 @@ class _UsersScreenState extends State<UsersScreen> {
                   color: (value ? gradient[0] : Colors.grey[400]!).withValues(
                     alpha: 0.3,
                   ),
-                  blurRadius: 8,
+                  blurRadius: 12,
                   offset: const Offset(0, 4),
                 ),
               ],
             ),
             child: AnimatedAlign(
-              duration: const Duration(milliseconds: 200),
+              duration: const Duration(milliseconds: 350),
+              curve: Curves.easeInOutBack,
               alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-              child: Container(
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 350),
                 width: 26,
                 height: 26,
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.circle,
                   color: Colors.white,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black12,
+                      color: Colors.black.withValues(alpha: 0.1),
                       blurRadius: 4,
-                      offset: Offset(0, 2),
+                      offset: const Offset(0, 2),
                     ),
                   ],
                 ),
+                child: value
+                    ? Icon(
+                        Icons.check,
+                        size: 14,
+                        color: gradient[0],
+                      ).animate().scale()
+                    : const Icon(
+                        Icons.close,
+                        size: 14,
+                        color: Colors.grey,
+                      ).animate().scale(),
               ),
             ),
           ),

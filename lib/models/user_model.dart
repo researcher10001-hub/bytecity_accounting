@@ -113,4 +113,31 @@ class User {
     if (dateEditPermissionExpiresAt == null) return false;
     return dateEditPermissionExpiresAt!.isAfter(DateTime.now());
   }
+
+  User copyWith({
+    String? name,
+    String? email,
+    String? designation,
+    String? role,
+    String? status,
+    bool? allowForeignCurrency,
+    DateTime? dateEditPermissionExpiresAt,
+    List<String>? groupIds,
+    String? sessionToken,
+    bool? allowAutoApproval,
+  }) {
+    return User(
+      name: name ?? this.name,
+      email: email ?? this.email,
+      designation: designation ?? this.designation,
+      role: role ?? this.role,
+      status: status ?? this.status,
+      allowForeignCurrency: allowForeignCurrency ?? this.allowForeignCurrency,
+      dateEditPermissionExpiresAt:
+          dateEditPermissionExpiresAt ?? this.dateEditPermissionExpiresAt,
+      groupIds: groupIds ?? this.groupIds,
+      sessionToken: sessionToken ?? this.sessionToken,
+      allowAutoApproval: allowAutoApproval ?? this.allowAutoApproval,
+    );
+  }
 }
