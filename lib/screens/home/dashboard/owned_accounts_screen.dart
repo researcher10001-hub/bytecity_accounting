@@ -147,7 +147,7 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                 border: Border.all(color: Colors.grey.shade200),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.02),
+                    color: Colors.black.withValues(alpha: 0.02),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -235,7 +235,7 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                               border: Border.all(color: Colors.grey.shade200),
                               boxShadow: [
                                 BoxShadow(
-                                  color: Colors.black.withOpacity(0.02),
+                                  color: Colors.black.withValues(alpha: 0.02),
                                   blurRadius: 8,
                                   offset: const Offset(0, 2),
                                 ),
@@ -247,8 +247,8 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                   padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
                                     color: isPositive
-                                        ? Colors.green.withOpacity(0.1)
-                                        : Colors.orange.withOpacity(0.1),
+                                        ? Colors.green.withValues(alpha: 0.1)
+                                        : Colors.orange.withValues(alpha: 0.1),
                                     shape: BoxShape.circle,
                                   ),
                                   child: Icon(
@@ -303,8 +303,10 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                       ),
                                       decoration: BoxDecoration(
                                         color: isPositive
-                                            ? Colors.blue.withOpacity(0.1)
-                                            : Colors.orange.withOpacity(0.1),
+                                            ? Colors.blue.withValues(alpha: 0.1)
+                                            : Colors.orange.withValues(
+                                                alpha: 0.1,
+                                              ),
                                         borderRadius: BorderRadius.circular(4),
                                       ),
                                       child: Text(

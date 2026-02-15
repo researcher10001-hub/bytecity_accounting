@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/transaction_provider.dart';
+import '../../../providers/auth_provider.dart';
 import '../../../models/transaction_model.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../transaction/transaction_detail_screen.dart';
@@ -30,27 +31,42 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen> {
         backgroundColor: Colors.white,
         elevation: 0,
         foregroundColor: Colors.black87,
+        actions: [
+          IconButton(
+            icon: const Icon(LucideIcons.refreshCw, size: 20),
+            onPressed: _isProcessing ? null : _refresh,
+            tooltip: 'Refresh Queue',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
-      body: Consumer<TransactionProvider>(
-        builder: (context, txProvider, _) {
-          final queue = txProvider.transactions.where((tx) {
-            return tx.status == TransactionStatus.approved &&
-                tx.erpSyncStatus == 'none';
-          }).toList();
+      body: RefreshIndicator(
+        onRefresh: _refresh,
+        color: const Color(0xFF2563EB),
+        child: Consumer<TransactionProvider>(
+          builder: (context, txProvider, _) {
+            final queue = txProvider.transactions.where((tx) {
+              final statusMatch = tx.status == TransactionStatus.approved;
+              final syncMatch =
+                  tx.erpSyncStatus.trim().toLowerCase() == 'none' ||
+                  tx.erpSyncStatus.trim().isEmpty;
+              return statusMatch && syncMatch;
+            }).toList();
 
-          if (queue.isEmpty) {
-            return _buildEmptyState();
-          }
+            if (queue.isEmpty) {
+              return _buildEmptyState();
+            }
 
-          return ListView.builder(
-            padding: const EdgeInsets.all(16),
-            itemCount: queue.length,
-            itemBuilder: (context, index) {
-              final tx = queue[index];
-              return _buildSyncCard(context, tx);
-            },
-          );
-        },
+            return ListView.builder(
+              padding: const EdgeInsets.all(16),
+              itemCount: queue.length,
+              itemBuilder: (context, index) {
+                final tx = queue[index];
+                return _buildSyncCard(context, tx);
+              },
+            );
+          },
+        ),
       ),
     );
   }
@@ -187,6 +203,15 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen> {
     );
   }
 
+  Future<void> _refresh() async {
+    final user = context.read<AuthProvider>().user;
+    if (user == null) return;
+    await context.read<TransactionProvider>().fetchHistory(
+      user,
+      forceRefresh: true,
+    );
+  }
+
   Future<void> _handleSync(
     TransactionModel tx, {
     required bool isManual,
@@ -210,6 +235,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen> {
               backgroundColor: Colors.green,
             ),
           );
+          // Auto-refresh on success
+          await _refresh();
         } else {
           final error = context.read<TransactionProvider>().error;
           ScaffoldMessenger.of(context).showSnackBar(

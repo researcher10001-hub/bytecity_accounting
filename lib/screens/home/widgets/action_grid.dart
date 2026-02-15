@@ -1,14 +1,11 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../../transaction/transaction_entry_screen.dart';
-import '../../reports/transaction_history_screen.dart';
 import '../../reports/ledger_screen.dart';
 import '../../search/search_voucher_screen.dart';
 import '../../admin/pending_transactions_screen.dart';
 import '../../admin/erp_sync_queue_screen.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/auth_provider.dart';
-import '../../../providers/account_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../models/transaction_model.dart';
 
@@ -20,66 +17,13 @@ class ActionGrid extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final bool isAdmin = userRole.trim().toLowerCase() == 'admin';
-    final canCreateTransaction = _canCreateTransaction(userRole);
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // Row 1: New Transaction + Transaction History (Hidden for non-admins as they are in Nav)
           if (isAdmin) ...[
-            Row(
-              children: [
-                if (canCreateTransaction)
-                  Expanded(
-                    child: _buildActionCard(
-                      context,
-                      icon: Icons.add_circle_outline,
-                      label: 'New Transaction',
-                      color: Colors.blue,
-                      onTap: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const TransactionEntryScreen(),
-                          ),
-                        );
-                        if (context.mounted) {
-                          final auth = context.read<AuthProvider>();
-                          if (auth.user != null) {
-                            context.read<AccountProvider>().fetchAccounts(
-                              auth.user!,
-                            );
-                            context.read<TransactionProvider>().fetchHistory(
-                              auth.user!,
-                              forceRefresh: true,
-                            );
-                          }
-                        }
-                      },
-                    ),
-                  ),
-                if (canCreateTransaction) const SizedBox(width: 12),
-                Expanded(
-                  child: _buildActionCard(
-                    context,
-                    icon: Icons.history_rounded,
-                    label: 'Transaction History',
-                    color: Colors.purple,
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const TransactionHistoryScreen(),
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 12),
-            // Row 2: Ledger + Search Voucher
+            // Row: Ledger + Search Voucher
             Row(
               children: [
                 Expanded(
@@ -252,14 +196,5 @@ class ActionGrid extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  bool _canCreateTransaction(String role) {
-    final normalizedRole = role.trim().toLowerCase();
-    // Check against known roles including 'Associate'
-    return normalizedRole == 'admin' ||
-        normalizedRole == 'management' ||
-        normalizedRole == 'associate' ||
-        normalizedRole == 'business operations associate';
   }
 }

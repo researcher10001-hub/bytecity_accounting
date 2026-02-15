@@ -457,8 +457,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           color: Colors.red.shade400,
                         ),
                       ],
-                      if (tx.erpSyncStatus != 'none') ...[
-                        const SizedBox(width: 6),
+                      if (tx.erpSyncStatus.isNotEmpty) ...[
+                        const SizedBox(width: 8),
                         _buildSyncIndicator(tx.erpSyncStatus),
                       ],
 
@@ -875,19 +875,38 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   Widget _buildSyncIndicator(String status) {
-    if (status == 'none') return const SizedBox.shrink();
+    // Normalize status
+    final normalizedStatus = status.trim().toLowerCase();
 
-    final isSynced = status == 'synced';
-    final icon = isSynced ? Icons.sync_rounded : Icons.edit_note_rounded;
-    final color = isSynced ? const Color(0xFF2563EB) : Colors.grey.shade500;
+    IconData icon;
+    Color color;
+    String tooltip;
 
-    return Container(
-      padding: const EdgeInsets.all(3),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        shape: BoxShape.circle,
+    if (normalizedStatus == 'synced') {
+      icon = Icons.sync_rounded;
+      color = const Color(0xFF2563EB);
+      tooltip = 'Synced to ERPNext';
+    } else if (normalizedStatus == 'manual') {
+      icon = Icons.edit_note_rounded;
+      color = const Color(0xFF2563EB);
+      tooltip = 'Manually entered in ERPNext';
+    } else {
+      // Default / 'none'
+      icon = Icons.sync_problem_rounded;
+      color = Colors.red.shade300;
+      tooltip = 'Not synced to ERPNext';
+    }
+
+    return Tooltip(
+      message: tooltip,
+      child: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+        ),
+        child: Icon(icon, size: 14, color: color),
       ),
-      child: Icon(icon, size: 10, color: color),
     );
   }
 }

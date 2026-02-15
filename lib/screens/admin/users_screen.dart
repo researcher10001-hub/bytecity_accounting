@@ -1027,7 +1027,7 @@ class _UsersScreenState extends State<UsersScreen> {
                               Container(
                                 width: double.infinity,
                                 padding: const EdgeInsets.all(16),
-                                color: Colors.purple.withOpacity(0.02),
+                                color: Colors.purple.withValues(alpha: 0.02),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
@@ -1104,8 +1104,8 @@ class _UsersScreenState extends State<UsersScreen> {
                                                       boxShadow: [
                                                         BoxShadow(
                                                           color: Colors.purple
-                                                              .withOpacity(
-                                                                0.05,
+                                                              .withValues(
+                                                                alpha: 0.05,
                                                               ),
                                                           blurRadius: 4,
                                                           offset: const Offset(
@@ -1255,7 +1255,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                             decoration: BoxDecoration(
                                               color: isOwned
                                                   ? Colors.indigo.shade50
-                                                        .withOpacity(0.5)
+                                                        .withValues(alpha: 0.5)
                                                   : Colors.white,
                                               borderRadius:
                                                   BorderRadius.circular(12),

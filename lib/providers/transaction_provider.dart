@@ -1029,7 +1029,10 @@ class TransactionProvider with ChangeNotifier {
                     : null,
                 lastActivityType: item['last_activity_type']?.toString(),
                 lastActivityBy: item['last_activity_by']?.toString(),
-                erpSyncStatus: item['erp_sync_status']?.toString() ?? 'none',
+                erpSyncStatus:
+                    (item['erp_sync_status']?.toString().trim().isEmpty ?? true)
+                    ? 'none'
+                    : item['erp_sync_status'].toString().trim().toLowerCase(),
                 details: [],
               );
             }

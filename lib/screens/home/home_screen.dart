@@ -14,7 +14,6 @@ import '../search/search_voucher_screen.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../models/user_model.dart';
-import '../admin/accounts_screen.dart';
 import 'widgets/desktop_scaffold.dart';
 import 'widgets/message_card.dart';
 import 'widgets/action_grid.dart';
@@ -232,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           borderRadius: BorderRadius.circular(16),
                           boxShadow: [
                             BoxShadow(
-                              color: Colors.blue.withOpacity(0.3),
+                              color: Colors.blue.withValues(alpha: 0.3),
                               blurRadius: 12,
                               offset: const Offset(0, 6),
                             ),
@@ -243,7 +242,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             Container(
                               padding: const EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.2),
+                                color: Colors.white.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
                               ),
                               child: const Icon(
@@ -269,7 +268,9 @@ class _HomeScreenState extends State<HomeScreen> {
                                   Text(
                                     countLabel,
                                     style: GoogleFonts.inter(
-                                      color: Colors.white.withOpacity(0.8),
+                                      color: Colors.white.withValues(
+                                        alpha: 0.8,
+                                      ),
                                       fontWeight: FontWeight.w500,
                                       fontSize: 13,
                                     ),
@@ -280,7 +281,7 @@ class _HomeScreenState extends State<HomeScreen> {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: Colors.white.withOpacity(0.1),
+                                color: Colors.white.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: const Icon(
@@ -321,9 +322,9 @@ class _HomeScreenState extends State<HomeScreen> {
         } else {
           return const SearchVoucherScreen();
         }
-      case 2: // Accounts (Admin) or Ledger (Non-Admin)
+      case 2: // Search (Admin) or Ledger (Non-Admin)
         if (isAdmin) {
-          return const AccountsScreen();
+          return const SearchVoucherScreen();
         } else {
           return const LedgerScreen();
         }
@@ -382,17 +383,15 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(width: 60), // Space for FAB
                 _buildNavItem(
                   2,
-                  isAdmin
-                      ? Icons.account_balance_wallet_rounded
-                      : Icons.analytics_rounded,
-                  isAdmin ? 'Accounts' : 'Ledger',
+                  isAdmin ? Icons.search_rounded : Icons.analytics_rounded,
+                  isAdmin ? 'Search' : 'Ledger',
                   currentIndex == 2,
                   onTapOverride: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
                         builder: (_) => isAdmin
-                            ? const AccountsScreen()
+                            ? const SearchVoucherScreen()
                             : const LedgerScreen(),
                       ),
                     );
@@ -475,7 +474,7 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         boxShadow: [
           BoxShadow(
-            color: const Color(0xFF3182CE).withOpacity(0.4),
+            color: const Color(0xFF3182CE).withValues(alpha: 0.4),
             blurRadius: 15,
             offset: const Offset(0, 8),
           ),
@@ -532,7 +531,7 @@ class _ConvexPillBackgroundPainter extends CustomPainter {
       ..style = PaintingStyle.fill;
 
     final shadowPaint = Paint()
-      ..color = Colors.black.withOpacity(0.08)
+      ..color = Colors.black.withValues(alpha: 0.08)
       ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
 
     final path = Path();
