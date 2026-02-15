@@ -457,6 +457,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           color: Colors.red.shade400,
                         ),
                       ],
+                      if (tx.erpSyncStatus != 'none') ...[
+                        const SizedBox(width: 6),
+                        _buildSyncIndicator(tx.erpSyncStatus),
+                      ],
 
                       const Spacer(),
 
@@ -868,5 +872,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       default:
         return const Color(0xFF64748B);
     }
+  }
+
+  Widget _buildSyncIndicator(String status) {
+    if (status == 'none') return const SizedBox.shrink();
+
+    final isSynced = status == 'synced';
+    final icon = isSynced ? Icons.sync_rounded : Icons.edit_note_rounded;
+    final color = isSynced ? const Color(0xFF2563EB) : Colors.grey.shade500;
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 10, color: color),
+    );
   }
 }

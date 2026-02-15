@@ -93,6 +93,24 @@ class TransactionDetail {
     };
   }
 
+  factory TransactionDetail.fromJson(Map<String, dynamic> json) {
+    return TransactionDetail(
+      account: json['account_name'] != null
+          ? Account(
+              name: json['account_name'],
+              owners: [],
+              groupIds: [],
+              type: 'General',
+            )
+          : null,
+      debit: (json['debit'] ?? 0.0).toDouble(),
+      credit: (json['credit'] ?? 0.0).toDouble(),
+      narration: json['narration'] ?? '',
+      currency: json['currency'] ?? 'BDT',
+      rate: (json['rate'] ?? 1.0).toDouble(),
+    );
+  }
+
   // Helper validation
   bool get isValid => account != null && (debit > 0 || credit > 0);
 }
@@ -125,6 +143,10 @@ class TransactionModel {
   String? lastActivityType; // 'approve', 'reject', 'respond', 'comment', 'flag'
   String? lastActivityBy;
 
+  // ERP Sync Status (Phase 5)
+  // Values: 'none', 'synced', 'manual'
+  String erpSyncStatus;
+
   TransactionModel({
     this.id,
     required this.date,
@@ -146,6 +168,7 @@ class TransactionModel {
     this.lastActivityAt,
     this.lastActivityType,
     this.lastActivityBy,
+    this.erpSyncStatus = 'none',
   });
 
   double get totalDebit => details.fold(0, (sum, item) => sum + item.debit);
@@ -170,6 +193,47 @@ class TransactionModel {
       'exchange_rate': exchangeRate,
       'status': status.toString().split('.').last,
       'approval_log': approvalLog.map((e) => e.toJson()).toList(),
+      'erp_sync_status': erpSyncStatus,
     };
+  }
+
+  factory TransactionModel.fromJson(Map<String, dynamic> json) {
+    return TransactionModel(
+      id: json['id'],
+      date: DateTime.tryParse(json['date'] ?? '') ?? DateTime.now(),
+      type: VoucherType.values.firstWhere(
+        (e) => e.toString().split('.').last == json['type'],
+        orElse: () => VoucherType.journal,
+      ),
+      voucherNo: json['voucher_no'] ?? '',
+      mainNarration: json['main_narration'] ?? '',
+      details:
+          (json['details'] as List<dynamic>?)
+              ?.map((e) => TransactionDetail.fromJson(e))
+              .toList() ??
+          [],
+      createdBy: json['created_by'] ?? '',
+      createdByName: json['created_by_name'] ?? '',
+      currency: json['currency'] ?? 'BDT',
+      exchangeRate: (json['exchange_rate'] ?? 1.0).toDouble(),
+      status: TransactionStatus.values.firstWhere(
+        (e) => e.toString().split('.').last == json['status'],
+        orElse: () => TransactionStatus.pending,
+      ),
+      approvalLog:
+          (json['approval_log'] as List<dynamic>?)
+              ?.map((e) => ApprovalMessage.fromJson(e))
+              .toList() ??
+          [],
+      lastActionBy: json['last_action_by'],
+      isFlagged: json['is_flagged'] ?? false,
+      flaggedBy: json['flagged_by'],
+      flaggedAt: DateTime.tryParse(json['flagged_at'] ?? ''),
+      flagReason: json['flag_reason'],
+      lastActivityAt: DateTime.tryParse(json['last_activity_at'] ?? ''),
+      lastActivityType: json['last_activity_type'],
+      lastActivityBy: json['last_activity_by'],
+      erpSyncStatus: json['erp_sync_status'] ?? 'none',
+    );
   }
 }

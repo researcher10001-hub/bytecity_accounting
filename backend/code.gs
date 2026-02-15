@@ -150,6 +150,10 @@ function doPost(e) {
     return getAdminDashboard(e);
   }
 
+  if (action == 'syncToERPNext') {
+    return syncToERPNext(e);
+  }
+
   
   return ContentService.createTextOutput(JSON.stringify({
     'status': 'error',
@@ -748,7 +752,8 @@ function createEntry(e) {
         "Debit", "Credit", "Currency", "Rate", "CreatedBy", "Type", 
         "Status", "ApprovalLog", "LastActionBy", "IsFlagged", 
         "FlaggedBy", "FlaggedAt", "FlagReason",
-        "LastActivityAt", "LastActivityType", "LastActivityBy"
+        "LastActivityAt", "LastActivityType", "LastActivityBy",
+        "ERPSyncStatus"
       ]);
     }
     
@@ -1214,10 +1219,11 @@ function getEntries(e) {
          'flagged_at': (row.length > 16) ? row[16] : '',
          'flag_reason': (row.length > 17) ? row[17] : '',
          // Last activity fields
-         'last_activity_at': (row.length > 18) ? row[18] : '',
-         'last_activity_type': (row.length > 19) ? row[19] : '',
-         'last_activity_by': (row.length > 20) ? row[20] : ''
-       });
+            'last_activity_at': (row.length > 18) ? row[18] : "",
+            'last_activity_type': (row.length > 19) ? row[19] : "",
+            'last_activity_by': (row.length > 20) ? row[20] : "",
+            'erp_sync_status': (row.length > 21) ? row[21] : "none"
+          });
     }
     
     return successResponse(entries);
@@ -1527,18 +1533,19 @@ function editEntry(e) {
          const lineCurrency = line.currency || currency;
          const lineRate = parseFloat(line.rate || rate);
          
-         // Schema: EntryID, Date, VoucherNo, Desc, Account, Dr, Cr, Curr, Rate, CreatedBy, Type, Status, Log, LastBy, Flagged, By, At, Reason, ActivityAt, ActivityType, ActivityBy
+         // Schema: EntryID, Date, VoucherNo, Desc, Account, Dr, Cr, Curr, Rate, CreatedBy, Type, Status, Log, LastBy, Flagged, By, At, Reason, ActivityAt, ActivityType, ActivityBy, ERPSyncStatus
          rowsToAdd.push([
            entryId, date, voucherNo, desc, line.account, 
            dr, cr, lineCurrency, lineRate, userEmail, type, 
            newStatus, newLogJson, userEmail, false, "", "", "",
-           new Date().toISOString(), 'edit', userEmail
+           new Date().toISOString(), 'edit', userEmail,
+           'none' // ERPSyncStatus
          ]);
      }
 
      if (rowsToAdd.length > 0) {
         const lastRow = sheet.getLastRow();
-        sheet.getRange(lastRow + 1, 1, rowsToAdd.length, 21).setValues(rowsToAdd);
+        sheet.getRange(lastRow + 1, 1, rowsToAdd.length, 22).setValues(rowsToAdd);
         
         // Notification Logic (Simplified: Notify owners if pending)
         if (newStatus === 'Pending') {
@@ -2744,4 +2751,123 @@ function getAdminDashboard(e) {
   } catch (err) {
     return errorResponse("Server error: " + err.toString());
   }
+}
+
+/**
+ * Handle ERPNext Synchronization
+ */
+function syncToERPNext(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const voucherNo = data.voucher_no;
+    const isManual = data.is_manual || false;
+    
+    if (!voucherNo) return errorResponse("Missing voucher_no");
+    
+    const ss = SpreadsheetApp.getActiveSpreadsheet();
+    const sheet = ss.getSheetByName(SHEET_ENTRIES);
+    const allData = sheet.getDataRange().getValues();
+    const rows = [];
+    const targetIndices = [];
+    
+    for (let i = 1; i < allData.length; i++) {
+        if (allData[i][2].toString() === voucherNo) {
+            rows.push(allData[i]);
+            targetIndices.push(i + 1);
+        }
+    }
+    
+    if (rows.length === 0) return errorResponse("Transaction not found");
+    
+    if (isManual) {
+        // Just mark as manual
+        for (let rowIdx of targetIndices) {
+            sheet.getRange(rowIdx, 22).setValue('manual');
+        }
+        return successResponse({'message': 'Marked as manually entered in ERPNext'});
+    }
+    
+    // PERFORM API SYNC
+    const props = PropertiesService.getScriptProperties();
+    const settingsJson = props.getProperty("SYSTEM_SETTINGS");
+    if (!settingsJson) return errorResponse("ERPNext settings not configured");
+    
+    const settings = JSON.parse(settingsJson);
+    const erpUrl = settings.erp_url; // https://erpnext-181686-0.cloudclusters.net/
+    const apiKey = settings.erp_api_key;
+    const apiSecret = settings.erp_api_secret;
+    const docType = settings.erp_doctype || "Journal Entry";
+    
+    if (!erpUrl || !apiKey || !apiSecret) {
+        return errorResponse("ERPNext API credentials or URL missing in settings");
+    }
+    
+    // Prepare Data for ERPNext (Journal Entry format)
+    const postingDate = new Date(rows[0][1]).toISOString().split('T')[0];
+    const accounts = rows.map(r => ({
+        "account": r[4], // Account name
+        "debit_in_account_currency": parseFloat(r[5] || 0),
+        "credit_in_account_currency": parseFloat(r[6] || 0)
+    }));
+    
+    const payload = {
+        "doctype": docType,
+        "posting_date": postingDate,
+        "voucher_type": docType, 
+        "user_remark": rows[0][3], // Description
+        "accounts": accounts
+    };
+    
+    const options = {
+        "method": "post",
+        "contentType": "application/json",
+        "headers": {
+            "Authorization": "token " + apiKey + ":" + apiSecret
+        },
+        "payload": JSON.stringify(payload),
+        "muteHttpExceptions": true
+    };
+    
+    // Ensure URL ends with slash
+    const baseUrl = erpUrl.endsWith('/') ? erpUrl : erpUrl + '/';
+    const apiUrl = baseUrl + "api/resource/" + encodeURIComponent(docType);
+    
+    const response = UrlFetchApp.fetch(apiUrl, options);
+    const responseCode = response.getResponseCode();
+    const responseText = response.getContentText();
+    
+    if (responseCode >= 200 && responseCode < 300) {
+        // Success
+        for (let rowIdx of targetIndices) {
+            sheet.getRange(rowIdx, 22).setValue('synced');
+        }
+        return successResponse({'message': 'Successfully synced to ERPNext', 'erp_response': JSON.parse(responseText)});
+    } else {
+        return errorResponse("ERPNext API Error (" + responseCode + "): " + responseText);
+    }
+    
+  } catch (err) {
+    return errorResponse("Server error during sync: " + err.toString());
+  }
+}
+
+/**
+ * INITIAL SETUP: Run this once manually in the Apps Script editor 
+ * to initialize your ERPNext configuration.
+ */
+function setupERPNext() {
+  const props = PropertiesService.getScriptProperties();
+  const existingSettingsJson = props.getProperty("SYSTEM_SETTINGS");
+  let settings = {};
+  if (existingSettingsJson) {
+    settings = JSON.parse(existingSettingsJson);
+  }
+  
+  settings.erp_url = "https://erpnext-181686-0.cloudclusters.net/";
+  settings.erp_api_key = "f70151ff91760a9";
+  settings.erp_api_secret = "08696bbef517203";
+  settings.erp_doctype = "Journal Entry";
+  
+  props.setProperty("SYSTEM_SETTINGS", JSON.stringify(settings));
+  Logger.log("ERPNext Settings Initialized for: " + settings.erp_url);
 }

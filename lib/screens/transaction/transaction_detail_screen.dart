@@ -608,39 +608,49 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                               ),
                             ],
                           ),
-                          Builder(
-                            builder: (context) {
-                              final statusColor = _getStatusColor(
-                                _currentTransaction.status,
-                              );
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 10,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: statusColor.withValues(alpha: 0.1),
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: statusColor.withValues(alpha: 0.2),
-                                    width: 1,
-                                  ),
-                                ),
-                                child: Text(
-                                  _currentTransaction.status
-                                      .toString()
-                                      .split('.')
-                                      .last
-                                      .toUpperCase(),
-                                  style: GoogleFonts.inter(
-                                    color: statusColor,
-                                    fontSize: 10,
-                                    fontWeight: FontWeight.w800,
-                                    letterSpacing: 0.8,
-                                  ),
-                                ),
-                              );
-                            },
+                          Row(
+                            children: [
+                              _buildSyncIndicator(
+                                _currentTransaction.erpSyncStatus,
+                              ),
+                              const SizedBox(width: 8),
+                              Builder(
+                                builder: (context) {
+                                  final statusColor = _getStatusColor(
+                                    _currentTransaction.status,
+                                  );
+                                  return Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 10,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: statusColor.withValues(alpha: 0.1),
+                                      borderRadius: BorderRadius.circular(20),
+                                      border: Border.all(
+                                        color: statusColor.withValues(
+                                          alpha: 0.2,
+                                        ),
+                                        width: 1,
+                                      ),
+                                    ),
+                                    child: Text(
+                                      _currentTransaction.status
+                                          .toString()
+                                          .split('.')
+                                          .last
+                                          .toUpperCase(),
+                                      style: GoogleFonts.inter(
+                                        color: statusColor,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        letterSpacing: 0.8,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            ],
                           ),
                         ],
                       ),
@@ -839,5 +849,22 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
       case TransactionStatus.deleted:
         return const Color(0xFF718096); // Grey
     }
+  }
+
+  Widget _buildSyncIndicator(String status) {
+    if (status == 'none') return const SizedBox.shrink();
+
+    final isSynced = status == 'synced';
+    final icon = isSynced ? Icons.sync_rounded : Icons.edit_note_rounded;
+    final color = isSynced ? const Color(0xFF2563EB) : Colors.grey.shade600;
+
+    return Container(
+      padding: const EdgeInsets.all(4),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 14, color: color),
+    );
   }
 }

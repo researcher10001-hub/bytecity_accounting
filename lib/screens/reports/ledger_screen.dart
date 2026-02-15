@@ -764,12 +764,20 @@ class _LedgerScreenState extends State<LedgerScreen> {
                         ),
                         // Voucher ID
                         Expanded(
-                          child: Text(
-                            voucherNo,
-                            style: GoogleFonts.inter(
-                              fontSize: 11,
-                              color: const Color(0xFF94A3B8),
-                            ),
+                          child: Row(
+                            children: [
+                              Text(
+                                voucherNo,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: const Color(0xFF94A3B8),
+                                ),
+                              ),
+                              if (originalTx.erpSyncStatus != 'none') ...[
+                                const SizedBox(width: 8),
+                                _buildSyncIndicator(originalTx.erpSyncStatus),
+                              ],
+                            ],
                           ),
                         ),
                         // Amount (Side based on isDebit)
@@ -1527,6 +1535,23 @@ class _LedgerScreenState extends State<LedgerScreen> {
           },
         );
       },
+    );
+  }
+
+  Widget _buildSyncIndicator(String status) {
+    if (status == 'none') return const SizedBox.shrink();
+
+    final isSynced = status == 'synced';
+    final icon = isSynced ? Icons.sync_rounded : Icons.edit_note_rounded;
+    final color = isSynced ? const Color(0xFF2563EB) : Colors.grey.shade500;
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        shape: BoxShape.circle,
+      ),
+      child: Icon(icon, size: 10, color: color),
     );
   }
 }

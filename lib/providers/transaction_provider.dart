@@ -742,6 +742,71 @@ class TransactionProvider with ChangeNotifier {
     }
   }
 
+  // --- ERPNEXT SYNC SYSTEM (PHASE 5) ---
+  Future<bool> syncToERPNext({
+    required String voucherNo,
+    bool isManual = false,
+  }) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.postRequest('syncToERPNext', {
+        'voucher_no': voucherNo,
+        'is_manual': isManual,
+      });
+
+      if (response != null) {
+        _updateLocalSyncStatus(
+          voucherNo: voucherNo,
+          status: isManual ? 'manual' : 'synced',
+        );
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      }
+      return false;
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
+  void _updateLocalSyncStatus({
+    required String voucherNo,
+    required String status,
+  }) {
+    final index = _transactions.indexWhere((t) => t.voucherNo == voucherNo);
+    if (index != -1) {
+      final transaction = _transactions[index];
+      _transactions[index] = TransactionModel(
+        id: transaction.id,
+        date: transaction.date,
+        type: transaction.type,
+        voucherNo: transaction.voucherNo,
+        mainNarration: transaction.mainNarration,
+        details: transaction.details,
+        createdBy: transaction.createdBy,
+        createdByName: transaction.createdByName,
+        currency: transaction.currency,
+        exchangeRate: transaction.exchangeRate,
+        status: transaction.status,
+        approvalLog: transaction.approvalLog,
+        lastActionBy: transaction.lastActionBy,
+        isFlagged: transaction.isFlagged,
+        flaggedBy: transaction.flaggedBy,
+        flaggedAt: transaction.flaggedAt,
+        flagReason: transaction.flagReason,
+        lastActivityAt: transaction.lastActivityAt,
+        lastActivityType: transaction.lastActivityType,
+        lastActivityBy: transaction.lastActivityBy,
+        erpSyncStatus: status,
+      );
+    }
+  }
+
   void _updateLocalFlagStatus({
     required String voucherNo,
     required bool isFlagged,
@@ -964,6 +1029,7 @@ class TransactionProvider with ChangeNotifier {
                     : null,
                 lastActivityType: item['last_activity_type']?.toString(),
                 lastActivityBy: item['last_activity_by']?.toString(),
+                erpSyncStatus: item['erp_sync_status']?.toString() ?? 'none',
                 details: [],
               );
             }
@@ -1044,7 +1110,7 @@ class TransactionProvider with ChangeNotifier {
       if (PermissionService().canViewTransaction(user, tx)) return true;
 
       // Fallback: Allow "Legacy" transactions that have no creator recorded
-      final txOwner = (tx.createdBy ?? '').trim().toLowerCase();
+      final txOwner = tx.createdBy.trim().toLowerCase();
       return txOwner.isEmpty;
     }).toList();
   }

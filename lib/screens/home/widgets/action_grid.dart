@@ -5,6 +5,7 @@ import '../../reports/transaction_history_screen.dart';
 import '../../reports/ledger_screen.dart';
 import '../../search/search_voucher_screen.dart';
 import '../../admin/pending_transactions_screen.dart';
+import '../../admin/erp_sync_queue_screen.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/account_provider.dart';
@@ -158,7 +159,41 @@ class ActionGrid extends StatelessWidget {
                     },
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Consumer<TransactionProvider>(
+                    builder: (context, txProvider, _) {
+                      final syncCount = txProvider.transactions.where((tx) {
+                        return tx.status == TransactionStatus.approved &&
+                            tx.erpSyncStatus == 'none';
+                      }).length;
+
+                      return _buildActionCard(
+                        context,
+                        icon: Icons.sync_rounded,
+                        label: 'ERP Sync Queue ($syncCount)',
+                        color: Colors.teal,
+                        onTap: () async {
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const ERPSyncQueueScreen(),
+                            ),
+                          );
+                          if (context.mounted) {
+                            final auth = context.read<AuthProvider>();
+                            if (auth.user != null) {
+                              context.read<TransactionProvider>().fetchHistory(
+                                auth.user!,
+                                forceRefresh: true,
+                              );
+                            }
+                          }
+                        },
+                      );
+                    },
+                  ),
+                ),
               ],
             ),
           ],
