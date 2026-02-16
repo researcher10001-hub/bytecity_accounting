@@ -217,9 +217,9 @@ function checkSession(e) {
            if (storedToken === token) {
               if (status === "Active") {
                   // Return FULL user data to sync permissions
-                  const groupIds = (row.length > 5) ? row[5].toString() : "";
-                  const designation = (row.length > 7) ? row[7].toString() : "";
                   const allowForeignCurrency = (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false;
+                  const allowAutoApproval = (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false;
+                  const dateEditPermissionExpiresAt = (row.length > 10) ? row[10].toString() : "";
 
                   // SAFEGUARD: Enforce Admin for admin@test.com if data is missing/corrupt
                   let role = row[3] ? row[3].toString().trim() : "Viewer";
@@ -241,7 +241,8 @@ function checkSession(e) {
                       'session_token': token,
                       'designation': designation,
                       'allow_foreign_currency': allowForeignCurrency,
-                      'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false
+                      'allow_auto_approval': allowAutoApproval,
+                      'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false
                   });
               } else {
                   return errorResponse("Unauthorized: User suspended.");
@@ -540,6 +541,10 @@ function updateUser(e) {
     // Allow Auto Approval is Col 10 (Index 9)
     const allowAutoApproval = data.allow_auto_approval;
     if (allowAutoApproval !== undefined) sheet.getRange(rowToUpdate, 10).setValue(allowAutoApproval);
+
+    // Date Edit Permission (Persistent Toggle) is Col 11 (Index 10)
+    const allowDateEdit = data.allow_date_edit;
+    if (allowDateEdit !== undefined) sheet.getRange(rowToUpdate, 11).setValue(allowDateEdit);
     
     
     return successResponse({'message': 'User updated'});
@@ -579,8 +584,8 @@ function createUser(e) {
     
     const hash = generateHash(email, password);
     
-    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8], AllowAutoApproval [9]
-    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency, allowAutoApproval]);
+    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8], AllowAutoApproval [9], DatePermission [10]
+    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency, allowAutoApproval, false]);
     
     return successResponse({'message': 'User created'});
     
@@ -647,7 +652,8 @@ function getUsers(e) {
         'group_ids': (row.length > 5) ? row[5].toString() : "",
         'designation': (row.length > 7) ? row[7].toString() : "",
         'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false,
-        'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false
+        'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false,
+        'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false
       });
     }
     
@@ -760,7 +766,8 @@ function loginUser(e) {
                'session_token': newToken,
                'designation': designation,
                'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false,
-               'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false
+               'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false,
+               'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false
              });
           } else {
             return errorResponse("Account " + status + ". Contact admin.");

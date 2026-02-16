@@ -842,8 +842,7 @@ class _UsersScreenState extends State<UsersScreen> {
                           role: user.role,
                           status: user.status,
                           allowForeignCurrency: user.allowForeignCurrency,
-                          dateEditPermissionExpiresAt:
-                              user.dateEditPermissionExpiresAt,
+                          allowDateEdit: user.allowDateEdit,
                           groupIds: selectedGroups,
                         );
 
@@ -1779,8 +1778,7 @@ class _UsersScreenState extends State<UsersScreen> {
                           designation: designationController.text.trim(),
                           status: selectedStatus,
                           allowForeignCurrency: user.allowForeignCurrency,
-                          dateEditPermissionExpiresAt:
-                              user.dateEditPermissionExpiresAt,
+                          allowDateEdit: user.allowDateEdit,
                           groupIds: user.groupIds,
                         );
 
@@ -2086,6 +2084,17 @@ class _UsersScreenState extends State<UsersScreen> {
                           await provider.toggleAutoApproval(user.email, val);
                         },
                       ),
+                      _buildSoftUIToggle(
+                        label: 'Date',
+                        value: user.allowDateEdit,
+                        gradient: [
+                          const Color(0xFF48BB78),
+                          const Color(0xFF38A169),
+                        ],
+                        onChanged: (val) async {
+                          await provider.toggleDatePermission(user.email, val);
+                        },
+                      ),
                     ],
                   ),
                 ],
@@ -2266,7 +2275,7 @@ class _UsersScreenState extends State<UsersScreen> {
   }
 
   Widget _buildSoftUIIconButton({
-    required VoidCallback onPressed,
+    VoidCallback? onPressed,
     required IconData icon,
     required List<Color> gradient,
   }) {

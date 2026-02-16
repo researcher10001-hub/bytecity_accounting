@@ -7,8 +7,7 @@ class User {
   final String role; // Admin, Accountant, Viewer
   final String status; // Active, Suspended, Deleted
   final bool allowForeignCurrency;
-  final String? dateEditPermissionExpiresAtString; // Helper if needed
-  final DateTime? dateEditPermissionExpiresAt;
+  final bool allowDateEdit;
   final List<String> groupIds;
   final String? sessionToken;
   final bool allowAutoApproval; // New field for Management approval permission
@@ -20,8 +19,7 @@ class User {
     this.designation = '',
     this.status = 'Active',
     this.allowForeignCurrency = false,
-    this.dateEditPermissionExpiresAt,
-    this.dateEditPermissionExpiresAtString,
+    this.allowDateEdit = false,
     this.groupIds = const [],
     this.sessionToken,
     this.allowAutoApproval = false,
@@ -70,9 +68,9 @@ class User {
       designation: designationRaw,
       status: statusRaw,
       allowForeignCurrency: json['allow_foreign_currency'] == true,
-      dateEditPermissionExpiresAt: json['date_edit_expires_at'] != null
-          ? DateTime.tryParse(json['date_edit_expires_at'].toString().trim())
-          : null,
+      allowDateEdit:
+          (json['allow_date_edit'] == true ||
+          json['allow_date_edit'].toString().toUpperCase() == 'TRUE'),
       groupIds: parsedGroups,
       sessionToken: json['session_token']?.toString().trim(),
       allowAutoApproval: json['allow_auto_approval'] == true,
@@ -87,7 +85,7 @@ class User {
       'designation': designation,
       'status': status,
       'allow_foreign_currency': allowForeignCurrency,
-      'date_edit_expires_at': dateEditPermissionExpiresAt?.toIso8601String(),
+      'allow_date_edit': allowDateEdit,
       'group_ids': groupIds.join(','),
       'session_token': sessionToken,
       'allow_auto_approval': allowAutoApproval,
@@ -110,8 +108,7 @@ class User {
 
   bool get canEditDate {
     if (isAdmin) return true; // Admins can always edit
-    if (dateEditPermissionExpiresAt == null) return false;
-    return dateEditPermissionExpiresAt!.isAfter(DateTime.now());
+    return allowDateEdit;
   }
 
   User copyWith({
@@ -121,7 +118,7 @@ class User {
     String? role,
     String? status,
     bool? allowForeignCurrency,
-    DateTime? dateEditPermissionExpiresAt,
+    bool? allowDateEdit,
     List<String>? groupIds,
     String? sessionToken,
     bool? allowAutoApproval,
@@ -133,8 +130,7 @@ class User {
       role: role ?? this.role,
       status: status ?? this.status,
       allowForeignCurrency: allowForeignCurrency ?? this.allowForeignCurrency,
-      dateEditPermissionExpiresAt:
-          dateEditPermissionExpiresAt ?? this.dateEditPermissionExpiresAt,
+      allowDateEdit: allowDateEdit ?? this.allowDateEdit,
       groupIds: groupIds ?? this.groupIds,
       sessionToken: sessionToken ?? this.sessionToken,
       allowAutoApproval: allowAutoApproval ?? this.allowAutoApproval,

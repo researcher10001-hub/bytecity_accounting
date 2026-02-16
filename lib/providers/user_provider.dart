@@ -62,6 +62,7 @@ class UserProvider with ChangeNotifier {
         'group_ids': updatedUser.groupIds.join(','),
         'allow_foreign_currency': updatedUser.allowForeignCurrency,
         'allow_auto_approval': updatedUser.allowAutoApproval,
+        'allow_date_edit': updatedUser.allowDateEdit,
       };
 
       await _apiService.postRequest(ApiConstants.actionUpdateUser, payload);
@@ -77,25 +78,11 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> grantDatePermission(String email, {int hours = 24}) async {
+  Future<bool> toggleDatePermission(String email, bool allowed) async {
     final index = _users.indexWhere((u) => u.email == email);
     if (index != -1) {
       final user = _users[index];
-      final newUser = User(
-        email: user.email,
-        name: user.name,
-        role: user.role,
-        designation: user.designation,
-        status: user.status,
-        allowForeignCurrency: user.allowForeignCurrency,
-        dateEditPermissionExpiresAt: DateTime.now().add(Duration(hours: hours)),
-        groupIds: user.groupIds,
-      );
-      // Ideally call backend here, but assuming separate flow or handled by updateUser if generic
-      // For now just optimistic local state, as updateUser endpoint doesn't support date permission yet in my implementation
-      _users[index] = newUser;
-      notifyListeners();
-      return true;
+      return await updateUser(user.copyWith(allowDateEdit: allowed));
     }
     return false;
   }
