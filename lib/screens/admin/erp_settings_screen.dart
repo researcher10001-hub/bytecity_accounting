@@ -156,7 +156,7 @@ class _ERPSettingsScreenState extends State<ERPSettingsScreen> {
                   ),
                   value: _emailEnabled,
                   onChanged: (val) => setState(() => _emailEnabled = val),
-                  activeColor: const Color(0xFF2563EB),
+                  activeThumbColor: const Color(0xFF2563EB),
                 ),
               ),
 

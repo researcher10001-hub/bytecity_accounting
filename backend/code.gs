@@ -1236,7 +1236,8 @@ function getEntries(e) {
             'last_activity_at': (row.length > 18) ? row[18] : "",
             'last_activity_type': (row.length > 19) ? row[19] : "",
             'last_activity_by': (row.length > 20) ? row[20] : "",
-            'erp_sync_status': (row.length > 21) ? row[21] : "none"
+            'erp_sync_status': (row.length > 21) ? row[21] : "none",
+            'erp_document_id': (row.length > 22) ? row[22] : ""
           });
     }
     
@@ -2794,11 +2795,18 @@ function syncToERPNext(e) {
     if (rows.length === 0) return errorResponse("Transaction not found");
     
     if (isManual) {
-        // Just mark as manual
+        // Just mark as manual and optionally save ERP document ID
+        const manualErpDocId = data.erp_document_id || '';
         for (let rowIdx of targetIndices) {
             sheet.getRange(rowIdx, 22).setValue('manual');
+            if (manualErpDocId) {
+                sheet.getRange(rowIdx, 23).setValue(manualErpDocId);
+            }
         }
-        return successResponse({'message': 'Marked as manually entered in ERPNext'});
+        return successResponse({
+            'message': 'Marked as manually entered in ERPNext',
+            'erp_document_id': manualErpDocId
+        });
     }
     
     // PERFORM API SYNC

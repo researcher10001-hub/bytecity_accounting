@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../providers/account_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/group_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../models/account_model.dart';
 import '../../services/permission_service.dart';
 
@@ -600,6 +603,136 @@ class _LedgerScreenState extends State<LedgerScreen> {
                       status,
                       statusDotColor: statusColor,
                     ),
+
+                    // ERP Sync Information
+                    if (originalTx.erpSyncStatus != 'none' &&
+                        originalTx.erpDocumentId != null &&
+                        originalTx.erpDocumentId!.isNotEmpty) ...[
+                      const SizedBox(height: 8),
+                      GestureDetector(
+                        onTap: () async {
+                          // Normal tap - Open in browser
+                          final settingsProvider = context
+                              .read<SettingsProvider>();
+                          final erpUrl = settingsProvider.erpUrl;
+
+                          // Extract ID from URL if needed
+                          String documentId = originalTx.erpDocumentId!;
+                          if (documentId.startsWith('http://') ||
+                              documentId.startsWith('https://')) {
+                            final uri = Uri.tryParse(documentId);
+                            if (uri != null && uri.pathSegments.isNotEmpty) {
+                              documentId = uri.pathSegments.last;
+                            }
+                          }
+
+                          if (erpUrl.isNotEmpty) {
+                            final docUrl =
+                                '${erpUrl.endsWith('/') ? erpUrl : '$erpUrl/'}app/journal-entry/$documentId';
+                            final uri = Uri.parse(docUrl);
+                            if (await canLaunchUrl(uri)) {
+                              await launchUrl(
+                                uri,
+                                mode: LaunchMode.externalApplication,
+                              );
+                            } else {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'Could not open ERPNext link',
+                                    ),
+                                    backgroundColor: Colors.red,
+                                  ),
+                                );
+                              }
+                            }
+                          }
+                        },
+                        onLongPress: () async {
+                          // Long press - Copy to clipboard
+                          final settingsProvider = context
+                              .read<SettingsProvider>();
+                          final erpUrl = settingsProvider.erpUrl;
+
+                          // Extract ID from URL if needed
+                          String documentId = originalTx.erpDocumentId!;
+                          if (documentId.startsWith('http://') ||
+                              documentId.startsWith('https://')) {
+                            final uri = Uri.tryParse(documentId);
+                            if (uri != null && uri.pathSegments.isNotEmpty) {
+                              documentId = uri.pathSegments.last;
+                            }
+                          }
+
+                          if (erpUrl.isNotEmpty) {
+                            final docUrl =
+                                '${erpUrl.endsWith('/') ? erpUrl : '$erpUrl/'}app/journal-entry/$documentId';
+                            await Clipboard.setData(
+                              ClipboardData(text: docUrl),
+                            );
+                            if (context.mounted) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                  content: Text(
+                                    'ERPNext link copied to clipboard',
+                                  ),
+                                  backgroundColor: Color(0xFF38A169),
+                                  duration: Duration(seconds: 2),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                        child: Row(
+                          children: [
+                            SizedBox(
+                              width: 75,
+                              child: Text(
+                                'ERP ID:',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: const Color(0xFF94A3B8),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            const Icon(
+                              LucideIcons.link,
+                              size: 12,
+                              color: Color(0xFF4299E1),
+                            ),
+                            const SizedBox(width: 6),
+                            Text(
+                              () {
+                                String docId = originalTx.erpDocumentId!;
+                                if (docId.startsWith('http://') ||
+                                    docId.startsWith('https://')) {
+                                  final uri = Uri.tryParse(docId);
+                                  if (uri != null &&
+                                      uri.pathSegments.isNotEmpty) {
+                                    return uri.pathSegments.last;
+                                  }
+                                }
+                                return docId;
+                              }(),
+                              style: GoogleFonts.inter(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: const Color(0xFF4299E1),
+                                decoration: TextDecoration.underline,
+                              ),
+                            ),
+                            const SizedBox(width: 4),
+                            const Icon(
+                              LucideIcons.externalLink,
+                              size: 10,
+                              color: Color(0xFF4299E1),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
 
                     const SizedBox(height: 16),
                     const Divider(height: 1),

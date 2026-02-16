@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/settings_provider.dart';
 import '../../models/user_model.dart';
 
 import 'widgets/approval_timeline_widget.dart';
@@ -15,6 +16,7 @@ import 'widgets/approval_action_widget.dart';
 import 'transaction_entry_screen.dart'; // Import TransactionEntryScreen
 import '../../core/utils/currency_formatter.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class TransactionDetailScreen extends StatefulWidget {
   final TransactionModel transaction;
@@ -662,6 +664,150 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           ),
         ),
 
+        // ERP Sync Information Section
+        if (_currentTransaction.erpDocumentId != null &&
+            _currentTransaction.erpDocumentId!.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(left: 24, right: 24, top: 16),
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF7FAFC),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFE2E8F0)),
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF2563EB).withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: const Icon(
+                      LucideIcons.link2,
+                      size: 18,
+                      color: Color(0xFF2563EB),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(
+                              LucideIcons.server,
+                              size: 12,
+                              color: const Color(0xFF718096),
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              'ERP SYNC',
+                              style: GoogleFonts.inter(
+                                fontSize: 10,
+                                fontWeight: FontWeight.w800,
+                                color: const Color(0xFF718096),
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 6),
+                        GestureDetector(
+                          onTap: () async {
+                            // Normal tap - Open in browser
+                            final settingsProvider = context
+                                .read<SettingsProvider>();
+                            final erpUrl = settingsProvider.erpUrl;
+                            if (erpUrl.isNotEmpty) {
+                              final docUrl =
+                                  '${erpUrl.endsWith('/') ? erpUrl : '$erpUrl/'}app/journal-entry/${_extractDocumentId(_currentTransaction.erpDocumentId!)}';
+                              final uri = Uri.parse(docUrl);
+                              if (await canLaunchUrl(uri)) {
+                                await launchUrl(
+                                  uri,
+                                  mode: LaunchMode.externalApplication,
+                                );
+                              } else {
+                                if (context.mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    const SnackBar(
+                                      content: Text(
+                                        'Could not open ERPNext link',
+                                      ),
+                                      backgroundColor: Colors.red,
+                                    ),
+                                  );
+                                }
+                              }
+                            }
+                          },
+                          onLongPress: () async {
+                            // Long press - Copy to clipboard
+                            final settingsProvider = context
+                                .read<SettingsProvider>();
+                            final erpUrl = settingsProvider.erpUrl;
+                            if (erpUrl.isNotEmpty) {
+                              final docUrl =
+                                  '${erpUrl.endsWith('/') ? erpUrl : '$erpUrl/'}app/journal-entry/${_extractDocumentId(_currentTransaction.erpDocumentId!)}';
+                              await Clipboard.setData(
+                                ClipboardData(text: docUrl),
+                              );
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text(
+                                      'ERPNext link copied to clipboard',
+                                    ),
+                                    backgroundColor: Color(0xFF38A169),
+                                    duration: Duration(seconds: 2),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                _extractDocumentId(
+                                  _currentTransaction.erpDocumentId!,
+                                ),
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF2563EB),
+                                  decoration: TextDecoration.underline,
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              const Icon(
+                                LucideIcons.externalLink,
+                                size: 14,
+                                color: Color(0xFF2563EB),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          'Tap to open • Long press to copy',
+                          style: GoogleFonts.inter(
+                            fontSize: 9,
+                            color: const Color(0xFF718096),
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+
         const SizedBox(height: 24),
 
         Expanded(
@@ -885,5 +1031,19 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         child: Icon(icon, size: 14, color: color),
       ),
     );
+  }
+
+  // Helper method to extract document ID from ERPNext URLs
+  String _extractDocumentId(String documentId) {
+    // If it's a full URL, extract the last segment
+    if (documentId.startsWith('http://') || documentId.startsWith('https://')) {
+      final uri = Uri.tryParse(documentId);
+      if (uri != null && uri.pathSegments.isNotEmpty) {
+        // Get the last path segment (e.g., JE-00126 from .../journal-entry/JE-00126)
+        return uri.pathSegments.last;
+      }
+    }
+    // Otherwise return as-is (already just the ID)
+    return documentId;
   }
 }

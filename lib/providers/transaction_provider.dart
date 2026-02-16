@@ -746,6 +746,7 @@ class TransactionProvider with ChangeNotifier {
   Future<bool> syncToERPNext({
     required String voucherNo,
     bool isManual = false,
+    String? erpDocumentId,
   }) async {
     _isLoading = true;
     notifyListeners();
@@ -754,6 +755,7 @@ class TransactionProvider with ChangeNotifier {
       final response = await _apiService.postRequest('syncToERPNext', {
         'voucher_no': voucherNo,
         'is_manual': isManual,
+        'erp_document_id': ?erpDocumentId,
       });
 
       if (response != null) {
@@ -1039,6 +1041,7 @@ class TransactionProvider with ChangeNotifier {
                     (item['erp_sync_status']?.toString().trim().isEmpty ?? true)
                     ? 'none'
                     : item['erp_sync_status'].toString().trim().toLowerCase(),
+                erpDocumentId: item['erp_document_id']?.toString(),
                 details: [],
               );
             }

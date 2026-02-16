@@ -16,8 +16,26 @@ class ERPSyncQueueScreen extends StatefulWidget {
   State<ERPSyncQueueScreen> createState() => _ERPSyncQueueScreenState();
 }
 
-class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen> {
+class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
+    with TickerProviderStateMixin {
   bool _isProcessing = false;
+  late AnimationController _refreshController;
+
+  @override
+  void initState() {
+    super.initState();
+    _refreshController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 1),
+    );
+  }
+
+  @override
+  void dispose() {
+    _refreshController.dispose();
+    super.dispose();
+  }
+
   final GlobalKey<AnimatedListState> _listKey = GlobalKey<AnimatedListState>();
   final List<TransactionModel> _internalQueue = [];
 
@@ -39,11 +57,20 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen> {
     for (int i = 0; i < newQueue.length; i++) {
       final newItem = newQueue[i];
       if (!_internalQueue.any((item) => item.voucherNo == newItem.voucherNo)) {
-        _internalQueue.insert(i, newItem);
-        _listKey.currentState?.insertItem(
-          i,
-          duration: const Duration(milliseconds: 500),
-        );
+        if (i <= _internalQueue.length) {
+          _internalQueue.insert(i, newItem);
+          _listKey.currentState?.insertItem(
+            i,
+            duration: const Duration(milliseconds: 500),
+          );
+        } else {
+          // Fallback append if index is out of bounds (should rarely happen)
+          _internalQueue.add(newItem);
+          _listKey.currentState?.insertItem(
+            _internalQueue.length - 1,
+            duration: const Duration(milliseconds: 500),
+          );
+        }
       }
     }
   }
@@ -73,7 +100,10 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen> {
         foregroundColor: Colors.black87,
         actions: [
           IconButton(
-            icon: const Icon(LucideIcons.refreshCw, size: 20),
+            icon: RotationTransition(
+              turns: _refreshController,
+              child: const Icon(LucideIcons.refreshCw, size: 20),
+            ),
             onPressed: _isProcessing ? null : _refresh,
             tooltip: 'Refresh Queue',
           ),
@@ -488,21 +518,41 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen> {
   Future<void> _refresh() async {
     final user = context.read<AuthProvider>().user;
     if (user == null) return;
-    await context.read<TransactionProvider>().fetchHistory(
-      user,
-      forceRefresh: true,
-    );
+
+    if (_isProcessing) return;
+
+    setState(() => _isProcessing = true);
+    _refreshController.repeat();
+
+    try {
+      await context.read<TransactionProvider>().fetchHistory(
+        user,
+        forceRefresh: true,
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isProcessing = false);
+        _refreshController.stop();
+        _refreshController.reset();
+      }
+    }
   }
 
   Future<void> _handleSync(
     TransactionModel tx, {
     required bool isManual,
   }) async {
+    if (isManual) {
+      // Show dialog to optionally enter ERPNext ID
+      await _showManualIdDialog(tx);
+      return;
+    }
+
     setState(() => _isProcessing = true);
     try {
       final success = await context.read<TransactionProvider>().syncToERPNext(
         voucherNo: tx.voucherNo,
-        isManual: isManual,
+        isManual: false,
       );
 
       if (mounted) {
@@ -532,6 +582,148 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen> {
     } finally {
       if (mounted) {
         setState(() => _isProcessing = false);
+      }
+    }
+  }
+
+  Future<void> _showManualIdDialog(TransactionModel tx) async {
+    final TextEditingController idController = TextEditingController();
+
+    final result = await showDialog<String>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(
+          'Mark as Manual Sync',
+          style: GoogleFonts.inter(fontWeight: FontWeight.w700, fontSize: 18),
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Transaction ${tx.voucherNo} will be marked as manually entered in ERPNext.',
+              style: GoogleFonts.inter(
+                fontSize: 14,
+                color: const Color(0xFF4A5568),
+              ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'ERPNext Document ID (Optional):',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w600,
+                fontSize: 13,
+                color: const Color(0xFF2D3748),
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: idController,
+              decoration: InputDecoration(
+                hintText: 'e.g., JE-00123',
+                hintStyle: GoogleFonts.inter(color: const Color(0xFFA0AEC0)),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 10,
+                ),
+              ),
+              style: GoogleFonts.inter(fontSize: 14),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'If you have the ERPNext ID, paste it here for better tracking.',
+              style: GoogleFonts.inter(
+                fontSize: 11,
+                color: const Color(0xFF718096),
+                fontStyle: FontStyle.italic,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(
+                color: const Color(0xFF718096),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context, idController.text.trim());
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF4299E1),
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Mark as Manual',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (result != null) {
+      // User confirmed
+      setState(() => _isProcessing = true);
+
+      // Extract document ID from URL if needed
+      String? documentId;
+      if (result.isNotEmpty) {
+        // Check if it's a URL
+        if (result.startsWith('http://') || result.startsWith('https://')) {
+          final uri = Uri.tryParse(result);
+          if (uri != null && uri.pathSegments.isNotEmpty) {
+            // Get the last path segment (e.g., JE-00126 from .../journal-entry/JE-00126)
+            documentId = uri.pathSegments.last;
+          }
+        } else {
+          // It's already just the ID
+          documentId = result;
+        }
+      }
+
+      try {
+        final success = await context.read<TransactionProvider>().syncToERPNext(
+          voucherNo: tx.voucherNo,
+          isManual: true,
+          erpDocumentId: documentId,
+        );
+
+        if (mounted) {
+          if (success) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Marked as manually entered in ERPNext'),
+                backgroundColor: Colors.green,
+              ),
+            );
+            await _refresh();
+          } else {
+            final error = context.read<TransactionProvider>().error;
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text('Failed: ${error ?? "Unknown error"}'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+        }
+      } finally {
+        if (mounted) {
+          setState(() => _isProcessing = false);
+        }
       }
     }
   }
