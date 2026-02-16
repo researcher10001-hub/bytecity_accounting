@@ -919,9 +919,12 @@ function createEntry(e) {
         // Per-line currency/rate (fallback to voucher-level for backward compat)
         const lineCurrency = line.currency || currency;
         const lineRate = parseFloat(line.rate || rate);
+        // Deduplicate Log: Only save in first row
+        const logToSave = (i === 0) ? initialLogJson : "";
+        
         rowsToAdd.push([
           entryId, date, voucherNo, desc, line.account, dr, cr, lineCurrency, lineRate, 
-          userEmail, type, initialStatus, initialLogJson, 
+          userEmail, type, initialStatus, logToSave, 
           userEmail, // LastActionBy = creator (BOA)
           false,     // IsFlagged
           '',        // FlaggedBy
@@ -1287,7 +1290,10 @@ function addEntryMessage(e) {
         if (rows[i][2].toString() === voucherNo) {
             targetIndices.push(i + 1); // 1-based
             if (rows[i].length > 11) currentStatus = rows[i][11]; // Col 12
-            if (rows[i].length > 12) currentLogJson = rows[i][12]; // Col 13
+            // Robust Read: Only overwrite if not empty (handles deduplicated logs)
+            if (rows[i].length > 12 && rows[i][12] && rows[i][12].toString().trim() !== "") {
+               currentLogJson = rows[i][12]; // Col 13
+            }
         }
      }
      
@@ -1336,7 +1342,13 @@ function addEntryMessage(e) {
         const rowNum = targetIndices[r];
         // Col 12: Status, Col 13: Log, Col 14: LastActionBy
         sheet.getRange(rowNum, 12).setValue(newStatus);
-        sheet.getRange(rowNum, 13).setValue(newLogJson);
+        
+        // Deduplication Write: Only write Log to first row, clear others
+        if (r === 0) {
+           sheet.getRange(rowNum, 13).setValue(newLogJson);
+        } else {
+           sheet.getRange(rowNum, 13).setValue(""); // Cleanup old duplicates
+        }
         
         // Update LastActionBy only if not admin comment
         if (shouldUpdateLastAction) {
@@ -1552,7 +1564,7 @@ function editEntry(e) {
          rowsToAdd.push([
            entryId, date, voucherNo, desc, line.account, 
            dr, cr, lineCurrency, lineRate, userEmail, type, 
-           newStatus, newLogJson, userEmail, false, "", "", "",
+           newStatus, (i === 0) ? newLogJson : "", userEmail, false, "", "", "",
            new Date().toISOString(), 'edit', userEmail,
            'none' // ERPSyncStatus
          ]);
