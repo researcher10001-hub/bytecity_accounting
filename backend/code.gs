@@ -31,6 +31,7 @@ function triggerAuthorizationPrompt() {
 const SHEET_ACCOUNTS = "Accounts";
 const SHEET_GROUPS = "Groups";
 const SHEET_ENTRIES = "Entries";
+const SHEET_SUB_CATEGORIES = "SubCategories";
 const SECRET_SALT = "BYTECITY_V1_SALT"; // Simple salt for Phase A
 
 // --- DO GET (Connectivity Check & Simple Actions) ---
@@ -166,6 +167,23 @@ function doPost(e) {
 
   if (action == 'syncToERPNext') {
     return syncToERPNext(e);
+  }
+
+  // --- SUB-CATEGORY ACTIONS ---
+  if (action == 'getSubCategories') {
+    return getSubCategories(e);
+  }
+
+  if (action == 'createSubCategory') {
+    return createSubCategory(e);
+  }
+
+  if (action == 'updateSubCategory') {
+    return updateSubCategory(e);
+  }
+
+  if (action == 'deleteSubCategory') {
+    return deleteSubCategory(e);
   }
 
   
@@ -2992,4 +3010,163 @@ function setupERPNext() {
   
   props.setProperty("SYSTEM_SETTINGS", JSON.stringify(settings));
   Logger.log("ERPNext Settings Initialized for: " + settings.erp_url);
+}
+// --- SUB-CATEGORY MANAGEMENT ---
+
+// GET SUB-CATEGORIES
+function getSubCategories(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_SUB_CATEGORIES);
+    if (!sheet) {
+      // Auto-create SubCategories sheet with defaults
+      const newSheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_SUB_CATEGORIES);
+      newSheet.appendRow(["Type", "Name", "Active"]);
+      
+      // Add some defaults
+      const defaults = [
+        ["Asset", "Current Asset", true],
+        ["Asset", "Fixed Asset", true],
+        ["Liability", "Current Liability", true],
+        ["Liability", "Long Term Liability", true],
+        ["Income", "Operating Income", true],
+        ["Income", "Non-Operating Income", true],
+        ["Expense", "Operating Expense", true],
+        ["Expense", "Administrative Expense", true],
+        ["Equity", "Share Capital", true],
+        ["Equity", "Retained Earnings", true]
+      ];
+      
+      defaults.forEach(row => newSheet.appendRow(row));
+      
+      return successResponse(defaults.map(r => ({
+        'type': r[0],
+        'name': r[1],
+        'active': r[2]
+      })));
+    }
+
+    const rows = sheet.getDataRange().getValues();
+    const subCategories = [];
+    
+    // Skip header
+    for (let i = 1; i < rows.length; i++) {
+       const row = rows[i];
+       // Schema: Type [0], Name [1], Active [2]
+       const isActive = (row.length > 2) ? (row[2] === true || row[2].toString().toUpperCase() === 'TRUE') : true;
+       
+       if (isActive) {
+         subCategories.push({
+           'type': row[0],
+           'name': row[1],
+           'active': true
+         });
+       }
+    }
+    
+    return successResponse(subCategories);
+
+  } catch (err) {
+    return errorResponse("Server error: " + err.toString());
+  }
+}
+
+// CREATE SUB-CATEGORY
+function createSubCategory(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const type = data.type;
+    const name = data.name;
+    
+    if (!type || !name) return errorResponse("Missing type or name");
+    
+    let sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_SUB_CATEGORIES);
+    if (!sheet) {
+      sheet = SpreadsheetApp.getActiveSpreadsheet().insertSheet(SHEET_SUB_CATEGORIES);
+      sheet.appendRow(["Type", "Name", "Active"]);
+    }
+    
+    // Check duplicate
+    const rows = sheet.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+       if (rows[i][0] === type && rows[i][1].toString().toLowerCase() === name.toLowerCase()) {
+          // If inactive, reactivate
+          if (rows[i][2] === false || rows[i][2].toString().toUpperCase() === 'FALSE') {
+             sheet.getRange(i + 1, 3).setValue(true);
+             return successResponse({'message': 'Sub-category reactivated'});
+          }
+          return errorResponse("Sub-category already exists");
+       }
+    }
+    
+    sheet.appendRow([type, name, true]);
+    return successResponse({'message': 'Sub-category created'});
+    
+  } catch (err) {
+    return errorResponse("Server error: " + err.toString());
+  }
+}
+
+// UPDATE SUB-CATEGORY
+function updateSubCategory(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const type = data.type;
+    const oldName = data.oldName;
+    const newName = data.newName;
+    
+    if (!type || !oldName || !newName) return errorResponse("Missing required fields");
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_SUB_CATEGORIES);
+    if (!sheet) return errorResponse("SubCategories sheet not found");
+    
+    const rows = sheet.getDataRange().getValues();
+    let rowToUpdate = -1;
+    
+    for (let i = 1; i < rows.length; i++) {
+       if (rows[i][0] === type && rows[i][1].toString() === oldName) {
+          rowToUpdate = i + 1;
+          break;
+       }
+    }
+    
+    if (rowToUpdate == -1) return errorResponse("Sub-category not found");
+    
+    sheet.getRange(rowToUpdate, 2).setValue(newName);
+    return successResponse({'message': 'Sub-category updated'});
+    
+  } catch (err) {
+    return errorResponse("Server error: " + err.toString());
+  }
+}
+
+// DELETE SUB-CATEGORY (Soft Delete)
+function deleteSubCategory(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const type = data.type;
+    const name = data.name;
+    
+    if (!type || !name) return errorResponse("Missing type or name");
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_SUB_CATEGORIES);
+    if (!sheet) return errorResponse("SubCategories sheet not found");
+    
+    const rows = sheet.getDataRange().getValues();
+    let rowToUpdate = -1;
+    
+    for (let i = 1; i < rows.length; i++) {
+       if (rows[i][0] === type && rows[i][1].toString() === name) {
+          rowToUpdate = i + 1;
+          break;
+       }
+    }
+    
+    if (rowToUpdate == -1) return errorResponse("Sub-category not found");
+    
+    sheet.getRange(rowToUpdate, 3).setValue(false);
+    return successResponse({'message': 'Sub-category deleted'});
+    
+  } catch (err) {
+    return errorResponse("Server error: " + err.toString());
+  }
 }

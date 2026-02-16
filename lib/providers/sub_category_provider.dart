@@ -27,8 +27,28 @@ class SubCategoryProvider with ChangeNotifier {
     };
 
     for (var sub in _subCategories) {
-      if (map.containsKey(sub.type)) {
-        map[sub.type]!.add(sub.name);
+      // Normalize type: trim whitespace and match case
+      String type = sub.type.trim();
+
+      // Handle potential case differences and plurals from Sheet
+      final lowered = type.toLowerCase();
+      if (lowered == 'asset' || lowered == 'assets') {
+        type = 'Asset';
+      } else if (lowered == 'liability' || lowered == 'liabilities') {
+        type = 'Liability';
+      } else if (lowered == 'income' || lowered == 'incomes') {
+        type = 'Income';
+      } else if (lowered == 'expense' || lowered == 'expenses') {
+        type = 'Expense';
+      } else if (lowered == 'equity' || lowered == 'equities') {
+        type = 'Equity';
+      }
+
+      // Debug print to catch unmatched types
+      // print('DEBUG: Processing SubCategory "${sub.name}" with Raw Type: "${sub.type}" -> Normalized: "$type"');
+
+      if (map.containsKey(type)) {
+        map[type]!.add(sub.name);
       }
     }
 
@@ -50,6 +70,8 @@ class SubCategoryProvider with ChangeNotifier {
         _subCategories = data
             .map((json) => SubCategory.fromJson(json))
             .toList();
+      } else if (data is Map && data['status'] == 'error') {
+        throw data['message'] ?? 'Unknown error';
       }
 
       _isLoading = false;
