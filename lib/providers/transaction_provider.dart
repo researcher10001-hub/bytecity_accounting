@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert'; // Added for JSON decoding
 import '../models/transaction_model.dart';
 import '../models/account_model.dart';
@@ -68,6 +70,38 @@ class TransactionProvider with ChangeNotifier {
   List<SplitEntry> get sources => _sources;
   List<SplitEntry> get destinations => _destinations;
 
+  TransactionProvider() {
+    _loadFromCache();
+    resetForm();
+  }
+
+  // --- Caching Logic ---
+  static const String _cacheKey = 'cached_transactions';
+
+  Future<void> _loadFromCache() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? jsonString = prefs.getString(_cacheKey);
+      if (jsonString != null && jsonString.isNotEmpty) {
+        final List<dynamic> data = jsonDecode(jsonString);
+        _processResponseData(data); // Re-use parsing logic (refactoring needed)
+        notifyListeners();
+        print("DEBUG: Loaded ${data.length} transactions from cache.");
+      }
+    } catch (e) {
+      print("Cache Load Error: $e");
+    }
+  }
+
+  Future<void> _saveToCache(List<dynamic> data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_cacheKey, jsonEncode(data));
+    } catch (e) {
+      print("Cache Save Error: $e");
+    }
+  }
+
   List<TransactionModel> get transactions => _transactions;
 
   bool get isSplitMode => _isSplitMode;
@@ -90,11 +124,6 @@ class TransactionProvider with ChangeNotifier {
   double get equivalentBDT => totalSourceBDT;
 
   bool get isBalanced => (totalSourceBDT - totalDestBDT).abs() < 0.01;
-
-  // Constructor
-  TransactionProvider() {
-    resetForm();
-  }
 
   void resetForm({bool keepDate = false}) {
     // Standardize to Midnight (00:00:00)
@@ -875,6 +904,8 @@ class TransactionProvider with ChangeNotifier {
     if (index != -1) {
       final transaction = _transactions[index];
 
+      // OPTIMIZATION: Removed client-side balance calculation
+      // accountProvider?.updateBalancesFromTransactions(_transactions);
       // Determine new status based on action
       TransactionStatus newStatus = transaction.status;
       switch (action) {
@@ -958,134 +989,17 @@ class TransactionProvider with ChangeNotifier {
     try {
       // For MVP, we fetch ALL entries.
       // Google Script `getEntries` returns flat rows.
-      final data = await _apiService.postRequest(
-        ApiConstants.actionGetEntries,
-        {'user_email': user.email},
-      );
+      final response = await _apiService.postRequest('getEntries', {
+        'user_email': user.email,
+        'limit': 300, // OPTIMIZATION: Fetch only recent 300
+      });
 
-      if (data is List) {
-        // We need to group flat rows into TransactionModels.
-        // Grouping Logic: Use Entry ID (or Voucher No as fallback)
-        // Grouping by Voucher No alone merges different versions (e.g. Deleted vs Active)
-        Map<String, TransactionModel> entryMap = {};
+      if (response is List) {
+        // Cache Success Response
+        _saveToCache(response);
 
-        print("DEBUG: Fetched ${data.length} raw rows from backend.");
-
-        for (var item in data) {
-          try {
-            String vch = item['voucher_no']?.toString() ?? '';
-            String entryId = item['id']?.toString() ?? '';
-            String key = entryId.isNotEmpty ? entryId : vch;
-            String status = item['approval_status']?.toString() ?? 'pending';
-
-            if (status.toLowerCase() == 'deleted') {
-              print("DEBUG: Found DELETED row. ID: $entryId, Vch: $vch");
-            }
-
-            if (!entryMap.containsKey(key)) {
-              entryMap[key] = TransactionModel(
-                id: entryId, // Ensure ID is set
-                voucherNo: vch,
-                date: DateTime.parse(
-                  item['date'],
-                ), // Apps Script might return ISO string or format
-                mainNarration: item['description']?.toString() ?? '',
-                type: VoucherType.values.firstWhere(
-                  (e) =>
-                      e.toString().split('.').last.toLowerCase() ==
-                      (item['type'] ?? 'journal').toString().toLowerCase(),
-                  orElse: () => VoucherType.journal,
-                ),
-                currency: item['currency']?.toString() ?? 'BDT',
-                exchangeRate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
-                createdBy: item['created_by']?.toString() ?? '',
-                createdByName:
-                    item['created_by_name']?.toString() ??
-                    item['created_by']?.toString() ??
-                    '',
-                status: TransactionStatus.values.firstWhere(
-                  (e) =>
-                      e.toString().split('.').last ==
-                      (item['approval_status'] ?? 'pending')
-                          .toString()
-                          .toLowerCase(),
-                  orElse: () => TransactionStatus.pending,
-                ),
-                approvalLog:
-                    (item['approval_log'] != null &&
-                        item['approval_log'].toString().isNotEmpty)
-                    ? (jsonDecode(item['approval_log'].toString()) as List)
-                          .map((e) => ApprovalMessage.fromJson(e))
-                          .toList()
-                    : [],
-                // New fields for tab assignment and flagging (Phase 3)
-                lastActionBy: item['last_action_by']?.toString(),
-                isFlagged:
-                    item['is_flagged'] == true || item['is_flagged'] == 'true',
-                flaggedBy: item['flagged_by']?.toString(),
-                flaggedAt:
-                    item['flagged_at'] != null &&
-                        item['flagged_at'].toString().isNotEmpty
-                    ? DateTime.tryParse(item['flagged_at'].toString())
-                    : null,
-                flagReason: item['flag_reason']?.toString(),
-                // Map Phase 4 Activity Tracking
-                lastActivityAt:
-                    item['last_activity_at'] != null &&
-                        item['last_activity_at'].toString().isNotEmpty
-                    ? DateTime.tryParse(item['last_activity_at'].toString())
-                    : null,
-                lastActivityType: item['last_activity_type']?.toString(),
-                lastActivityBy: item['last_activity_by']?.toString(),
-                erpSyncStatus:
-                    (item['erp_sync_status']?.toString().trim().isEmpty ?? true)
-                    ? 'none'
-                    : item['erp_sync_status'].toString().trim().toLowerCase(),
-                erpDocumentId: item['erp_document_id']?.toString(),
-                details: [],
-              );
-            }
-            // Add Detail
-            // Look up real account to get permissions
-            Account? realAccount;
-            if (accountProvider != null) {
-              try {
-                realAccount = accountProvider.accounts.firstWhere(
-                  (a) =>
-                      a.name.toLowerCase() ==
-                      item['account'].toString().toLowerCase(),
-                );
-              } catch (e) {
-                // Not found
-              }
-            }
-
-            entryMap[key]!.details.add(
-              TransactionDetail(
-                account:
-                    realAccount ??
-                    Account(
-                      name: item['account']?.toString() ?? 'Unknown',
-                      owners: [], // Dummy
-                      groupIds: [],
-                      type: 'General',
-                    ),
-                debit: _parseSafeDouble(item['debit']),
-                credit: _parseSafeDouble(item['credit']),
-                narration: '',
-                // Parse per-line currency and rate
-                currency: item['currency']?.toString() ?? 'BDT',
-                rate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
-              ),
-            );
-          } catch (e) {
-            print("Skipping invalid row in history: $item. Error: $e");
-          }
-        }
-
-        _transactions = entryMap.values.toList();
-        // Sort Date Desc
-        _transactions.sort((a, b) => b.date.compareTo(a.date));
+        // Process
+        _processResponseData(response, accountProvider: accountProvider);
       }
       _isLoading = false;
       notifyListeners();
@@ -1094,6 +1008,124 @@ class TransactionProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     }
+  }
+
+  // Define _processResponseData
+  void _processResponseData(
+    List<dynamic> data, {
+    AccountProvider? accountProvider,
+  }) {
+    // Grouping Logic: Use Entry ID (or Voucher No as fallback)
+    Map<String, TransactionModel> entryMap = {};
+
+    print("DEBUG: Processing ${data.length} rows.");
+
+    for (var item in data) {
+      try {
+        String vch = item['voucher_no']?.toString() ?? '';
+        String entryId = item['id']?.toString() ?? '';
+        String key = entryId.isNotEmpty ? entryId : vch;
+        String status = item['approval_status']?.toString() ?? 'pending';
+
+        if (status.toLowerCase() == 'deleted') {
+          continue;
+        }
+
+        if (!entryMap.containsKey(key)) {
+          entryMap[key] = TransactionModel(
+            id: entryId,
+            voucherNo: vch,
+            date: DateTime.parse(item['date']),
+            mainNarration: item['description']?.toString() ?? '',
+            type: VoucherType.values.firstWhere(
+              (e) =>
+                  e.toString().split('.').last.toLowerCase() ==
+                  (item['type'] ?? 'journal').toString().toLowerCase(),
+              orElse: () => VoucherType.journal,
+            ),
+            currency: item['currency']?.toString() ?? 'BDT',
+            exchangeRate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
+            createdBy: item['created_by']?.toString() ?? '',
+            createdByName:
+                item['created_by_name']?.toString() ??
+                item['created_by']?.toString() ??
+                '',
+            status: TransactionStatus.values.firstWhere(
+              (e) =>
+                  e.toString().split('.').last ==
+                  (item['approval_status'] ?? 'pending')
+                      .toString()
+                      .toLowerCase(),
+              orElse: () => TransactionStatus.pending,
+            ),
+            approvalLog:
+                (item['approval_log'] != null &&
+                    item['approval_log'].toString().isNotEmpty)
+                ? (jsonDecode(item['approval_log'].toString()) as List)
+                      .map((e) => ApprovalMessage.fromJson(e))
+                      .toList()
+                : [],
+            lastActionBy: item['last_action_by']?.toString(),
+            isFlagged:
+                item['is_flagged'] == true || item['is_flagged'] == 'true',
+            flaggedBy: item['flagged_by']?.toString(),
+            flaggedAt:
+                item['flagged_at'] != null &&
+                    item['flagged_at'].toString().isNotEmpty
+                ? DateTime.tryParse(item['flagged_at'].toString())
+                : null,
+            flagReason: item['flag_reason']?.toString(),
+            lastActivityAt:
+                item['last_activity_at'] != null &&
+                    item['last_activity_at'].toString().isNotEmpty
+                ? DateTime.tryParse(item['last_activity_at'].toString())
+                : null,
+            lastActivityType: item['last_activity_type']?.toString(),
+            lastActivityBy: item['last_activity_by']?.toString(),
+            erpSyncStatus:
+                (item['erp_sync_status']?.toString().trim().isEmpty ?? true)
+                ? 'none'
+                : item['erp_sync_status'].toString().trim().toLowerCase(),
+            erpDocumentId: item['erp_document_id']?.toString(),
+            details: [],
+          );
+        }
+
+        // Add Detail
+        // Look up real account to get permissions
+        Account? realAccount;
+        if (accountProvider != null) {
+          try {
+            realAccount = accountProvider.getAccountByName(
+              item['account']?.toString() ?? '',
+            );
+          } catch (e) {}
+        }
+
+        entryMap[key]!.details.add(
+          TransactionDetail(
+            account:
+                realAccount ??
+                Account(
+                  name: item['account']?.toString() ?? 'Unknown',
+                  owners: [],
+                  groupIds: [],
+                  type: 'General',
+                ),
+            debit: _parseSafeDouble(item['debit']),
+            credit: _parseSafeDouble(item['credit']),
+            narration: '',
+            currency: item['currency']?.toString() ?? 'BDT',
+            rate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
+          ),
+        );
+      } catch (e) {
+        print("Skipping invalid row: $e");
+      }
+    }
+
+    _transactions = entryMap.values.toList();
+    _transactions.sort((a, b) => b.date.compareTo(a.date));
   }
 
   /// Alias for silent sync used in periodic timers

@@ -54,16 +54,16 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
     try {
       final user = context.read<AuthProvider>().user;
       if (user != null) {
-        final accountProvider = context.read<AccountProvider>();
+        // final accountProvider = context.read<AccountProvider>(); // Unused
         final transactionProvider = context.read<TransactionProvider>();
 
         // Fetch latest transactions to ensure balances are up to date
         await transactionProvider.fetchHistory(user, forceRefresh: true);
 
-        // Update balances
-        accountProvider.updateBalancesFromTransactions(
-          transactionProvider.transactions,
-        );
+        // OPTIMIZATION: Balance is now handled by Backend + Optimistic Updates
+        // accountProvider.updateBalancesFromTransactions(
+        //   transactionProvider.transactions,
+        // );
       }
     } finally {
       if (mounted) {

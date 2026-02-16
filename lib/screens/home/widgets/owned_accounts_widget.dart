@@ -87,9 +87,10 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
 
     if (mounted) {
       _refreshRotationController.stop();
-      accountProvider.updateBalancesFromTransactions(
-        transactionProvider.transactions,
-      );
+      // OPTIMIZATION: Removed client-side balance calculation
+      // accountProvider.updateBalancesFromTransactions(
+      //   transactionProvider.transactions,
+      // );
       notificationProvider.refreshNotifications(
         user,
         transactionProvider,

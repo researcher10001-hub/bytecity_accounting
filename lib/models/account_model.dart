@@ -116,6 +116,20 @@ class Account {
     return other is Account && other.name == name;
   }
 
+  Map<String, dynamic> toJson() {
+    return {
+      'name': name,
+      'owners': owners.join(','),
+      'group_ids': groupIds.join(','),
+      'type': type,
+      'sub_category': subCategory,
+      'default_currency': defaultCurrency,
+      'active': active,
+      'total_debit': totalDebit,
+      'total_credit': totalCredit,
+    };
+  }
+
   @override
   int get hashCode => name.hashCode;
 }

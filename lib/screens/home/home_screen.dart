@@ -64,16 +64,24 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initialFetch(User user) async {
     final accountProvider = context.read<AccountProvider>();
-    await accountProvider.fetchAccounts(user);
+    // Stale-while-revalidate: Load from cache (already done in constructor), then fetch fresh silently
+    await accountProvider.fetchAccounts(
+      user,
+      forceRefresh: true,
+      skipLoading: true,
+    );
     await context.read<TransactionProvider>().fetchHistory(
       user,
       accountProvider: accountProvider,
+      forceRefresh: true,
+      skipLoading: true,
     );
 
     if (context.mounted) {
-      context.read<AccountProvider>().updateBalancesFromTransactions(
-        context.read<TransactionProvider>().transactions,
-      );
+      // OPTIMIZATION: Removed client-side balance calculation
+      // context.read<AccountProvider>().updateBalancesFromTransactions(
+      //   context.read<TransactionProvider>().transactions,
+      // );
 
       context.read<UserProvider>().fetchUsers(); // Pre-fetch users
       context.read<NotificationProvider>().refreshNotifications(
