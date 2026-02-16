@@ -147,6 +147,9 @@ class TransactionModel {
   // Values: 'none', 'synced', 'manual'
   String erpSyncStatus;
 
+  // ERP Document ID (ERPNext reference)
+  String? erpDocumentId;
+
   TransactionModel({
     this.id,
     required this.date,
@@ -169,6 +172,7 @@ class TransactionModel {
     this.lastActivityType,
     this.lastActivityBy,
     this.erpSyncStatus = 'none',
+    this.erpDocumentId,
   });
 
   double get totalDebit => details.fold(0, (sum, item) => sum + item.debit);
@@ -194,6 +198,7 @@ class TransactionModel {
       'status': status.toString().split('.').last,
       'approval_log': approvalLog.map((e) => e.toJson()).toList(),
       'erp_sync_status': erpSyncStatus,
+      'erp_document_id': erpDocumentId,
     };
   }
 
@@ -234,6 +239,7 @@ class TransactionModel {
       lastActivityType: json['last_activity_type'],
       lastActivityBy: json['last_activity_by'],
       erpSyncStatus: json['erp_sync_status'] ?? 'none',
+      erpDocumentId: json['erp_document_id'],
     );
   }
 }

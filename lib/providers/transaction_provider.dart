@@ -757,9 +757,13 @@ class TransactionProvider with ChangeNotifier {
       });
 
       if (response != null) {
+        // Extract ERP document ID from response if available
+        final erpDocId = response['erp_document_id'] as String?;
+
         _updateLocalSyncStatus(
           voucherNo: voucherNo,
           status: isManual ? 'manual' : 'synced',
+          erpDocumentId: erpDocId,
         );
         _isLoading = false;
         notifyListeners();
@@ -777,6 +781,7 @@ class TransactionProvider with ChangeNotifier {
   void _updateLocalSyncStatus({
     required String voucherNo,
     required String status,
+    String? erpDocumentId,
   }) {
     final index = _transactions.indexWhere((t) => t.voucherNo == voucherNo);
     if (index != -1) {
@@ -803,6 +808,7 @@ class TransactionProvider with ChangeNotifier {
         lastActivityType: transaction.lastActivityType,
         lastActivityBy: transaction.lastActivityBy,
         erpSyncStatus: status,
+        erpDocumentId: erpDocumentId ?? transaction.erpDocumentId,
       );
     }
   }

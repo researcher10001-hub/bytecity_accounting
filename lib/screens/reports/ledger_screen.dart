@@ -1331,7 +1331,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             scrollDirection: Axis.horizontal,
                             itemCount: reportGroups.length,
-                            separatorBuilder: (_, __) =>
+                            separatorBuilder: (_, _) =>
                                 const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final group = reportGroups[index];

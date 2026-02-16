@@ -14,6 +14,20 @@
 
 // --- CONSTANTS ---
 const SHEET_USERS = "Users";
+
+/**
+ * MANUAL ACTION REQUIRED: 
+ * If you see "permission denied to call UrlFetchApp", select this function
+ * in the editor dropdown and click the "Run" button to authorize external requests.
+ * 
+ * NOTE: If no popup appears, check if your browser is blocking popups from script.google.com.
+ */
+function triggerAuthorizationPrompt() {
+  const dummyUrl = "https://script.google.com/macros/s/AKfycbzS4iQYMEUUdorR4Qd8EFxZzi99ZM7E8MpNOWHyzv1Gxy5iUuZDb6nJhXcArdbUgKhs/exec";
+  // Calling this without try-catch to force the platform to trigger the auth flow.
+  UrlFetchApp.fetch(dummyUrl);
+  console.log("Authorization verified successfully.");
+}
 const SHEET_ACCOUNTS = "Accounts";
 const SHEET_GROUPS = "Groups";
 const SHEET_ENTRIES = "Entries";
@@ -2815,6 +2829,7 @@ function syncToERPNext(e) {
         "posting_date": postingDate,
         "voucher_type": docType, 
         "user_remark": rows[0][3], // Description
+        "docstatus": 1, // 0 = Draft, 1 = Submitted
         "accounts": accounts
     };
     
@@ -2837,11 +2852,21 @@ function syncToERPNext(e) {
     const responseText = response.getContentText();
     
     if (responseCode >= 200 && responseCode < 300) {
-        // Success
+        // Success - Extract ERPNext document ID from response
+        const erpResponse = JSON.parse(responseText);
+        const erpDocId = erpResponse.data?.name || erpResponse.name || '';
+        
         for (let rowIdx of targetIndices) {
-            sheet.getRange(rowIdx, 22).setValue('synced');
+            sheet.getRange(rowIdx, 22).setValue('synced'); // ERP Sync Status
+            if (erpDocId) {
+                sheet.getRange(rowIdx, 23).setValue(erpDocId); // ERP Document ID
+            }
         }
-        return successResponse({'message': 'Successfully synced to ERPNext', 'erp_response': JSON.parse(responseText)});
+        return successResponse({
+            'message': 'Successfully synced to ERPNext',
+            'erp_document_id': erpDocId,
+            'erp_response': erpResponse
+        });
     } else {
         return errorResponse("ERPNext API Error (" + responseCode + "): " + responseText);
     }

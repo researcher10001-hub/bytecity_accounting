@@ -16,10 +16,15 @@ class ApiService {
     try {
       // Use Uri.https for better Android compatibility
       // Construct URL: script.google.com, /macros/s/ID/exec, {action: action}
-      final Uri baseUri = Uri.parse(ApiConstants.baseUrl);
-      final finalUrl = Uri.https('script.google.com', baseUri.path, {
-        'action': action,
-      });
+      // Aggressively clean the URL (remove all spaces/newlines)
+      final String cleanUrl = ApiConstants.baseUrl.replaceAll(
+        RegExp(r'\s+'),
+        '',
+      );
+      final Uri baseUri = Uri.parse(cleanUrl);
+      final finalUrl = baseUri.replace(
+        queryParameters: {...baseUri.queryParameters, 'action': action},
+      );
 
       print('API Request: $finalUrl');
       print('Request Body: ${jsonEncode(data)}');

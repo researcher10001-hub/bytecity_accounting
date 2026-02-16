@@ -9,6 +9,7 @@ import '../admin/accounts_screen.dart';
 import '../admin/account_groups_screen.dart';
 import '../admin/audit_dashboard_screen.dart';
 import '../admin/sub_category_management_screen.dart';
+import '../admin/erp_settings_screen.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -292,6 +293,21 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     context,
                     MaterialPageRoute(
                       builder: (_) => const SubCategoryManagementScreen(),
+                    ),
+                  );
+                },
+              ),
+              const SizedBox(height: 12),
+              _buildSettingsTile(
+                title: 'ERPNext Configuration',
+                subtitle: 'Setup API credentials & instance URL',
+                icon: LucideIcons.settings,
+                color: Colors.blueGrey.shade800,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const ERPSettingsScreen(),
                     ),
                   );
                 },
