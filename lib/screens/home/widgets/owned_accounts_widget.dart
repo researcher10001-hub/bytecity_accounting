@@ -186,7 +186,7 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                             Row(
                               children: [
                                 Text(
-                                  'Account Balances',
+                                  'My Accounts',
                                   style: GoogleFonts.inter(
                                     fontSize: 13,
                                     fontWeight: FontWeight.w600,

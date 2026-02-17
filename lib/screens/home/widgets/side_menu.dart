@@ -112,7 +112,7 @@ class SideMenu extends StatelessWidget {
         },
         {
           'icon': Icons.account_balance_wallet_rounded,
-          'label': 'Account Balances',
+          'label': 'My Accounts',
           'view': DashboardView.ownedAccounts,
         },
         {
