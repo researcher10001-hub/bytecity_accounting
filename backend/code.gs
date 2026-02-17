@@ -117,6 +117,10 @@ function doPost(e) {
     return forceLogout(e);
   }
 
+  if (action == 'logoutUser') {
+    return logoutUser(e);
+  }
+
   if (action == 'checkSession') {
     return checkSession(e);
   }
@@ -214,7 +218,8 @@ function checkSession(e) {
            const storedToken = (row.length > 6) ? row[6].toString() : "";
            const status = row[4].toString();
            
-           if (storedToken === token) {
+           const storedTokens = storedToken.split(",").map(t => t.trim()).filter(t => t);
+           if (storedTokens.includes(token)) {
               if (status === "Active") {
                   // Return FULL user data to sync permissions
                   const allowForeignCurrency = (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false;
@@ -696,12 +701,44 @@ function forceLogout(e) {
     
     if (rowToUpdate == -1) return errorResponse("User not found");
     
-    // Clear/Invalidate Session Token (Column 7 / Index 6)
+    // Clear ALL session tokens (force logout from all devices)
     // Schema: Name[0], Email[1], Hash[2], Role[3], Active[4], GroupIDs[5], SessionToken[6]
-    sheet.getRange(rowToUpdate, 7).setValue("REVOKED_" + new Date().getTime());
+    sheet.getRange(rowToUpdate, 7).setValue("");
     
     return successResponse({'message': 'User session revoked (Force Logout)'});
     
+  } catch (err) {
+    return errorResponse("Server error: " + err.toString());
+  }
+}
+
+// --- USER LOGOUT (Per-Device) ---
+// Removes only the requesting device's token from the session list.
+// Other devices remain logged in.
+function logoutUser(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const email = data.email;
+    const token = data.session_token;
+    
+    if (!email || !token) return errorResponse("Missing email or session_token");
+    
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+    if (!sheet) return errorResponse("Users sheet not found");
+    
+    const rows = sheet.getDataRange().getValues();
+    
+    for (let i = 1; i < rows.length; i++) {
+       if (rows[i][1].toString() == email) {
+          const storedTokens = (rows[i].length > 6) ? rows[i][6].toString() : "";
+          // Remove only the requesting device's token
+          const tokens = storedTokens.split(",").map(t => t.trim()).filter(t => t && t !== token);
+          sheet.getRange(i + 1, 7).setValue(tokens.join(","));
+          return successResponse({'message': 'Logged out successfully'});
+       }
+    }
+    
+    return successResponse({'message': 'Logged out successfully'});
   } catch (err) {
     return errorResponse("Server error: " + err.toString());
   }
@@ -747,10 +784,14 @@ function loginUser(e) {
              scriptProperties.deleteProperty(attemptsKey);
              scriptProperties.deleteProperty(lockoutKey);
              
-             // GENERATE NEW SESSION TOKEN
+             // GENERATE NEW SESSION TOKEN (Multi-Device Support)
              const newToken = Utilities.getUuid();
-             // Store in Col 7 (Session Token)
-             sheet.getRange(i + 1, 7).setValue(newToken);
+             // Append to existing tokens (max 3 concurrent sessions)
+             const existingTokens = (row.length > 6) ? row[6].toString() : "";
+             let tokens = existingTokens ? existingTokens.split(",").filter(t => t.trim()) : [];
+             tokens.push(newToken);
+             if (tokens.length > 3) tokens = tokens.slice(-3); // keep latest 3
+             sheet.getRange(i + 1, 7).setValue(tokens.join(","));
              
              // Designation is Col 8 (Index 7)
              const designation = (row.length > 7) ? row[7].toString() : "";
@@ -1206,9 +1247,9 @@ function isValidSession(email, token) {
   const rows = sheet.getDataRange().getValues();
   for (let i = 1; i < rows.length; i++) {
      if (rows[i][1].toString() == email) {
-        // Col 7 is SessionToken (index 6)
+        // Col 7 is SessionToken (index 6) - supports comma-separated multi-device tokens
         const storedToken = (rows[i].length > 6) ? rows[i][6].toString() : "";
-        return storedToken === token;
+        return storedToken.split(",").map(t => t.trim()).filter(t => t).includes(token);
      }
   }
   return false;

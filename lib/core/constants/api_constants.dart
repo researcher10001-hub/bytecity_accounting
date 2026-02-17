@@ -31,6 +31,7 @@ class ApiConstants {
   static const String actionDeleteUser = 'deleteUser';
   static const String actionForceLogout = 'forceLogout';
   static const String actionCheckSession = 'checkSession';
+  static const String actionLogoutUser = 'logoutUser';
   static const String actionChangePassword = 'changePassword';
   static const String actionResetTestUsers = 'resetTestUsers';
 

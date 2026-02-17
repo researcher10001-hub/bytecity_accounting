@@ -123,6 +123,17 @@ class AuthProvider with ChangeNotifier {
 
   Future<void> logout() async {
     _stopSessionMonitor();
+    // Remove this device's token from the server (fire-and-forget)
+    if (_user != null && _user!.sessionToken != null) {
+      try {
+        await _apiService.postRequest(ApiConstants.actionLogoutUser, {
+          'email': _user!.email,
+          'session_token': _user!.sessionToken,
+        });
+      } catch (_) {
+        // Ignore server errors — local logout always proceeds
+      }
+    }
     await _sessionManager.logout();
     _user = null;
     notifyListeners();
