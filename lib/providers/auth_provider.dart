@@ -158,6 +158,11 @@ class AuthProvider with ChangeNotifier {
     _sessionTimer = null;
   }
 
+  /// Public method to manually check session and sync user data
+  Future<void> checkSession() async {
+    await _checkSessionValidity();
+  }
+
   Future<void> _checkSessionValidity() async {
     if (_user == null || _user!.sessionToken == null) return;
 

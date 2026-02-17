@@ -58,9 +58,29 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
     try {
       final user = context.read<AuthProvider>().user;
       if (user != null) {
-        final transactionProvider = context.read<TransactionProvider>();
-        // Fetch latest transactions to ensure balances are up to date
-        await transactionProvider.fetchHistory(user, forceRefresh: true);
+        // 1. Re-fetch user data to get updated pins
+        final authProvider = context.read<AuthProvider>();
+        await authProvider.checkSession();
+
+        // Get updated user after session check
+        final updatedUser = authProvider.user;
+
+        if (updatedUser != null) {
+          // 2. Fetch accounts with updated user (will sort with new pins)
+          final accountProvider = context.read<AccountProvider>();
+          await accountProvider.fetchAccounts(
+            updatedUser,
+            forceRefresh: true,
+            skipLoading: true,
+          );
+
+          // 3. Fetch latest transactions to ensure balances are up to date
+          final transactionProvider = context.read<TransactionProvider>();
+          await transactionProvider.fetchHistory(
+            updatedUser,
+            forceRefresh: true,
+          );
+        }
       }
     } finally {
       if (mounted) {
@@ -137,6 +157,36 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
             ),
           ),
         ),
+
+        // Refresh Button (Desktop only)
+        if (isDesktop)
+          Padding(
+            padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: _isRefreshing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        valueColor: AlwaysStoppedAnimation<Color>(
+                          Color(0xFF1E88E5),
+                        ),
+                      ),
+                    )
+                  : IconButton(
+                      icon: const Icon(Icons.refresh, size: 20),
+                      onPressed: _refreshBalances,
+                      tooltip: 'Refresh pins and balances',
+                      style: IconButton.styleFrom(
+                        foregroundColor: const Color(0xFF1E88E5),
+                        backgroundColor: const Color(0xFFE3F2FD),
+                        padding: const EdgeInsets.all(8),
+                      ),
+                    ),
+            ),
+          ),
 
         // Loading Bar (visible during refresh)
         if (_isRefreshing)
