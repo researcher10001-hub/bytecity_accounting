@@ -14,7 +14,7 @@ class SideMenu extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 220,
+      width: 250,
       color: const Color(0xFF1565C0), // Darker Blue for Sidebar
       child: Column(
         children: [
