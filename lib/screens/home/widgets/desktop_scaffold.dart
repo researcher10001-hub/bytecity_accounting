@@ -73,8 +73,6 @@ class DesktopScaffold extends StatelessWidget {
                       ),
                       Row(
                         children: [
-                          _buildHeaderIcon(Icons.search_rounded),
-                          const SizedBox(width: 16),
                           _buildHeaderIcon(Icons.notifications_none_rounded),
                           const SizedBox(width: 24),
                           Container(
