@@ -230,6 +230,9 @@ function checkSession(e) {
                       if (!name) name = 'Admin User';
                   }
 
+                  const allowDateEdit = (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false;
+                  const pinnedAccount = (row.length > 11) ? row[11].toString() : "";
+
                   return successResponse({
                       'valid': true,
                       'name': name,
@@ -237,12 +240,13 @@ function checkSession(e) {
                       'role': role,
                       'status': "Active",
                       'active': true,
-                      'group_ids': groupIds,
+                      'group_ids': row[5] ? row[5].toString() : "",
                       'session_token': token,
-                      'designation': designation,
+                      'designation': (row.length > 7) ? row[7].toString() : "",
                       'allow_foreign_currency': allowForeignCurrency,
                       'allow_auto_approval': allowAutoApproval,
-                      'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false
+                      'allow_date_edit': allowDateEdit,
+                      'pinned_account': pinnedAccount
                   });
               } else {
                   return errorResponse("Unauthorized: User suspended.");
@@ -546,6 +550,10 @@ function updateUser(e) {
     const allowDateEdit = data.allow_date_edit;
     if (allowDateEdit !== undefined) sheet.getRange(rowToUpdate, 11).setValue(allowDateEdit);
     
+    // Pinned Account is Col 12 (Index 11)
+    const pinnedAccount = data.pinned_account;
+    if (pinnedAccount !== undefined) sheet.getRange(rowToUpdate, 12).setValue(pinnedAccount);
+    
     
     return successResponse({'message': 'User updated'});
     
@@ -584,8 +592,8 @@ function createUser(e) {
     
     const hash = generateHash(email, password);
     
-    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8], AllowAutoApproval [9], DatePermission [10]
-    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency, allowAutoApproval, false]);
+    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8], AllowAutoApproval [9], DatePermission [10], PinnedAccount [11]
+    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency, allowAutoApproval, false, ""]);
     
     return successResponse({'message': 'User created'});
     
@@ -653,7 +661,8 @@ function getUsers(e) {
         'designation': (row.length > 7) ? row[7].toString() : "",
         'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false,
         'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false,
-        'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false
+        'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false,
+        'pinned_account': (row.length > 11) ? row[11].toString() : ""
       });
     }
     
@@ -767,7 +776,8 @@ function loginUser(e) {
                'designation': designation,
                'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false,
                'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false,
-               'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false
+               'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false,
+               'pinned_account': (row.length > 11) ? row[11].toString() : ""
              });
           } else {
             return errorResponse("Account " + status + ". Contact admin.");

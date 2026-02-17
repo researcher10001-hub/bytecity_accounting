@@ -12,6 +12,7 @@ class AccountProvider with ChangeNotifier {
   List<Account> _accounts = [];
   bool _isLoading = false;
   String? _error;
+  String? _pinnedAccountName;
   final ApiService _apiService = ApiService();
 
   AccountProvider() {
@@ -136,9 +137,11 @@ class AccountProvider with ChangeNotifier {
         }
 
         // Cache the processed list
-        _saveToCache(
-          [],
-        ); // Empty list because we use _accounts inside _saveToCache
+        _saveToCache([]);
+
+        // Apply sorting (pinned account first)
+        _pinnedAccountName = user.pinnedAccountName;
+        _sortAccounts(_pinnedAccountName);
       }
 
       _isLoading = false;
@@ -170,6 +173,7 @@ class AccountProvider with ChangeNotifier {
           _accounts[i] = match;
         }
         _saveToCache([]); // Update cache with new balances
+        _sortAccounts(_pinnedAccountName);
         notifyListeners();
       }
     } catch (e) {
@@ -347,12 +351,24 @@ class AccountProvider with ChangeNotifier {
 
     if (hasUpdates) {
       _accounts = accMap.values.toList();
-      _accounts.sort((a, b) => a.name.compareTo(b.name));
-      notifyListeners();
+      _sortAccounts(_pinnedAccountName);
     }
   }
 
   // --- Helpers ---
+  void _sortAccounts(String? pinnedName) {
+    if (_accounts.isEmpty) return;
+
+    _accounts.sort((a, b) {
+      if (pinnedName != null && pinnedName.isNotEmpty) {
+        if (a.name.toLowerCase() == pinnedName.toLowerCase()) return -1;
+        if (b.name.toLowerCase() == pinnedName.toLowerCase()) return 1;
+      }
+      return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+    });
+    notifyListeners();
+  }
+
   Account? getAccountByName(String name) {
     try {
       return _accounts.firstWhere(

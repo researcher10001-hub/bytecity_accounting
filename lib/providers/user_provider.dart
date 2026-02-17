@@ -228,4 +228,24 @@ class UserProvider with ChangeNotifier {
       return false;
     }
   }
+
+  Future<bool> pinAccount(String email, String? accountName) async {
+    try {
+      final payload = {'email': email, 'pinned_account': accountName ?? ''};
+
+      await _apiService.postRequest(ApiConstants.actionUpdateUser, payload);
+
+      // Optimistic Update: If we have the users list, update it
+      final index = _users.indexWhere((u) => u.email == email);
+      if (index != -1) {
+        _users[index] = _users[index].copyWith(pinnedAccountName: accountName);
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
 }

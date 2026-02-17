@@ -268,11 +268,21 @@ class _HomeScreenState extends State<HomeScreen> {
 
                 return InkWell(
                   onTap: () {
-                    // Desktop: use provider. Mobile (current): Push screen.
-                    // But here we are in _buildDashboardHome which is used by desktop.
-                    context.read<DashboardProvider>().setView(
-                      DashboardView.ownedAccounts,
-                    );
+                    // Check if we're on mobile or desktop
+                    if (MediaQuery.of(context).size.width < 800) {
+                      // Mobile: Push screen
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const OwnedAccountsScreen(),
+                        ),
+                      );
+                    } else {
+                      // Desktop: Use provider
+                      context.read<DashboardProvider>().setView(
+                        DashboardView.ownedAccounts,
+                      );
+                    }
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(

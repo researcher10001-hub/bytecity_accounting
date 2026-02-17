@@ -115,6 +115,12 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<void> updateUserLocally(User updatedUser) async {
+    _user = updatedUser;
+    await _sessionManager.saveUser(_user!);
+    notifyListeners();
+  }
+
   Future<void> logout() async {
     _stopSessionMonitor();
     await _sessionManager.logout();
@@ -160,7 +166,8 @@ class AuthProvider with ChangeNotifier {
           if (updatedUser.allowForeignCurrency != _user!.allowForeignCurrency ||
               updatedUser.allowAutoApproval != _user!.allowAutoApproval ||
               updatedUser.role != _user!.role ||
-              updatedUser.status != _user!.status) {
+              updatedUser.status != _user!.status ||
+              updatedUser.pinnedAccountName != _user!.pinnedAccountName) {
             _user = updatedUser;
             await _sessionManager.saveUser(_user!);
             notifyListeners();

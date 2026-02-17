@@ -105,6 +105,9 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
+    if (user == null) return const SizedBox.shrink();
+
     return Consumer3<AccountProvider, GroupProvider, TransactionProvider>(
       builder: (context, accountProvider, groupProvider, transactionProvider, _) {
         final ownedAccounts = accountProvider.accounts
@@ -349,28 +352,87 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                             groupProvider.getGroupNames(acc.groupIds),
                             style: GoogleFonts.inter(fontSize: 11),
                           ),
-                          trailing: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.end,
+                          trailing: Row(
+                            mainAxisSize: MainAxisSize.min,
                             children: [
-                              Text(
-                                '৳ ${NumberFormat('#,##0.00').format(balance.abs())}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.bold,
-                                  color: isNatural
-                                      ? Colors.black87
-                                      : Colors.red,
-                                ),
+                              Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '৳ ${NumberFormat('#,##0.00').format(balance.abs())}',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isNatural
+                                          ? Colors.black87
+                                          : Colors.red,
+                                    ),
+                                  ),
+                                  Text(
+                                    balance >= 0 ? 'DR' : 'CR',
+                                    style: TextStyle(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                      color: balance >= 0
+                                          ? Colors.blue
+                                          : Colors.orange,
+                                    ),
+                                  ),
+                                ],
                               ),
-                              Text(
-                                balance >= 0 ? 'DR' : 'CR',
-                                style: TextStyle(
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                  color: balance >= 0
-                                      ? Colors.blue
-                                      : Colors.orange,
+                              const SizedBox(width: 8),
+                              GestureDetector(
+                                onTap: () async {
+                                  final newPinned =
+                                      user.pinnedAccountName == acc.name
+                                      ? ''
+                                      : acc.name;
+
+                                  final success = await context
+                                      .read<UserProvider>()
+                                      .pinAccount(user.email, newPinned);
+
+                                  if (context.mounted && success) {
+                                    final updatedUser = user.copyWith(
+                                      pinnedAccountName: newPinned,
+                                    );
+
+                                    // Update AuthProvider so all UI reflects the change
+                                    context
+                                        .read<AuthProvider>()
+                                        .updateUserLocally(updatedUser);
+
+                                    // Force account provider to re-sort
+                                    context
+                                        .read<AccountProvider>()
+                                        .fetchAccounts(
+                                          updatedUser,
+                                          forceRefresh: true,
+                                          skipLoading: true,
+                                        );
+
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          newPinned.isEmpty
+                                              ? 'Account unpinned'
+                                              : 'Account pinned to top',
+                                        ),
+                                        backgroundColor: Colors.blue[700],
+                                        duration: const Duration(seconds: 1),
+                                      ),
+                                    );
+                                  }
+                                },
+                                child: Icon(
+                                  user.pinnedAccountName == acc.name
+                                      ? Icons.push_pin
+                                      : Icons.push_pin_outlined,
+                                  size: 16,
+                                  color: user.pinnedAccountName == acc.name
+                                      ? const Color(0xFF1E88E5)
+                                      : Colors.grey[400],
                                 ),
                               ),
                             ],

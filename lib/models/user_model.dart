@@ -11,6 +11,7 @@ class User {
   final List<String> groupIds;
   final String? sessionToken;
   final bool allowAutoApproval; // New field for Management approval permission
+  final String? pinnedAccountName;
 
   User({
     required this.name,
@@ -23,6 +24,7 @@ class User {
     this.groupIds = const [],
     this.sessionToken,
     this.allowAutoApproval = false,
+    this.pinnedAccountName,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -74,6 +76,7 @@ class User {
       groupIds: parsedGroups,
       sessionToken: json['session_token']?.toString().trim(),
       allowAutoApproval: json['allow_auto_approval'] == true,
+      pinnedAccountName: json['pinned_account']?.toString().trim(),
     );
   }
 
@@ -89,6 +92,7 @@ class User {
       'group_ids': groupIds.join(','),
       'session_token': sessionToken,
       'allow_auto_approval': allowAutoApproval,
+      'pinned_account': pinnedAccountName,
     };
   }
 
@@ -122,6 +126,7 @@ class User {
     List<String>? groupIds,
     String? sessionToken,
     bool? allowAutoApproval,
+    String? pinnedAccountName,
   }) {
     return User(
       name: name ?? this.name,
@@ -134,6 +139,7 @@ class User {
       groupIds: groupIds ?? this.groupIds,
       sessionToken: sessionToken ?? this.sessionToken,
       allowAutoApproval: allowAutoApproval ?? this.allowAutoApproval,
+      pinnedAccountName: pinnedAccountName ?? this.pinnedAccountName,
     );
   }
 }

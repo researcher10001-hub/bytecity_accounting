@@ -7,9 +7,10 @@ import '../../../providers/account_provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/permission_service.dart';
-import '../../../../providers/dashboard_provider.dart';
+import '../../../providers/dashboard_provider.dart';
+import '../../../providers/user_provider.dart';
 import '../../reports/ledger_screen.dart';
-import '../../../../core/utils/currency_formatter.dart';
+import '../../../core/utils/currency_formatter.dart';
 
 class OwnedAccountsScreen extends StatefulWidget {
   const OwnedAccountsScreen({super.key});
@@ -55,16 +56,9 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
     try {
       final user = context.read<AuthProvider>().user;
       if (user != null) {
-        // final accountProvider = context.read<AccountProvider>(); // Unused
         final transactionProvider = context.read<TransactionProvider>();
-
         // Fetch latest transactions to ensure balances are up to date
         await transactionProvider.fetchHistory(user, forceRefresh: true);
-
-        // OPTIMIZATION: Balance is now handled by Backend + Optimistic Updates
-        // accountProvider.updateBalancesFromTransactions(
-        //   transactionProvider.transactions,
-        // );
       }
     } finally {
       if (mounted) {
@@ -286,6 +280,67 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                 ],
                               ),
                               const SizedBox(width: 12),
+                              IconButton(
+                                icon: Icon(
+                                  user.pinnedAccountName == account.name
+                                      ? Icons.push_pin
+                                      : Icons.push_pin_outlined,
+                                  size: 18,
+                                  color: user.pinnedAccountName == account.name
+                                      ? const Color(0xFF1E88E5)
+                                      : Colors.grey[400],
+                                ),
+                                onPressed: () async {
+                                  final newPinned =
+                                      user.pinnedAccountName == account.name
+                                      ? ''
+                                      : account.name;
+
+                                  final success = await context
+                                      .read<UserProvider>()
+                                      .pinAccount(user.email, newPinned);
+
+                                  if (context.mounted) {
+                                    if (success) {
+                                      final updatedUser = user.copyWith(
+                                        pinnedAccountName: newPinned,
+                                      );
+
+                                      // Update AuthProvider so all UI reflects the change
+                                      context
+                                          .read<AuthProvider>()
+                                          .updateUserLocally(updatedUser);
+
+                                      // Force account provider to re-sort
+                                      context
+                                          .read<AccountProvider>()
+                                          .fetchAccounts(
+                                            updatedUser,
+                                            forceRefresh: true,
+                                            skipLoading: true,
+                                          );
+
+                                      ScaffoldMessenger.of(
+                                        context,
+                                      ).showSnackBar(
+                                        SnackBar(
+                                          content: Text(
+                                            newPinned.isEmpty
+                                                ? 'Account unpinned'
+                                                : 'Account pinned to top',
+                                          ),
+                                          backgroundColor: Colors.blue[700],
+                                          duration: const Duration(seconds: 1),
+                                        ),
+                                      );
+                                    }
+                                  }
+                                },
+                                tooltip: user.pinnedAccountName == account.name
+                                    ? 'Unpin from top'
+                                    : 'Pin to top',
+                              ),
+                              const SizedBox(width: 4),
                               Icon(
                                 LucideIcons.chevronRight,
                                 size: 18,
