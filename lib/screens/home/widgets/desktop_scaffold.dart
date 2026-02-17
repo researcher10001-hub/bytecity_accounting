@@ -37,11 +37,17 @@ class DesktopScaffold extends StatelessWidget {
               children: [
                 // Desktop Header
                 Container(
-                  height: 64,
+                  height: 60,
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    border: Border(bottom: BorderSide(color: Colors.black12)),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black12,
+                        blurRadius: 4,
+                        offset: Offset(0, 1),
+                      ),
+                    ],
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -49,17 +55,54 @@ class DesktopScaffold extends StatelessWidget {
                       Text(
                         _getPageTitle(currentIndex, role),
                         style: GoogleFonts.inter(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                          fontWeight: FontWeight.w700,
                           color: Colors.black87,
                         ),
                       ),
                       Row(
                         children: [
-                          const SizedBox(width: 8),
+                          _buildHeaderIcon(Icons.search_rounded),
+                          const SizedBox(width: 16),
+                          _buildHeaderIcon(Icons.notifications_none_rounded),
+                          const SizedBox(width: 24),
+                          Container(
+                            height: 40,
+                            width: 1,
+                            color: Colors.grey[200],
+                          ),
+                          const SizedBox(width: 24),
+                          Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text(
+                                role,
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  color: Colors.grey[600],
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                'User Account', // Update this if real name available
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: Colors.black87,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(width: 12),
                           CircleAvatar(
-                            backgroundColor: Colors.grey[200],
-                            child: const Icon(Icons.person, color: Colors.grey),
+                            radius: 18,
+                            backgroundColor: Colors.blue[50],
+                            child: const Icon(
+                              Icons.person,
+                              color: Color(0xFF1E88E5),
+                              size: 20,
+                            ),
                           ),
                         ],
                       ),
@@ -81,17 +124,33 @@ class DesktopScaffold extends StatelessWidget {
     );
   }
 
+  Widget _buildHeaderIcon(IconData icon) {
+    return Container(
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+        color: Colors.grey[100],
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Icon(icon, color: Colors.grey[600], size: 20),
+    );
+  }
+
   String _getPageTitle(int index, String role) {
     // Simple mapper for title based on index
     // Mirrors SideMenu logic
-    if (index == 0) return 'Home';
-    if (role == 'Admin') {
-      if (index == 1) return 'Transactions';
-      if (index == 2) return 'Reports';
+    if (index == 0) return 'Dashboard Overview';
+    final bool isAdmin = role.trim().toLowerCase() == 'admin';
+
+    if (isAdmin) {
+      if (index == 1) return 'Transactions History';
+      if (index == 2) return 'Financial Reports';
+      if (index == 3) return 'User Groups';
+      if (index == 4) return 'System Settings';
     } else {
-      if (index == 1) return 'History';
-      if (index == 2) return 'Profile';
+      if (index == 1) return 'Transaction History';
+      if (index == 2) return 'Profile & Accounts';
+      if (index == 3) return 'General Settings';
     }
-    return 'Dashboard';
+    return 'Management Console';
   }
 }

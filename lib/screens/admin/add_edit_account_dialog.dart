@@ -304,7 +304,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                         // Type Selection
                         _buildModernLabel('Type'),
                         DropdownButtonFormField<String>(
-                          value: _selectedType,
+                          initialValue: _selectedType,
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             fontWeight: FontWeight.w500,
@@ -434,7 +434,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                         // Currency
                         _buildModernLabel('Currency'),
                         DropdownButtonFormField<String>(
-                          value: _selectedCurrency,
+                          initialValue: _selectedCurrency,
                           items: _currencies
                               .map(
                                 (c) =>
@@ -478,7 +478,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: groupProvider.groups.length,
-                                separatorBuilder: (_, __) => const Divider(
+                                separatorBuilder: (_, _) => const Divider(
                                   height: 1,
                                   color: Color(0xFFF1F5F9),
                                 ),
@@ -542,7 +542,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: activeUsers.length,
-                                separatorBuilder: (_, __) => const Divider(
+                                separatorBuilder: (_, _) => const Divider(
                                   height: 1,
                                   color: Color(0xFFF1F5F9),
                                 ),

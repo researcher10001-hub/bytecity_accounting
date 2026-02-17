@@ -200,7 +200,7 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             const MessageCard(),
-            const SizedBox(height: 16),
+            const SizedBox(height: 12),
 
             // Owned Accounts Summary Button
             if (user != null)
@@ -226,7 +226,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       },
                       borderRadius: BorderRadius.circular(16),
                       child: Container(
-                        padding: const EdgeInsets.all(20),
+                        padding: const EdgeInsets.all(16),
                         decoration: BoxDecoration(
                           gradient: LinearGradient(
                             colors: [
@@ -236,19 +236,19 @@ class _HomeScreenState extends State<HomeScreen> {
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(12),
                           boxShadow: [
                             BoxShadow(
                               color: Colors.blue.withValues(alpha: 0.3),
-                              blurRadius: 12,
-                              offset: const Offset(0, 6),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
                             ),
                           ],
                         ),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(12),
+                              padding: const EdgeInsets.all(10),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.2),
                                 shape: BoxShape.circle,
@@ -256,10 +256,10 @@ class _HomeScreenState extends State<HomeScreen> {
                               child: const Icon(
                                 Icons.account_balance_wallet,
                                 color: Colors.white,
-                                size: 24,
+                                size: 20,
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -269,10 +269,10 @@ class _HomeScreenState extends State<HomeScreen> {
                                     style: GoogleFonts.inter(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
-                                      fontSize: 16,
+                                      fontSize: 15,
                                     ),
                                   ),
-                                  const SizedBox(height: 4),
+                                  const SizedBox(height: 2),
                                   Text(
                                     countLabel,
                                     style: GoogleFonts.inter(
@@ -280,22 +280,22 @@ class _HomeScreenState extends State<HomeScreen> {
                                         alpha: 0.8,
                                       ),
                                       fontWeight: FontWeight.w500,
-                                      fontSize: 13,
+                                      fontSize: 12,
                                     ),
                                   ),
                                 ],
                               ),
                             ),
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(6),
                               decoration: BoxDecoration(
                                 color: Colors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(8),
                               ),
                               child: const Icon(
                                 Icons.arrow_forward_ios,
                                 color: Colors.white,
-                                size: 16,
+                                size: 14,
                               ),
                             ),
                           ],
@@ -306,14 +306,14 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
 
-            const SizedBox(height: 24),
+            const SizedBox(height: 16),
 
             // Action Grid
             ActionGrid(userRole: role),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 24),
             // Padding for floating bottom bar
-            const SizedBox(height: 80),
+            const SizedBox(height: 60),
           ],
         ),
       );
