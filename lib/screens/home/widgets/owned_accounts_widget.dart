@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../../../providers/account_provider.dart';
 import '../../../providers/group_provider.dart';
 import '../../../providers/transaction_provider.dart';
@@ -25,6 +26,7 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
   DateTime? _lastRefreshTime;
   String _searchQuery = '';
   final TextEditingController _searchController = TextEditingController();
+  final Set<String> _loadingPins = {};
 
   late AnimationController _controller;
   late Animation<double> _expandAnimation;
@@ -382,59 +384,111 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                                 ],
                               ),
                               const SizedBox(width: 8),
-                              GestureDetector(
-                                onTap: () async {
-                                  final newPinned =
-                                      user.pinnedAccountName == acc.name
-                                      ? ''
-                                      : acc.name;
-
-                                  final success = await context
-                                      .read<UserProvider>()
-                                      .pinAccount(user.email, newPinned);
-
-                                  if (context.mounted && success) {
-                                    final updatedUser = user.copyWith(
-                                      pinnedAccountName: newPinned,
-                                    );
-
-                                    // Update AuthProvider so all UI reflects the change
-                                    context
-                                        .read<AuthProvider>()
-                                        .updateUserLocally(updatedUser);
-
-                                    // Force account provider to re-sort
-                                    context
-                                        .read<AccountProvider>()
-                                        .fetchAccounts(
-                                          updatedUser,
-                                          forceRefresh: true,
-                                          skipLoading: true,
-                                        );
-
-                                    ScaffoldMessenger.of(context).showSnackBar(
-                                      SnackBar(
-                                        content: Text(
-                                          newPinned.isEmpty
-                                              ? 'Account unpinned'
-                                              : 'Account pinned to top',
-                                        ),
-                                        backgroundColor: Colors.blue[700],
-                                        duration: const Duration(seconds: 1),
+                              _loadingPins.contains(acc.name)
+                                  ? SizedBox(
+                                      width: 16,
+                                      height: 16,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor:
+                                            AlwaysStoppedAnimation<Color>(
+                                              Colors.blue.shade700,
+                                            ),
                                       ),
-                                    );
-                                  }
-                                },
-                                child: Icon(
-                                  user.pinnedAccountName == acc.name
-                                      ? Icons.push_pin
-                                      : Icons.push_pin_outlined,
-                                  size: 16,
-                                  color: user.pinnedAccountName == acc.name
-                                      ? const Color(0xFF1E88E5)
-                                      : Colors.grey[400],
-                                ),
-                              ),
+                                    )
+                                  : InkWell(
+                                      onTap: () async {
+                                        if (_loadingPins.contains(acc.name))
+                                          return;
+
+                                        final newPinned =
+                                            user.pinnedAccountName == acc.name
+                                            ? ''
+                                            : acc.name;
+
+                                        setState(() {
+                                          _loadingPins.add(acc.name);
+                                        });
+
+                                        try {
+                                          final success = await context
+                                              .read<UserProvider>()
+                                              .pinAccount(
+                                                user.email,
+                                                newPinned,
+                                              );
+
+                                          if (context.mounted && success) {
+                                            final updatedUser = user.copyWith(
+                                              pinnedAccountName: newPinned,
+                                            );
+
+                                            // Update AuthProvider so all UI reflects the change
+                                            context
+                                                .read<AuthProvider>()
+                                                .updateUserLocally(updatedUser);
+
+                                            // Force account provider to re-sort
+                                            context
+                                                .read<AccountProvider>()
+                                                .fetchAccounts(
+                                                  updatedUser,
+                                                  forceRefresh: true,
+                                                  skipLoading: true,
+                                                );
+
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  newPinned.isEmpty
+                                                      ? 'Account unpinned'
+                                                      : 'Account pinned to top',
+                                                ),
+                                                backgroundColor:
+                                                    Colors.blue[700],
+                                                duration: const Duration(
+                                                  seconds: 1,
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } finally {
+                                          if (mounted) {
+                                            setState(() {
+                                              _loadingPins.remove(acc.name);
+                                            });
+                                          }
+                                        }
+                                      },
+                                      child:
+                                          Icon(
+                                                user.pinnedAccountName ==
+                                                        acc.name
+                                                    ? Icons.push_pin
+                                                    : Icons.push_pin_outlined,
+                                                size: 16,
+                                                color:
+                                                    user.pinnedAccountName ==
+                                                        acc.name
+                                                    ? const Color(0xFF1E88E5)
+                                                    : Colors.grey[400],
+                                              )
+                                              .animate(
+                                                target:
+                                                    user.pinnedAccountName ==
+                                                        acc.name
+                                                    ? 1
+                                                    : 0,
+                                              )
+                                              .scale(
+                                                begin: const Offset(0.8, 0.8),
+                                                end: const Offset(1.1, 1.1),
+                                                curve: Curves.easeOutBack,
+                                              )
+                                              .rotate(begin: -0.1, end: 0),
+                                    ),
                             ],
                           ),
                         );

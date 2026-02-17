@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../../providers/account_provider.dart';
@@ -25,6 +26,7 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
   final TextEditingController _searchController = TextEditingController();
   String _searchQuery = '';
   bool _isRefreshing = false;
+  final Set<String> _loadingPins = {};
 
   @override
   void initState() {
@@ -281,27 +283,62 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                               ),
                               const SizedBox(width: 12),
                               IconButton(
-                                icon: Icon(
-                                  user.pinnedAccountName == account.name
-                                      ? Icons.push_pin
-                                      : Icons.push_pin_outlined,
-                                  size: 18,
-                                  color: user.pinnedAccountName == account.name
-                                      ? const Color(0xFF1E88E5)
-                                      : Colors.grey[400],
-                                ),
+                                icon: _loadingPins.contains(account.name)
+                                    ? SizedBox(
+                                        width: 18,
+                                        height: 18,
+                                        child: CircularProgressIndicator(
+                                          strokeWidth: 2,
+                                          valueColor:
+                                              AlwaysStoppedAnimation<Color>(
+                                                Colors.blue.shade700,
+                                              ),
+                                        ),
+                                      )
+                                    : Icon(
+                                            user.pinnedAccountName ==
+                                                    account.name
+                                                ? Icons.push_pin
+                                                : Icons.push_pin_outlined,
+                                            size: 18,
+                                            color:
+                                                user.pinnedAccountName ==
+                                                    account.name
+                                                ? const Color(0xFF1E88E5)
+                                                : Colors.grey[400],
+                                          )
+                                          .animate(
+                                            target:
+                                                user.pinnedAccountName ==
+                                                    account.name
+                                                ? 1
+                                                : 0,
+                                          )
+                                          .scale(
+                                            begin: const Offset(0.8, 0.8),
+                                            end: const Offset(1.1, 1.1),
+                                            curve: Curves.easeOutBack,
+                                          )
+                                          .rotate(begin: -0.1, end: 0),
                                 onPressed: () async {
+                                  if (_loadingPins.contains(account.name))
+                                    return;
+
                                   final newPinned =
                                       user.pinnedAccountName == account.name
                                       ? ''
                                       : account.name;
 
-                                  final success = await context
-                                      .read<UserProvider>()
-                                      .pinAccount(user.email, newPinned);
+                                  setState(() {
+                                    _loadingPins.add(account.name);
+                                  });
 
-                                  if (context.mounted) {
-                                    if (success) {
+                                  try {
+                                    final success = await context
+                                        .read<UserProvider>()
+                                        .pinAccount(user.email, newPinned);
+
+                                    if (context.mounted && success) {
                                       final updatedUser = user.copyWith(
                                         pinnedAccountName: newPinned,
                                       );
@@ -333,6 +370,12 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                           duration: const Duration(seconds: 1),
                                         ),
                                       );
+                                    }
+                                  } finally {
+                                    if (mounted) {
+                                      setState(() {
+                                        _loadingPins.remove(account.name);
+                                      });
                                     }
                                   }
                                 },
