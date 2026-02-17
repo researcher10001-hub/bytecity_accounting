@@ -109,84 +109,88 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
 
     final Widget bodyContent = Column(
       children: [
-        // Search Bar
+        // Search Bar with Refresh Button
         Padding(
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(color: Colors.grey.shade200),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.02),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+          child: Row(
+            children: [
+              Expanded(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: Colors.grey.shade200),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.02),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: TextField(
+                    controller: _searchController,
+                    decoration: InputDecoration(
+                      hintText: 'Search accounts...',
+                      hintStyle: GoogleFonts.inter(
+                        color: Colors.grey[400],
+                        fontSize: 14,
+                      ),
+                      border: InputBorder.none,
+                      icon: Icon(
+                        LucideIcons.search,
+                        color: Colors.grey[400],
+                        size: 20,
+                      ),
+                      suffixIcon: _searchQuery.isNotEmpty
+                          ? IconButton(
+                              icon: Icon(
+                                Icons.clear,
+                                color: Colors.grey[400],
+                                size: 18,
+                              ),
+                              onPressed: () {
+                                _searchController.clear();
+                              },
+                            )
+                          : null,
+                    ),
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: Colors.black87,
+                    ),
+                  ),
                 ),
-              ],
-            ),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                hintText: 'Search accounts...',
-                hintStyle: GoogleFonts.inter(
-                  color: Colors.grey[400],
-                  fontSize: 14,
-                ),
-                border: InputBorder.none,
-                icon: Icon(
-                  LucideIcons.search,
-                  color: Colors.grey[400],
-                  size: 20,
-                ),
-                suffixIcon: _searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(
-                          Icons.clear,
-                          color: Colors.grey[400],
-                          size: 18,
-                        ),
-                        onPressed: () {
-                          _searchController.clear();
-                        },
-                      )
-                    : null,
               ),
-              style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
-            ),
+              // Refresh Button (Desktop only)
+              if (isDesktop) ...[
+                const SizedBox(width: 12),
+                _isRefreshing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Color(0xFF1E88E5),
+                          ),
+                        ),
+                      )
+                    : IconButton(
+                        icon: const Icon(Icons.refresh, size: 20),
+                        onPressed: _refreshBalances,
+                        tooltip: 'Refresh pins and balances',
+                        style: IconButton.styleFrom(
+                          foregroundColor: const Color(0xFF1E88E5),
+                          backgroundColor: const Color(0xFFE3F2FD),
+                          padding: const EdgeInsets.all(8),
+                        ),
+                      ),
+              ],
+            ],
           ),
         ),
-
-        // Refresh Button (Desktop only)
-        if (isDesktop)
-          Padding(
-            padding: const EdgeInsets.only(right: 16, top: 8, bottom: 8),
-            child: Align(
-              alignment: Alignment.centerRight,
-              child: _isRefreshing
-                  ? const SizedBox(
-                      width: 20,
-                      height: 20,
-                      child: CircularProgressIndicator(
-                        strokeWidth: 2,
-                        valueColor: AlwaysStoppedAnimation<Color>(
-                          Color(0xFF1E88E5),
-                        ),
-                      ),
-                    )
-                  : IconButton(
-                      icon: const Icon(Icons.refresh, size: 20),
-                      onPressed: _refreshBalances,
-                      tooltip: 'Refresh pins and balances',
-                      style: IconButton.styleFrom(
-                        foregroundColor: const Color(0xFF1E88E5),
-                        backgroundColor: const Color(0xFFE3F2FD),
-                        padding: const EdgeInsets.all(8),
-                      ),
-                    ),
-            ),
-          ),
 
         // Loading Bar (visible during refresh)
         if (_isRefreshing)
