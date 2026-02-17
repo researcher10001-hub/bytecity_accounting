@@ -88,6 +88,216 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
       return hasPermission && matchesSearch;
     }).toList();
 
+    final bool isDesktop = MediaQuery.of(context).size.width >= 800;
+
+    final Widget bodyContent = Column(
+      children: [
+        // Search Bar
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.02),
+                  blurRadius: 4,
+                  offset: const Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TextField(
+              controller: _searchController,
+              decoration: InputDecoration(
+                hintText: 'Search accounts...',
+                hintStyle: GoogleFonts.inter(
+                  color: Colors.grey[400],
+                  fontSize: 14,
+                ),
+                border: InputBorder.none,
+                icon: Icon(
+                  LucideIcons.search,
+                  color: Colors.grey[400],
+                  size: 20,
+                ),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(
+                          Icons.clear,
+                          color: Colors.grey[400],
+                          size: 18,
+                        ),
+                        onPressed: () {
+                          _searchController.clear();
+                        },
+                      )
+                    : null,
+              ),
+              style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
+            ),
+          ),
+        ),
+
+        // Loading Bar (visible during refresh)
+        if (_isRefreshing)
+          const LinearProgressIndicator(
+            minHeight: 3,
+            backgroundColor: Color(0xFFE2E8F0),
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
+          ),
+
+        Expanded(
+          child: myAccounts.isEmpty
+              ? Center(
+                  child: Text(
+                    _searchQuery.isEmpty
+                        ? 'No accounts assigned.'
+                        : 'No accounts found.',
+                    style: GoogleFonts.inter(color: Colors.grey),
+                  ),
+                )
+              : RefreshIndicator(
+                  onRefresh: _refreshBalances,
+                  child: ListView.separated(
+                    padding: const EdgeInsets.all(16),
+                    itemCount: myAccounts.length,
+                    separatorBuilder: (context, index) =>
+                        const SizedBox(height: 12),
+                    itemBuilder: (context, index) {
+                      final account = myAccounts[index];
+                      final balance = account.balance;
+                      final isPositive = balance >= 0;
+
+                      return InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => LedgerScreen(
+                                initialAccountName: account.name,
+                              ),
+                            ),
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(12),
+                        child: Container(
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(color: Colors.grey.shade200),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.02),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Row(
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(10),
+                                decoration: BoxDecoration(
+                                  color: isPositive
+                                      ? Colors.green.withValues(alpha: 0.1)
+                                      : Colors.orange.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Icon(
+                                  Icons.account_balance_wallet,
+                                  color: isPositive
+                                      ? Colors.green
+                                      : Colors.orange,
+                                  size: 20,
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      account.name,
+                                      style: GoogleFonts.inter(
+                                        fontWeight: FontWeight.w600,
+                                        fontSize: 14,
+                                        color: Colors.black87,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      account.type,
+                                      style: GoogleFonts.inter(
+                                        fontSize: 12,
+                                        color: Colors.grey[500],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  Text(
+                                    '৳ ${CurrencyFormatter.format(balance.abs())}',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w700,
+                                      color: Colors.black87,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: isPositive
+                                          ? Colors.blue.withValues(alpha: 0.1)
+                                          : Colors.orange.withValues(
+                                              alpha: 0.1,
+                                            ),
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                    child: Text(
+                                      isPositive ? 'Assets' : 'Liabilities',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w600,
+                                        color: isPositive
+                                            ? Colors.blue
+                                            : Colors.orange,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(width: 12),
+                              Icon(
+                                LucideIcons.chevronRight,
+                                size: 18,
+                                color: Colors.grey[400],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+        ),
+      ],
+    );
+
+    if (isDesktop) {
+      return bodyContent;
+    }
+
     return Scaffold(
       backgroundColor: Colors.grey[50],
       appBar: AppBar(
@@ -134,210 +344,7 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
           child: Divider(height: 1, color: Colors.grey[200]),
         ),
       ),
-      body: Column(
-        children: [
-          // Search Bar
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.grey.shade200),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.02),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search accounts...',
-                  hintStyle: GoogleFonts.inter(
-                    color: Colors.grey[400],
-                    fontSize: 14,
-                  ),
-                  border: InputBorder.none,
-                  icon: Icon(
-                    LucideIcons.search,
-                    color: Colors.grey[400],
-                    size: 20,
-                  ),
-                  suffixIcon: _searchQuery.isNotEmpty
-                      ? IconButton(
-                          icon: Icon(
-                            Icons.clear,
-                            color: Colors.grey[400],
-                            size: 18,
-                          ),
-                          onPressed: () {
-                            _searchController.clear();
-                          },
-                        )
-                      : null,
-                ),
-                style: GoogleFonts.inter(fontSize: 14, color: Colors.black87),
-              ),
-            ),
-          ),
-
-          // Loading Bar (visible during refresh)
-          if (_isRefreshing)
-            const LinearProgressIndicator(
-              minHeight: 3,
-              backgroundColor: Color(0xFFE2E8F0),
-              valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
-            ),
-
-          Expanded(
-            child: myAccounts.isEmpty
-                ? Center(
-                    child: Text(
-                      _searchQuery.isEmpty
-                          ? 'No accounts assigned.'
-                          : 'No accounts found.',
-                      style: GoogleFonts.inter(color: Colors.grey),
-                    ),
-                  )
-                : RefreshIndicator(
-                    onRefresh: _refreshBalances,
-                    child: ListView.separated(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: myAccounts.length,
-                      separatorBuilder: (context, index) =>
-                          const SizedBox(height: 12),
-                      itemBuilder: (context, index) {
-                        final account = myAccounts[index];
-                        final balance = account.balance;
-                        final isPositive = balance >= 0;
-
-                        return InkWell(
-                          onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => LedgerScreen(
-                                  initialAccountName: account.name,
-                                ),
-                              ),
-                            );
-                          },
-                          borderRadius: BorderRadius.circular(12),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: Colors.grey.shade200),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.02),
-                                  blurRadius: 8,
-                                  offset: const Offset(0, 2),
-                                ),
-                              ],
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: isPositive
-                                        ? Colors.green.withValues(alpha: 0.1)
-                                        : Colors.orange.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
-                                  ),
-                                  child: Icon(
-                                    Icons.account_balance_wallet,
-                                    color: isPositive
-                                        ? Colors.green
-                                        : Colors.orange,
-                                    size: 20,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        account.name,
-                                        style: GoogleFonts.inter(
-                                          fontWeight: FontWeight.w600,
-                                          fontSize: 14,
-                                          color: Colors.black87,
-                                        ),
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        account.type,
-                                        style: GoogleFonts.inter(
-                                          fontSize: 12,
-                                          color: Colors.grey[500],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '৳ ${CurrencyFormatter.format(balance.abs())}',
-                                      style: GoogleFonts.inter(
-                                        fontSize: 13,
-                                        fontWeight: FontWeight.w700,
-                                        color: Colors.black87,
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(
-                                        horizontal: 6,
-                                        vertical: 2,
-                                      ),
-                                      decoration: BoxDecoration(
-                                        color: isPositive
-                                            ? Colors.blue.withValues(alpha: 0.1)
-                                            : Colors.orange.withValues(
-                                                alpha: 0.1,
-                                              ),
-                                        borderRadius: BorderRadius.circular(4),
-                                      ),
-                                      child: Text(
-                                        isPositive ? 'Assets' : 'Liabilities',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 10,
-                                          fontWeight: FontWeight.w600,
-                                          color: isPositive
-                                              ? Colors.blue
-                                              : Colors.orange,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(width: 12),
-                                Icon(
-                                  LucideIcons.chevronRight,
-                                  size: 18,
-                                  color: Colors.grey[400],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-          ),
-        ],
-      ),
+      body: bodyContent,
     );
   }
 }

@@ -159,7 +159,7 @@ class DesktopScaffold extends StatelessWidget {
       case DashboardView.erpSync:
         return 'ERP Sync Queue';
       case DashboardView.ownedAccounts:
-        return 'My Owned Accounts';
+        return 'Account Balances';
       case DashboardView.transactionEntry:
         return 'New Transaction Entry';
       case DashboardView.manageUsers:
