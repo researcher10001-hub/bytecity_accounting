@@ -8,6 +8,7 @@ import '../../core/constants/role_constants.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../services/permission_service.dart';
+import '../../providers/dashboard_provider.dart';
 import '../main.dart';
 import '../screens/profile/profile_screen.dart';
 
@@ -270,12 +271,18 @@ class UserIdentityWidget extends StatelessWidget {
                     gradient: const [Color(0xFF4299E1), Color(0xFF3182CE)],
                     onTap: () {
                       Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => const ProfileScreen(),
-                        ),
-                      );
+                      if (MediaQuery.of(context).size.width >= 800) {
+                        context.read<DashboardProvider>().setView(
+                          DashboardView.profile,
+                        );
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(),
+                          ),
+                        );
+                      }
                     },
                   ),
                   const SizedBox(height: 12),

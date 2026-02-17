@@ -106,13 +106,19 @@ class DesktopScaffold extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(width: 12),
-                          CircleAvatar(
-                            radius: 18,
-                            backgroundColor: Colors.blue[50],
-                            child: const Icon(
-                              Icons.person,
-                              color: Color(0xFF1E88E5),
-                              size: 20,
+                          InkWell(
+                            onTap: () => context
+                                .read<DashboardProvider>()
+                                .setView(DashboardView.profile),
+                            borderRadius: BorderRadius.circular(20),
+                            child: CircleAvatar(
+                              radius: 18,
+                              backgroundColor: Colors.blue[50],
+                              child: const Icon(
+                                Icons.person,
+                                color: Color(0xFF1E88E5),
+                                size: 20,
+                              ),
                             ),
                           ),
                         ],
@@ -122,7 +128,11 @@ class DesktopScaffold extends StatelessWidget {
                 ),
 
                 // Body Content
-                Expanded(child: ClipRect(child: body)),
+                Expanded(
+                  child: ClipRect(
+                    child: Material(color: Colors.transparent, child: body),
+                  ),
+                ),
               ],
             ),
           ),
@@ -179,6 +189,8 @@ class DesktopScaffold extends StatelessWidget {
         final args = dp.currentArguments as Map<String, dynamic>?;
         final tx = args?['transaction'] as TransactionModel?;
         return 'Transaction ${tx?.voucherNo ?? ""}';
+      case DashboardView.profile:
+        return 'User Profile';
     }
   }
 }

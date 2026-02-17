@@ -29,6 +29,7 @@ import '../admin/account_groups_screen.dart';
 import '../admin/audit_dashboard_screen.dart';
 import '../admin/sub_category_management_screen.dart';
 import '../admin/erp_settings_screen.dart';
+import '../profile/profile_screen.dart';
 
 import 'widgets/desktop_scaffold.dart';
 import 'widgets/message_card.dart';
@@ -245,6 +246,8 @@ class _HomeScreenState extends State<HomeScreen> {
           transaction: args?['transaction'] as TransactionModel,
           allTransactions: args?['allTransactions'] as List<TransactionModel>?,
         );
+      case DashboardView.profile:
+        return const ProfileScreen();
     }
   }
 

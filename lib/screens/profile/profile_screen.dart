@@ -13,6 +13,7 @@ import '../../providers/auth_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../services/permission_service.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../main.dart';
 
 class ProfileScreen extends StatefulWidget {
@@ -37,45 +38,65 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = context.watch<AuthProvider>().user;
     if (user == null) return const SizedBox();
 
-    return Scaffold(
-      backgroundColor: const Color(0xFFF7FAFC),
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        systemOverlayStyle: SystemUiOverlayStyle.dark,
-        leading: IconButton(
-          icon: const Icon(LucideIcons.chevronLeft, color: Color(0xFF2D3748)),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Text(
-          'Profile',
-          style: GoogleFonts.inter(
-            color: const Color(0xFF2D3748),
-            fontWeight: FontWeight.w700,
-            fontSize: 18,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final bool isDesktop = constraints.maxWidth >= 800;
+
+        final Widget content = SingleChildScrollView(
+          physics: const BouncingScrollPhysics(),
+          child: Padding(
+            padding: EdgeInsets.symmetric(horizontal: isDesktop ? 40 : 24),
+            child: Center(
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 800),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    _buildProfileHeader(user),
+                    const SizedBox(height: 32),
+                    _buildStatsSection(context, user),
+                    const SizedBox(height: 32),
+                    _buildDetailsSection(user),
+                    const SizedBox(height: 32),
+                    _buildActionsSection(context, user),
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
           ),
-        ),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        physics: const BouncingScrollPhysics(),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 24),
-          child: Column(
-            children: [
-              const SizedBox(height: 20),
-              _buildProfileHeader(user),
-              const SizedBox(height: 32),
-              _buildStatsSection(context, user),
-              const SizedBox(height: 32),
-              _buildDetailsSection(user),
-              const SizedBox(height: 32),
-              _buildActionsSection(context, user),
-              const SizedBox(height: 40),
-            ],
+        );
+
+        if (isDesktop) {
+          return Material(color: const Color(0xFFF7FAFC), child: content);
+        }
+
+        return Scaffold(
+          backgroundColor: const Color(0xFFF7FAFC),
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            systemOverlayStyle: SystemUiOverlayStyle.dark,
+            leading: IconButton(
+              icon: const Icon(
+                LucideIcons.chevronLeft,
+                color: Color(0xFF2D3748),
+              ),
+              onPressed: () => Navigator.pop(context),
+            ),
+            title: Text(
+              'Profile',
+              style: GoogleFonts.inter(
+                color: const Color(0xFF2D3748),
+                fontWeight: FontWeight.w700,
+                fontSize: 18,
+              ),
+            ),
+            centerTitle: true,
           ),
-        ),
-      ),
+          body: content,
+        );
+      },
     );
   }
 
@@ -569,14 +590,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
                   return InkWell(
                     onTap: () {
-                      Navigator.pop(context);
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) =>
-                              LedgerScreen(initialAccountName: account.name),
-                        ),
-                      );
+                      if (MediaQuery.of(context).size.width >= 800) {
+                        Navigator.pop(context); // Close sheet
+                        context.read<DashboardProvider>().setView(
+                          DashboardView.ledger,
+                          args: account.name,
+                        );
+                      } else {
+                        Navigator.pop(context);
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                LedgerScreen(initialAccountName: account.name),
+                          ),
+                        );
+                      }
                     },
                     borderRadius: BorderRadius.circular(20),
                     child: Container(
