@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../providers/dashboard_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/transaction_provider.dart';
+import '../../providers/account_provider.dart';
+import '../../models/transaction_model.dart';
 import 'package:flutter/services.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import '../../models/transaction_model.dart';
-import '../../providers/auth_provider.dart';
-import '../../providers/transaction_provider.dart';
-import '../../providers/account_provider.dart';
+import '../../models/user_model.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/settings_provider.dart';
-import '../../models/user_model.dart';
 
 import 'widgets/approval_timeline_widget.dart';
 import 'widgets/approval_action_widget.dart';
@@ -60,27 +61,18 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
   @override
   Widget build(BuildContext context) {
     final user = context.watch<AuthProvider>().user;
-    final accountProvider = context
-        .watch<AccountProvider>(); // For permission check details
+    final accountProvider = context.watch<AccountProvider>();
+    final bool isDesktop = MediaQuery.of(context).size.width >= 800;
 
     if (user == null) {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    // Determine if User is an OWNER of any account involved in this transaction
-    // Or if user is Admin (Can see, but maybe restricted from voting? Protocol says Admin can't approve)
-    // Actually Protocol says: "Admin cannot give Financial Approval".
-    // So Action Widget is only showing if user is OWNER or CREATOR.
-
-    bool isOwner = false;
-    bool isCreator =
+    bool localIsOwner = false;
+    bool localIsCreator =
         _currentTransaction.createdBy.toLowerCase() == user.email.toLowerCase();
 
-    // Check all accounts in details
     for (var detail in _currentTransaction.details) {
-      // We need the Account object to check 'owners' list.
-      // The transaction detail has 'account' object but it might be shallow (from history parsing)
-      // Let's look it up in AccountProvider for full data (owners list)
       try {
         final realAccount = accountProvider.accounts.firstWhere(
           (a) => a.name == detail.account?.name,
@@ -88,16 +80,92 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         if (realAccount.owners.any(
           (o) => o.toLowerCase() == user.email.toLowerCase(),
         )) {
-          isOwner = true;
+          localIsOwner = true;
           break;
         }
-      } catch (e) {
-        // Account might be deleted or not found
-      }
+      } catch (e) {}
     }
 
-    // Allow messaging if user is either Owner OR Creator
-    bool canSendMessage = isOwner || isCreator;
+    bool localCanSendMessage = localIsOwner || localIsCreator;
+
+    final Widget bodyContent = Stack(
+      children: [
+        PageView.builder(
+          controller: _pageController,
+          itemCount: _transactions.length,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+              _currentTransaction = _transactions[index];
+            });
+          },
+          itemBuilder: (context, index) {
+            return _buildTransactionContent(
+              user,
+              accountProvider,
+              localIsOwner,
+              localCanSendMessage,
+            );
+          },
+        ),
+
+        // Left Click Area (Previous)
+        if (_currentIndex > 0)
+          Positioned(
+            left: 0,
+            top: 100,
+            bottom: 100,
+            width: 40,
+            child: GestureDetector(
+              onTap: () {
+                _pageController.previousPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              child: Container(
+                color: Colors.transparent,
+                alignment: Alignment.centerLeft,
+                child: Icon(
+                  Icons.chevron_left,
+                  color: Colors.black.withValues(alpha: 0.1),
+                  size: 40,
+                ),
+              ),
+            ),
+          ),
+
+        // Right Click Area (Next)
+        if (_currentIndex < _transactions.length - 1)
+          Positioned(
+            right: 0,
+            top: 100,
+            bottom: 100,
+            width: 40,
+            child: GestureDetector(
+              onTap: () {
+                _pageController.nextPage(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                );
+              },
+              child: Container(
+                color: Colors.transparent,
+                alignment: Alignment.centerRight,
+                child: Icon(
+                  Icons.chevron_right,
+                  color: Colors.black.withValues(alpha: 0.1),
+                  size: 40,
+                ),
+              ),
+            ),
+          ),
+      ],
+    );
+
+    if (isDesktop) {
+      return bodyContent;
+    }
 
     return Scaffold(
       appBar: AppBar(
@@ -118,7 +186,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          if (isCreator || user.isAdmin)
+          if (localIsCreator || user.isAdmin)
             PopupMenuButton<String>(
               icon: const Icon(
                 LucideIcons.moreVertical,
@@ -136,15 +204,6 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                   );
                   // Refresh data after returning from edit
                   if (context.mounted) {
-                    // Re-fetch transactions to get updated data
-                    // We might need to refresh the specific transaction in the list
-                    // For now, let's trigger a rebuild or fetch if the provider updates.
-                    // Actually, TransactionEntryScreen refreshes the provider on save.
-                    // So we just need to ensure our local _currentTransaction is updated.
-                    // We can check the provider for the updated transaction or just re-fetch.
-                    // Since _transactions is local, we should probably re-fetch or listen to provider.
-                    // But simpler: just setState if we can get the updated obj from provider.
-
                     final updatedTx = context
                         .read<TransactionProvider>()
                         .transactions
@@ -187,80 +246,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         ],
       ),
       backgroundColor: const Color(0xFFF7FAFC),
-      body: Stack(
-        children: [
-          PageView.builder(
-            controller: _pageController,
-            itemCount: _transactions.length,
-            onPageChanged: (index) {
-              setState(() {
-                _currentIndex = index;
-                _currentTransaction = _transactions[index];
-              });
-            },
-            itemBuilder: (context, index) {
-              return _buildTransactionContent(
-                user,
-                accountProvider,
-                isOwner,
-                canSendMessage,
-              );
-            },
-          ),
-
-          // Left Click Area (Previous)
-          if (_currentIndex > 0)
-            Positioned(
-              left: 0,
-              top: 100,
-              bottom: 100,
-              width: 40,
-              child: GestureDetector(
-                onTap: () {
-                  _pageController.previousPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                child: Container(
-                  color: Colors.transparent,
-                  alignment: Alignment.centerLeft,
-                  child: Icon(
-                    Icons.chevron_left,
-                    color: Colors.black.withValues(alpha: 0.1),
-                    size: 40,
-                  ),
-                ),
-              ),
-            ),
-
-          // Right Click Area (Next)
-          if (_currentIndex < _transactions.length - 1)
-            Positioned(
-              right: 0,
-              top: 100,
-              bottom: 100,
-              width: 40,
-              child: GestureDetector(
-                onTap: () {
-                  _pageController.nextPage(
-                    duration: const Duration(milliseconds: 300),
-                    curve: Curves.easeInOut,
-                  );
-                },
-                child: Container(
-                  color: Colors.transparent,
-                  alignment: Alignment.centerRight,
-                  child: Icon(
-                    Icons.chevron_right,
-                    color: Colors.black.withValues(alpha: 0.1),
-                    size: 40,
-                  ),
-                ),
-              ),
-            ),
-        ],
-      ),
+      body: bodyContent,
     );
   }
 
@@ -411,6 +397,51 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       Column(
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
+                          if (MediaQuery.of(context).size.width >= 800 &&
+                              (localIsCreator || user.isAdmin))
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8),
+                              child: InkWell(
+                                onTap: () =>
+                                    context.read<DashboardProvider>().setView(
+                                      DashboardView.transactionEntry,
+                                      args: _currentTransaction,
+                                    ),
+                                borderRadius: BorderRadius.circular(8),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: Colors.blue.withAlpha(0x15),
+                                    borderRadius: BorderRadius.circular(8),
+                                    border: Border.all(
+                                      color: Colors.blue.withAlpha(0x40),
+                                    ),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.pencil,
+                                        size: 14,
+                                        color: Colors.blue,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        "EDIT",
+                                        style: GoogleFonts.inter(
+                                          fontSize: 11,
+                                          fontWeight: FontWeight.w800,
+                                          color: Colors.blue,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ),
                           Text(
                             "TOTAL AMOUNT",
                             style: GoogleFonts.inter(

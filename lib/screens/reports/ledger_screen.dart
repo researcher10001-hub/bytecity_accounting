@@ -10,6 +10,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/group_provider.dart';
 import '../../providers/settings_provider.dart';
@@ -199,6 +200,207 @@ class _LedgerScreenState extends State<LedgerScreen> {
       }
     }
 
+    final bool isDesktop = MediaQuery.of(context).size.width >= 800;
+
+    final Widget bodyContent = Column(
+      children: [
+        // FILTERS
+        Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withAlpha(0x02),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    flex: 1,
+                    child: _buildAccountDropdown(
+                      context,
+                      accounts,
+                      groupProvider,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDateTile(
+                      'From',
+                      _dateRange?.start,
+                      () => _selectDate(isStart: true),
+                    ),
+                  ),
+                  const Padding(
+                    padding: EdgeInsets.symmetric(horizontal: 10),
+                    child: Icon(
+                      LucideIcons.arrowRight,
+                      size: 14,
+                      color: Color(0xFF94A3B8),
+                    ),
+                  ),
+                  Expanded(
+                    child: _buildDateTile(
+                      'To',
+                      _dateRange?.end,
+                      _dateRange?.start == null
+                          ? null
+                          : () => _selectDate(isStart: false),
+                    ),
+                  ),
+                  if (_dateRange != null) ...[
+                    const SizedBox(width: 8),
+                    Material(
+                      color: const Color(0xFFEF4444).withAlpha(0x1A),
+                      borderRadius: BorderRadius.circular(10),
+                      child: InkWell(
+                        onTap: () => setState(() => _dateRange = null),
+                        borderRadius: BorderRadius.circular(10),
+                        child: Container(
+                          padding: const EdgeInsets.all(12),
+                          child: const Icon(
+                            LucideIcons.x,
+                            size: 18,
+                            color: Color(0xFFEF4444),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
+        ),
+        const Divider(height: 1),
+
+        // Loading Bar
+        if (transactionProvider.isLoading)
+          const LinearProgressIndicator(
+            minHeight: 3,
+            backgroundColor: Color(0xFFE2E8F0),
+            valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF1E88E5)),
+          ),
+
+        // TRANSACTION LIST
+        Expanded(
+          child: _selectedAccounts.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        LucideIcons.wallet,
+                        size: 48,
+                        color: Color(0xFF94A3B8),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Please select an account',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ledgerEntries.isEmpty
+              ? Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        LucideIcons.fileX,
+                        size: 48,
+                        color: Color(0xFF94A3B8),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'No transactions found',
+                        style: GoogleFonts.inter(
+                          fontSize: 14,
+                          color: const Color(0xFF64748B),
+                        ),
+                      ),
+                    ],
+                  ),
+                )
+              : ListView.separated(
+                  padding: const EdgeInsets.all(16),
+                  itemCount: ledgerEntries.length,
+                  separatorBuilder: (context, index) =>
+                      const SizedBox(height: 12),
+                  itemBuilder: (context, index) {
+                    final entry = ledgerEntries[index];
+                    final date = entry['date'] as DateTime;
+                    final originalTx = entry['originalTx'] as TransactionModel;
+
+                    final double debit = (entry['debit'] ?? 0.0).toDouble();
+                    final double credit = (entry['credit'] ?? 0.0).toDouble();
+
+                    final bool isDebit = debit > 0;
+                    final double txAmount = isDebit ? debit : credit;
+                    final Color amountColor = isDebit
+                        ? Colors.green
+                        : Colors.red;
+                    final String formattedAmount =
+                        '৳${CurrencyFormatter.format(txAmount)}';
+
+                    String status = 'Approved';
+                    bool isPending = false;
+
+                    final String currency =
+                        entry['currency']?.toString() ?? 'BDT';
+                    final double rate = (entry['rate'] ?? 1.0).toDouble();
+                    final double originalDebit = (entry['originalDebit'] ?? 0.0)
+                        .toDouble();
+                    final double originalCredit =
+                        (entry['originalCredit'] ?? 0.0).toDouble();
+                    final double originalAmount = isDebit
+                        ? originalDebit
+                        : originalCredit;
+
+                    return _buildTransactionCard(
+                      context,
+                      entry,
+                      date,
+                      formattedAmount,
+                      amountColor,
+                      originalTx,
+                      isPending: isPending,
+                      status: status,
+                      uniqueKeyExtra: index.toString(),
+                      currency: currency,
+                      rate: rate,
+                      originalAmount: originalAmount,
+                    );
+                  },
+                ),
+        ),
+      ],
+    );
+
+    if (isDesktop) {
+      return Column(
+        children: [
+          Expanded(child: bodyContent),
+          _buildStatusBar(totalDebit, totalCredit, runningBalance),
+        ],
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: Row(
@@ -247,226 +449,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
         ),
       ),
       backgroundColor: Colors.grey[50],
-      body:
-          (accountProvider.isLoading || transactionProvider.isLoading) &&
-              accounts.isEmpty
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
-              children: [
-                // FILTERS
-                Container(
-                  padding: const EdgeInsets.all(16),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha(0x02),
-                        blurRadius: 10,
-                        offset: const Offset(0, 4),
-                      ),
-                    ],
-                  ),
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Row(
-                        children: [
-                          // Account Selector (Searchable)
-                          Expanded(
-                            flex: 1,
-                            child: _buildAccountDropdown(
-                              context,
-                              accounts,
-                              groupProvider,
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      // Pro Dual-Field Filter Bar
-                      Row(
-                        children: [
-                          Expanded(
-                            child: _buildDateTile(
-                              'From',
-                              _dateRange?.start,
-                              () => _selectDate(isStart: true),
-                            ),
-                          ),
-                          const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10),
-                            child: Icon(
-                              LucideIcons.arrowRight,
-                              size: 14,
-                              color: Color(0xFF94A3B8),
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildDateTile(
-                              'To',
-                              _dateRange?.end,
-                              _dateRange?.start == null
-                                  ? null
-                                  : () => _selectDate(isStart: false),
-                            ),
-                          ),
-                          if (_dateRange != null) ...[
-                            const SizedBox(width: 8),
-                            Material(
-                              color: const Color(
-                                0xFFEF4444,
-                              ).withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(10),
-                              child: InkWell(
-                                onTap: () => setState(() => _dateRange = null),
-                                borderRadius: BorderRadius.circular(10),
-                                child: Container(
-                                  padding: const EdgeInsets.all(12),
-                                  child: const Icon(
-                                    LucideIcons.x,
-                                    size: 18,
-                                    color: Color(0xFFEF4444),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                const Divider(height: 1),
-
-                // Loading Bar (visible during refresh)
-                if (transactionProvider.isLoading)
-                  const LinearProgressIndicator(
-                    minHeight: 3,
-                    backgroundColor: Color(0xFFE2E8F0),
-                    valueColor: AlwaysStoppedAnimation<Color>(
-                      Color(0xFF1E88E5),
-                    ),
-                  ),
-
-                // TRANSACTION LIST
-                Expanded(
-                  child: _selectedAccounts.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                LucideIcons.wallet,
-                                size: 48,
-                                color: Color(0xFF94A3B8),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'Please select an account',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  color: const Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ledgerEntries.isEmpty
-                      ? Center(
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              const Icon(
-                                LucideIcons.fileX,
-                                size: 48,
-                                color: Color(0xFF94A3B8),
-                              ),
-                              const SizedBox(height: 16),
-                              Text(
-                                'No transactions found',
-                                style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  color: const Color(0xFF64748B),
-                                ),
-                              ),
-                            ],
-                          ),
-                        )
-                      : ListView.separated(
-                          padding: const EdgeInsets.all(16),
-                          itemCount: ledgerEntries.length,
-                          separatorBuilder: (context, index) =>
-                              const SizedBox(height: 12),
-                          itemBuilder: (context, index) {
-                            final entry = ledgerEntries[index];
-                            final date = entry['date'] as DateTime;
-                            final originalTx =
-                                entry['originalTx'] as TransactionModel;
-
-                            // Convert dynamic values to double safely
-                            final double debit = (entry['debit'] ?? 0.0)
-                                .toDouble();
-                            final double credit = (entry['credit'] ?? 0.0)
-                                .toDouble();
-
-                            final bool isDebit = debit > 0;
-                            final double txAmount = isDebit ? debit : credit;
-                            final Color amountColor = isDebit
-                                ? Colors.green
-                                : Colors.red;
-                            final String formattedAmount =
-                                '৳${CurrencyFormatter.format(txAmount)}';
-
-                            // Status Logic Simulation (since 'status' might not be in model yet)
-                            // If 'originalTx' has a status field, use it.
-                            // Ideally: String status = originalTx.status;
-                            // For now, defaulting to Approved unless specific logic exists.
-                            // But user asked for Pending/Approved dots.
-                            // We'll mimic this: if it's recent or specific condition, maybe Pending?
-                            // For now, let's look for a 'status' key in entry if we added it, or default.
-                            // In Step 6145 view, we didn't add status to map.
-                            // So we will just show 'Approved' visually for now, or check something.
-                            // Let's assume passed validation means Approved.
-
-                            String status = 'Approved';
-                            bool isPending = false;
-
-                            // Action Required Logic
-                            // If isPending is true, show Action Required.
-
-                            // Extract Original Currency Info
-                            final String currency =
-                                entry['currency']?.toString() ?? 'BDT';
-                            final double rate = (entry['rate'] ?? 1.0)
-                                .toDouble();
-                            final double originalDebit =
-                                (entry['originalDebit'] ?? 0.0).toDouble();
-                            final double originalCredit =
-                                (entry['originalCredit'] ?? 0.0).toDouble();
-                            final double originalAmount = isDebit
-                                ? originalDebit
-                                : originalCredit;
-
-                            return _buildTransactionCard(
-                              context,
-                              entry,
-                              date,
-                              formattedAmount,
-                              amountColor,
-                              originalTx,
-                              isPending: isPending,
-                              status: status,
-                              uniqueKeyExtra: index.toString(),
-                              // Pass Original Currency Info
-                              currency: currency,
-                              rate: rate,
-                              originalAmount: originalAmount,
-                            );
-                          },
-                        ),
-                ),
-              ],
-            ),
+      body: bodyContent,
       bottomNavigationBar: _selectedAccounts.isEmpty
           ? null
           : _buildStatusBar(totalDebit, totalCredit, runningBalance),
@@ -787,17 +770,29 @@ class _LedgerScreenState extends State<LedgerScreen> {
                     // Messages Link
                     InkWell(
                       onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => TransactionDetailScreen(
-                              transaction: originalTx,
-                              allTransactions: transactionProvider.transactions,
+                        if (MediaQuery.of(context).size.width >= 800) {
+                          context.read<DashboardProvider>().setView(
+                            DashboardView.transactionDetail,
+                            args: {
+                              'transaction': originalTx,
+                              'allTransactions':
+                                  transactionProvider.transactions,
+                            },
+                          );
+                        } else {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => TransactionDetailScreen(
+                                transaction: originalTx,
+                                allTransactions:
+                                    transactionProvider.transactions,
+                              ),
                             ),
-                          ),
-                        ).then((_) {
-                          // Optional: refresh if needed
-                        });
+                          ).then((_) {
+                            // Optional: refresh if needed
+                          });
+                        }
                       },
                       child: Container(
                         padding: const EdgeInsets.symmetric(
@@ -1250,12 +1245,19 @@ class _LedgerScreenState extends State<LedgerScreen> {
   }
 
   void _showEditTransactionDialog(BuildContext context, TransactionModel tx) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => TransactionEntryScreen(transaction: tx),
-      ),
-    );
+    if (MediaQuery.of(context).size.width >= 800) {
+      context.read<DashboardProvider>().setView(
+        DashboardView.transactionEntry,
+        args: tx,
+      );
+    } else {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => TransactionEntryScreen(transaction: tx),
+        ),
+      );
+    }
   }
 
   Widget _buildAccountDropdown(

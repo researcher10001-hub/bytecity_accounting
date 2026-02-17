@@ -16,6 +16,7 @@ import '../../services/permission_service.dart';
 import 'widgets/account_autocomplete.dart';
 import '../reports/transaction_history_screen.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../providers/dashboard_provider.dart';
 
 class TransactionEntryScreen extends StatefulWidget {
   final TransactionModel? transaction; // Optional transaction for editing
@@ -738,7 +739,11 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           user,
           forceRefresh: true,
         );
-        Navigator.pop(context);
+        if (MediaQuery.of(context).size.width >= 800) {
+          context.read<DashboardProvider>().popView();
+        } else {
+          Navigator.pop(context);
+        }
         return;
       }
     } else {
@@ -851,13 +856,18 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                 onPressed: () {
                   provider.resetForm();
                   Navigator.pop(ctx); // Pop Dialog
-                  Navigator.pop(context); // Pop Entry Screen
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const TransactionHistoryScreen(),
-                    ),
-                  );
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    context.read<DashboardProvider>().setView(
+                      DashboardView.transactions,
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const TransactionHistoryScreen(),
+                      ),
+                    );
+                  }
                 },
                 child: Text(
                   'HISTORY',
@@ -874,7 +884,11 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                     onPressed: () {
                       provider.resetForm();
                       Navigator.pop(ctx);
-                      Navigator.pop(context);
+                      if (MediaQuery.of(context).size.width >= 800) {
+                        context.read<DashboardProvider>().popView();
+                      } else {
+                        Navigator.pop(context);
+                      }
                     },
                     child: Text(
                       'HOME',

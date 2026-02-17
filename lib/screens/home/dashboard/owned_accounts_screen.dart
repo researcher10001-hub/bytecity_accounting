@@ -7,6 +7,7 @@ import '../../../providers/account_provider.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../services/permission_service.dart';
+import '../../../../providers/dashboard_provider.dart';
 import '../../reports/ledger_screen.dart';
 import '../../../../core/utils/currency_formatter.dart';
 
@@ -173,14 +174,21 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
 
                       return InkWell(
                         onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => LedgerScreen(
-                                initialAccountName: account.name,
+                          if (MediaQuery.of(context).size.width >= 800) {
+                            context.read<DashboardProvider>().setView(
+                              DashboardView.ledger,
+                              args: account.name,
+                            );
+                          } else {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => LedgerScreen(
+                                  initialAccountName: account.name,
+                                ),
                               ),
-                            ),
-                          );
+                            );
+                          }
                         },
                         borderRadius: BorderRadius.circular(12),
                         child: Container(

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'side_menu.dart';
 import '../../../../providers/dashboard_provider.dart';
+import '../../../../models/transaction_model.dart';
 import 'package:provider/provider.dart';
 
 class DesktopScaffold extends StatelessWidget {
@@ -174,6 +175,10 @@ class DesktopScaffold extends StatelessWidget {
         return 'Sub-Category Management';
       case DashboardView.erpSettings:
         return 'ERP Configuration';
+      case DashboardView.transactionDetail:
+        final args = dp.currentArguments as Map<String, dynamic>?;
+        final tx = args?['transaction'] as TransactionModel?;
+        return 'Transaction ${tx?.voucherNo ?? ""}';
     }
   }
 }

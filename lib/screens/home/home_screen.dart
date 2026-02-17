@@ -12,9 +12,11 @@ import '../../providers/user_provider.dart';
 
 import '../../core/constants/role_constants.dart';
 import '../../models/user_model.dart';
+import '../../models/transaction_model.dart';
 import '../../services/permission_service.dart';
 
 import '../transaction/transaction_entry_screen.dart';
+import '../transaction/transaction_detail_screen.dart';
 import '../settings/settings_screen.dart';
 import '../reports/transaction_history_screen.dart';
 import '../reports/ledger_screen.dart';
@@ -214,7 +216,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case DashboardView.settings:
         return const SettingsScreen();
       case DashboardView.ledger:
-        return const LedgerScreen();
+        return LedgerScreen(initialAccountName: dp.currentArguments as String?);
       case DashboardView.pending:
         return const PendingTransactionsScreen();
       case DashboardView.erpSync:
@@ -222,7 +224,9 @@ class _HomeScreenState extends State<HomeScreen> {
       case DashboardView.ownedAccounts:
         return const OwnedAccountsScreen();
       case DashboardView.transactionEntry:
-        return const TransactionEntryScreen();
+        return TransactionEntryScreen(
+          transaction: dp.currentArguments as TransactionModel?,
+        );
       case DashboardView.manageUsers:
         return const UsersScreen();
       case DashboardView.chartOfAccounts:
@@ -235,6 +239,12 @@ class _HomeScreenState extends State<HomeScreen> {
         return const SubCategoryManagementScreen();
       case DashboardView.erpSettings:
         return const ERPSettingsScreen();
+      case DashboardView.transactionDetail:
+        final args = dp.currentArguments as Map<String, dynamic>?;
+        return TransactionDetailScreen(
+          transaction: args?['transaction'] as TransactionModel,
+          allTransactions: args?['allTransactions'] as List<TransactionModel>?,
+        );
     }
   }
 

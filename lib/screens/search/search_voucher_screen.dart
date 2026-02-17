@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../models/transaction_model.dart';
 import '../transaction/transaction_detail_screen.dart';
 import '../../core/utils/currency_formatter.dart';
@@ -257,15 +258,25 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
                             color: Colors.grey,
                           ),
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (_) => TransactionDetailScreen(
-                                  transaction: tx,
-                                  allTransactions: filteredTransactions,
+                            if (MediaQuery.of(context).size.width >= 800) {
+                              context.read<DashboardProvider>().setView(
+                                DashboardView.transactionDetail,
+                                args: {
+                                  'transaction': tx,
+                                  'allTransactions': filteredTransactions,
+                                },
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => TransactionDetailScreen(
+                                    transaction: tx,
+                                    allTransactions: filteredTransactions,
+                                  ),
                                 ),
-                              ),
-                            );
+                              );
+                            }
                           },
                         ),
                       );
