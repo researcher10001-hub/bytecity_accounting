@@ -96,8 +96,7 @@ class SideMenu extends StatelessWidget {
       return [
         {'icon': Icons.grid_view_rounded, 'label': 'Dashboard'},
         {'icon': Icons.swap_horiz_rounded, 'label': 'Transactions'},
-        {'icon': Icons.analytics_rounded, 'label': 'Reports'},
-        {'icon': Icons.group_work_rounded, 'label': 'Groups'},
+        {'icon': Icons.search_rounded, 'label': 'Search'},
         {'icon': Icons.settings_rounded, 'label': 'Settings'},
       ];
     } else if (role == AppRoles.management || role == 'Management') {

@@ -143,9 +143,8 @@ class DesktopScaffold extends StatelessWidget {
 
     if (isAdmin) {
       if (index == 1) return 'Transactions History';
-      if (index == 2) return 'Financial Reports';
-      if (index == 3) return 'User Groups';
-      if (index == 4) return 'System Settings';
+      if (index == 2) return 'Search & Vouchers';
+      if (index == 3) return 'System Settings';
     } else {
       if (index == 1) return 'Transaction History';
       if (index == 2) return 'Profile & Accounts';
