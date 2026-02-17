@@ -124,11 +124,16 @@ class _HomeScreenState extends State<HomeScreen> {
     }
 
     final role = user.role;
-    const navItemCount = 4; // Home, Trans, Accounts, Settings
+    // Dynamic navItemCount based on sidebar length
+    final items = (role == AppRoles.admin || role == 'Admin')
+        ? 6
+        : (role == AppRoles.management || role == 'Management')
+        ? 5
+        : 4;
 
     // Safety check: Reset to 0 if out of bounds
     var effectiveIndex = _currentIndex;
-    if (effectiveIndex >= navItemCount) {
+    if (effectiveIndex >= items) {
       effectiveIndex = 0;
     }
 
@@ -144,7 +149,12 @@ class _HomeScreenState extends State<HomeScreen> {
               // but we still keep index in sync for mobile bottom bar transitions
             },
             body: Consumer<DashboardProvider>(
-              builder: (context, dp, _) => _buildDesktopBody(user, role, dp),
+              builder: (context, dp, _) => _buildDesktopBody(
+                user,
+                role,
+                dp.currentView,
+                dp.currentArguments,
+              ),
             ),
           );
         } else {
@@ -206,8 +216,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildDesktopBody(User user, String role, DashboardProvider dp) {
-    switch (dp.currentView) {
+  Widget _buildDesktopBody(
+    User user,
+    String role,
+    DashboardView view, [
+    dynamic args,
+  ]) {
+    switch (view) {
       case DashboardView.home:
         return _buildDashboardHome(user, role);
       case DashboardView.transactions:
@@ -217,7 +232,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case DashboardView.settings:
         return const SettingsScreen();
       case DashboardView.ledger:
-        return LedgerScreen(initialAccountName: dp.currentArguments as String?);
+        return LedgerScreen(initialAccountName: args as String?);
       case DashboardView.pending:
         return const PendingTransactionsScreen();
       case DashboardView.erpSync:
@@ -225,9 +240,7 @@ class _HomeScreenState extends State<HomeScreen> {
       case DashboardView.ownedAccounts:
         return const OwnedAccountsScreen();
       case DashboardView.transactionEntry:
-        return TransactionEntryScreen(
-          transaction: dp.currentArguments as TransactionModel?,
-        );
+        return TransactionEntryScreen(transaction: args as TransactionModel?);
       case DashboardView.manageUsers:
         return const UsersScreen();
       case DashboardView.chartOfAccounts:
@@ -241,10 +254,11 @@ class _HomeScreenState extends State<HomeScreen> {
       case DashboardView.erpSettings:
         return const ERPSettingsScreen();
       case DashboardView.transactionDetail:
-        final args = dp.currentArguments as Map<String, dynamic>?;
+        final dictArgs = args as Map<String, dynamic>?;
         return TransactionDetailScreen(
-          transaction: args?['transaction'] as TransactionModel,
-          allTransactions: args?['allTransactions'] as List<TransactionModel>?,
+          transaction: dictArgs?['transaction'] as TransactionModel,
+          allTransactions:
+              dictArgs?['allTransactions'] as List<TransactionModel>?,
         );
       case DashboardView.profile:
         return const ProfileScreen();
@@ -371,38 +385,46 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildBody(String rawRole, int currentIndex) {
     final role = rawRole.trim();
-    if (currentIndex == 0) {
-      final user = context.watch<AuthProvider>().user;
-      if (user == null) return const SizedBox();
+    final user = context.watch<AuthProvider>().user;
+    if (user == null) return const SizedBox();
+
+    // Map index to DashboardView based on role
+    // This must match the order in SideMenu._getNavItemsForRole
+    final List<DashboardView> views;
+    if (role == AppRoles.admin || role == 'Admin') {
+      views = [
+        DashboardView.home,
+        DashboardView.transactionEntry,
+        DashboardView.transactions,
+        DashboardView.ownedAccounts,
+        DashboardView.search,
+        DashboardView.settings,
+      ];
+    } else if (role == AppRoles.management || role == 'Management') {
+      views = [
+        DashboardView.home,
+        DashboardView.transactionEntry,
+        DashboardView.transactions,
+        DashboardView.ownedAccounts,
+        DashboardView.search,
+      ];
+    } else {
+      views = [
+        DashboardView.home,
+        DashboardView.transactionEntry,
+        DashboardView.transactions,
+        DashboardView.ownedAccounts,
+      ];
+    }
+
+    if (currentIndex >= views.length) {
       return _buildDashboardHome(user, role);
     }
 
-    final bool isAdmin =
-        role.trim().toLowerCase() == AppRoles.admin.toLowerCase();
+    final currentView = views[currentIndex];
 
-    // Other tabs based on new fixed indices
-    switch (currentIndex) {
-      case 1: // Trans (Admin) or Search (Non-Admin)
-        if (isAdmin) {
-          return const TransactionHistoryScreen();
-        } else {
-          return const SearchVoucherScreen();
-        }
-      case 2: // Search (Admin) or Ledger (Non-Admin)
-        if (isAdmin) {
-          return const SearchVoucherScreen();
-        } else {
-          return const LedgerScreen();
-        }
-      case 3: // Settings (Admin) or History (Non-Admin)
-        if (isAdmin) {
-          return const SettingsScreen();
-        } else {
-          return const TransactionHistoryScreen();
-        }
-      default:
-        return const SizedBox();
-    }
+    // Use the same desktop body logic for consistency
+    return _buildDesktopBody(user, role, currentView);
   }
 
   Widget _buildCustomBottomBar(int currentIndex, String role) {

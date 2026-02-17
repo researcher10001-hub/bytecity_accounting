@@ -145,7 +145,7 @@ class SideMenu extends StatelessWidget {
         },
         {
           'icon': Icons.account_balance_wallet_rounded,
-          'label': 'Account Balances',
+          'label': 'My Accounts',
           'view': DashboardView.ownedAccounts,
         },
         {
@@ -173,7 +173,7 @@ class SideMenu extends StatelessWidget {
         },
         {
           'icon': Icons.account_balance_wallet_rounded,
-          'label': 'Account Balances',
+          'label': 'My Accounts',
           'view': DashboardView.ownedAccounts,
         },
       ];
@@ -202,9 +202,60 @@ class SideMenu extends StatelessWidget {
           ),
         ),
         onTap: () {
-          Provider.of<AuthProvider>(context, listen: false).logout();
+          _showLogoutConfirmation(context);
         },
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+      ),
+    );
+  }
+
+  void _showLogoutConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text(
+          'Logout Confirmation',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            color: const Color(0xFF1A365D),
+          ),
+        ),
+        content: Text(
+          'Are you sure you want to log out from your account?',
+          style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[700]),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              'Cancel',
+              style: GoogleFonts.inter(
+                color: Colors.grey[600],
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              Provider.of<AuthProvider>(context, listen: false).logout();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFFE53E3E),
+              foregroundColor: Colors.white,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            ),
+            child: Text(
+              'Logout',
+              style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
       ),
     );
   }
