@@ -11,7 +11,7 @@ class User {
   final List<String> groupIds;
   final String? sessionToken;
   final bool allowAutoApproval; // New field for Management approval permission
-  final String? pinnedAccountName;
+  final List<String> pinnedAccountNames;
 
   User({
     required this.name,
@@ -24,7 +24,7 @@ class User {
     this.groupIds = const [],
     this.sessionToken,
     this.allowAutoApproval = false,
-    this.pinnedAccountName,
+    this.pinnedAccountNames = const [],
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -76,8 +76,19 @@ class User {
       groupIds: parsedGroups,
       sessionToken: json['session_token']?.toString().trim(),
       allowAutoApproval: json['allow_auto_approval'] == true,
-      pinnedAccountName: json['pinned_account']?.toString().trim(),
+      pinnedAccountNames: _parsePinnedAccounts(json['pinned_account']),
     );
+  }
+
+  static List<String> _parsePinnedAccounts(dynamic value) {
+    if (value == null) return [];
+    final str = value.toString().trim();
+    if (str.isEmpty) return [];
+    return str
+        .split(',')
+        .map((e) => e.trim())
+        .where((e) => e.isNotEmpty)
+        .toList();
   }
 
   Map<String, dynamic> toJson() {
@@ -92,7 +103,7 @@ class User {
       'group_ids': groupIds.join(','),
       'session_token': sessionToken,
       'allow_auto_approval': allowAutoApproval,
-      'pinned_account': pinnedAccountName,
+      'pinned_account': pinnedAccountNames.join(','),
     };
   }
 
@@ -126,7 +137,7 @@ class User {
     List<String>? groupIds,
     String? sessionToken,
     bool? allowAutoApproval,
-    String? pinnedAccountName,
+    List<String>? pinnedAccountNames,
   }) {
     return User(
       name: name ?? this.name,
@@ -139,7 +150,7 @@ class User {
       groupIds: groupIds ?? this.groupIds,
       sessionToken: sessionToken ?? this.sessionToken,
       allowAutoApproval: allowAutoApproval ?? this.allowAutoApproval,
-      pinnedAccountName: pinnedAccountName ?? this.pinnedAccountName,
+      pinnedAccountNames: pinnedAccountNames ?? this.pinnedAccountNames,
     );
   }
 }

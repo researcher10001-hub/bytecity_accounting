@@ -12,7 +12,7 @@ class AccountProvider with ChangeNotifier {
   List<Account> _accounts = [];
   bool _isLoading = false;
   String? _error;
-  String? _pinnedAccountName;
+  List<String> _pinnedAccountNames = [];
   final ApiService _apiService = ApiService();
 
   AccountProvider() {
@@ -140,8 +140,8 @@ class AccountProvider with ChangeNotifier {
         _saveToCache([]);
 
         // Apply sorting (pinned account first)
-        _pinnedAccountName = user.pinnedAccountName;
-        _sortAccounts(_pinnedAccountName);
+        _pinnedAccountNames = user.pinnedAccountNames;
+        _sortAccounts(_pinnedAccountNames);
       }
 
       _isLoading = false;
@@ -173,7 +173,7 @@ class AccountProvider with ChangeNotifier {
           _accounts[i] = match;
         }
         _saveToCache([]); // Update cache with new balances
-        _sortAccounts(_pinnedAccountName);
+        _sortAccounts(_pinnedAccountNames);
         notifyListeners();
       }
     } catch (e) {
@@ -351,19 +351,31 @@ class AccountProvider with ChangeNotifier {
 
     if (hasUpdates) {
       _accounts = accMap.values.toList();
-      _sortAccounts(_pinnedAccountName);
+      _sortAccounts(_pinnedAccountNames);
     }
   }
 
   // --- Helpers ---
-  void _sortAccounts(String? pinnedName) {
+  void _sortAccounts(List<String> pinnedNames) {
     if (_accounts.isEmpty) return;
 
     _accounts.sort((a, b) {
-      if (pinnedName != null && pinnedName.isNotEmpty) {
-        if (a.name.toLowerCase() == pinnedName.toLowerCase()) return -1;
-        if (b.name.toLowerCase() == pinnedName.toLowerCase()) return 1;
+      final aIndex = pinnedNames.indexWhere(
+        (name) => a.name.toLowerCase() == name.toLowerCase(),
+      );
+      final bIndex = pinnedNames.indexWhere(
+        (name) => b.name.toLowerCase() == name.toLowerCase(),
+      );
+
+      // Both pinned: sort by pin order
+      if (aIndex != -1 && bIndex != -1) {
+        return aIndex.compareTo(bIndex);
       }
+      // Only a is pinned
+      if (aIndex != -1) return -1;
+      // Only b is pinned
+      if (bIndex != -1) return 1;
+      // Neither pinned: alphabetical
       return a.name.toLowerCase().compareTo(b.name.toLowerCase());
     });
     notifyListeners();

@@ -296,21 +296,22 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                         ),
                                       )
                                     : Icon(
-                                            user.pinnedAccountName ==
-                                                    account.name
+                                            user.pinnedAccountNames.contains(
+                                                  account.name,
+                                                )
                                                 ? Icons.push_pin
                                                 : Icons.push_pin_outlined,
                                             size: 18,
                                             color:
-                                                user.pinnedAccountName ==
-                                                    account.name
+                                                user.pinnedAccountNames
+                                                    .contains(account.name)
                                                 ? const Color(0xFF1E88E5)
                                                 : Colors.grey[400],
                                           )
                                           .animate(
                                             target:
-                                                user.pinnedAccountName ==
-                                                    account.name
+                                                user.pinnedAccountNames
+                                                    .contains(account.name)
                                                 ? 1
                                                 : 0,
                                           )
@@ -324,23 +325,43 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                   if (_loadingPins.contains(account.name))
                                     return;
 
-                                  final newPinned =
-                                      user.pinnedAccountName == account.name
-                                      ? ''
-                                      : account.name;
+                                  final isPinned = user.pinnedAccountNames
+                                      .contains(account.name);
 
                                   setState(() {
                                     _loadingPins.add(account.name);
                                   });
 
                                   try {
-                                    final success = await context
-                                        .read<UserProvider>()
-                                        .pinAccount(user.email, newPinned);
+                                    final success = isPinned
+                                        ? await context
+                                              .read<UserProvider>()
+                                              .unpinAccount(
+                                                user.email,
+                                                account.name,
+                                              )
+                                        : await context
+                                              .read<UserProvider>()
+                                              .pinAccount(
+                                                user.email,
+                                                account.name,
+                                              );
 
                                     if (context.mounted && success) {
+                                      // Update local user state
+                                      final newPins = List<String>.from(
+                                        user.pinnedAccountNames,
+                                      );
+                                      if (isPinned) {
+                                        newPins.remove(account.name);
+                                      } else {
+                                        if (!newPins.contains(account.name)) {
+                                          newPins.add(account.name);
+                                        }
+                                      }
+
                                       final updatedUser = user.copyWith(
-                                        pinnedAccountName: newPinned,
+                                        pinnedAccountNames: newPins,
                                       );
 
                                       // Update AuthProvider so all UI reflects the change
@@ -362,7 +383,7 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                       ).showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            newPinned.isEmpty
+                                            newPins.isEmpty
                                                 ? 'Account unpinned'
                                                 : 'Account pinned to top',
                                           ),
@@ -379,8 +400,11 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                     }
                                   }
                                 },
-                                tooltip: user.pinnedAccountName == account.name
-                                    ? 'Unpin from top'
+                                tooltip:
+                                    user.pinnedAccountNames.contains(
+                                      account.name,
+                                    )
+                                    ? 'Unpin'
                                     : 'Pin to top',
                               ),
                               const SizedBox(width: 4),

@@ -5,6 +5,7 @@ import '../../models/user_model.dart';
 import '../core/services/api_service.dart';
 import '../core/services/session_manager.dart';
 import '../core/constants/api_constants.dart';
+import 'package:flutter/foundation.dart';
 
 class AuthProvider with ChangeNotifier {
   User? _user;
@@ -178,7 +179,10 @@ class AuthProvider with ChangeNotifier {
               updatedUser.allowAutoApproval != _user!.allowAutoApproval ||
               updatedUser.role != _user!.role ||
               updatedUser.status != _user!.status ||
-              updatedUser.pinnedAccountName != _user!.pinnedAccountName) {
+              !_listEquals(
+                updatedUser.pinnedAccountNames,
+                _user!.pinnedAccountNames,
+              )) {
             _user = updatedUser;
             await _sessionManager.saveUser(_user!);
             notifyListeners();
@@ -191,5 +195,14 @@ class AuthProvider with ChangeNotifier {
       // But if it's unauthorized (handled by ApiService), it will logout.
       // print('Heartbeat check failed: $e');
     }
+  }
+
+  // Helper to compare lists
+  bool _listEquals(List<String> a, List<String> b) {
+    if (a.length != b.length) return false;
+    for (int i = 0; i < a.length; i++) {
+      if (a[i] != b[i]) return false;
+    }
+    return true;
   }
 }

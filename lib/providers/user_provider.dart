@@ -229,18 +229,52 @@ class UserProvider with ChangeNotifier {
     }
   }
 
-  Future<bool> pinAccount(String email, String? accountName) async {
+  Future<bool> pinAccount(String email, String accountName) async {
     try {
-      final payload = {'email': email, 'pinned_account': accountName ?? ''};
+      // Get current user to read existing pins
+      final index = _users.indexWhere((u) => u.email == email);
+      if (index == -1) return false;
+
+      final currentPins = List<String>.from(_users[index].pinnedAccountNames);
+
+      // Add new pin if not already pinned
+      if (!currentPins.contains(accountName)) {
+        currentPins.add(accountName);
+      }
+
+      final payload = {'email': email, 'pinned_account': currentPins.join(',')};
 
       await _apiService.postRequest(ApiConstants.actionUpdateUser, payload);
 
-      // Optimistic Update: If we have the users list, update it
+      // Optimistic Update
+      _users[index] = _users[index].copyWith(pinnedAccountNames: currentPins);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+      return false;
+    }
+  }
+
+  Future<bool> unpinAccount(String email, String accountName) async {
+    try {
+      // Get current user to read existing pins
       final index = _users.indexWhere((u) => u.email == email);
-      if (index != -1) {
-        _users[index] = _users[index].copyWith(pinnedAccountName: accountName);
-        notifyListeners();
-      }
+      if (index == -1) return false;
+
+      final currentPins = List<String>.from(_users[index].pinnedAccountNames);
+
+      // Remove the pin
+      currentPins.remove(accountName);
+
+      final payload = {'email': email, 'pinned_account': currentPins.join(',')};
+
+      await _apiService.postRequest(ApiConstants.actionUpdateUser, payload);
+
+      // Optimistic Update
+      _users[index] = _users[index].copyWith(pinnedAccountNames: currentPins);
+      notifyListeners();
       return true;
     } catch (e) {
       _error = e.toString();
