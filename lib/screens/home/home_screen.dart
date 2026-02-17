@@ -186,7 +186,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    'ByteCityBD Accounting',
+                    'BC Math',
                     style: GoogleFonts.inter(
                       color: Colors.black87,
                       fontWeight: FontWeight.w600,

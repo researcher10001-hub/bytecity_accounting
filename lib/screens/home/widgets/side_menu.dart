@@ -55,7 +55,7 @@ class SideMenu extends StatelessWidget {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'ByteCityBD\nAccounting',
+              'BC\nMath',
               style: GoogleFonts.inter(
                 color: Colors.white,
                 fontWeight: FontWeight.w700,
@@ -264,7 +264,7 @@ class SideMenu extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
       child: Text(
-        'v1.0.1 | ByteCityBD',
+        'v3.23 | BC Math',
         style: GoogleFonts.inter(color: Colors.white54, fontSize: 11),
       ),
     );

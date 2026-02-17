@@ -1,6 +1,6 @@
 {
-    "name": "bytecity_accounting",
-    "short_name": "bytecity_accounting",
+    "name": "BC Math",
+    "short_name": "BC Math",
     "start_url": ".",
     "display": "standalone",
     "background_color": "#0175C2",

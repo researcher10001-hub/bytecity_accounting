@@ -61,7 +61,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _buildActionsSection(context, user),
                     const SizedBox(height: 48),
                     Text(
-                      'ByteCity Accounting v1.0.1',
+                      'BC Math v3.23',
                       style: GoogleFonts.inter(
                         color: const Color(0xFFA0AEC0),
                         fontSize: 12,

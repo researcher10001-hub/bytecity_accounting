@@ -348,7 +348,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
             const SizedBox(height: 40),
             Center(
               child: Text(
-                'ByteCity Accounting v1.0.0',
+                'BC Math v3.23',
                 style: GoogleFonts.inter(color: Colors.grey[400], fontSize: 12),
               ),
             ),

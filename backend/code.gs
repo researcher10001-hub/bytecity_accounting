@@ -1,5 +1,5 @@
 /**
- * ByteCityBD Accounting App - Backend
+ * BC Math App - Backend
  * 
  * Instructions:
  * 1. Create a new Google Sheet.
@@ -44,7 +44,7 @@ function doGet(e) {
 
   return ContentService.createTextOutput(JSON.stringify({
     'status': 'online',
-    'message': 'ByteCity Accounting Backend is reachable.',
+    'message': 'BC Math Backend is reachable.',
     'timestamp': new Date().toISOString()
   })).setMimeType(ContentService.MimeType.JSON);
 }
@@ -2308,7 +2308,7 @@ function _notifyOwners(voucherNo, description, creator, accounts) {
                "Description: " + description + "\n" +
                "Created By: " + creator + "\n" +
                "Accounts: " + accounts.join(", ") + "\n\n" +
-               "Please check the ByteCity Accounting App for details.";
+               "Please check the BC Math App for details.";
 
   const recipientList = Array.from(ownerEmails).join(",");
   MailApp.sendEmail(recipientList, subject, body);
@@ -2514,7 +2514,7 @@ Action Required:
 - Respond to the admin's query
 - Re-submit for approval if needed
 
-This is an automated notification from ByteCity Accounting.
+This is an automated notification from BC Math.
     `.trim();
     
     for (let recipient of recipients) {
@@ -2569,7 +2569,7 @@ Status: Auto-Approved (Creator is sole owner)
 
 This transaction was automatically approved because the creator is the sole owner of all involved accounts.
 
-This is an automated notification from ByteCity Accounting.
+This is an automated notification from BC Math.
     `.trim();
     
     for (let adminEmail of adminEmails) {
@@ -2604,7 +2604,7 @@ Status: Pending Your Approval
 This is a self-entry transaction where the creator is also an owner of the involved accounts.
 Please review and approve or request clarification.
 
-This is an automated notification from ByteCity Accounting.
+This is an automated notification from BC Math.
     `.trim();
     
     for (let ownerEmail of otherOwnerEmails) {

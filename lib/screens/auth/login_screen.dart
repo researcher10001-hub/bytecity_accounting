@@ -95,21 +95,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'ByteCityBD Accounting',
+                  'BC Math',
                   style: GoogleFonts.inter(
                     fontSize: 32,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(height: 48),
-                _buildCheckItem('Secure Login'),
-                _buildCheckItem('Role-Based Access'),
-                _buildCheckItem('Multi-Account System'),
 
                 const Spacer(),
                 Text(
-                  'v1.0 | © ByteCityBD',
+                  'v3.23 | © BC Math',
                   style: GoogleFonts.inter(color: Colors.white70, fontSize: 12),
                 ),
               ],
@@ -207,13 +203,6 @@ class _LoginScreenState extends State<LoginScreen> {
                       ),
                       const SizedBox(height: 24),
                       _buildLoginButton(),
-                      const SizedBox(height: 24),
-                      Center(
-                        child: Text(
-                          'Forget password? Contact Admin',
-                          style: GoogleFonts.inter(color: Colors.grey[600]),
-                        ),
-                      ),
                     ],
                   ),
                 ),
@@ -258,7 +247,7 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               Text(
-                'ByteCityBD Accounting',
+                'BC Math',
                 textAlign: TextAlign.center,
                 style: GoogleFonts.inter(
                   fontSize: 24,
@@ -266,11 +255,7 @@ class _LoginScreenState extends State<LoginScreen> {
                   color: const Color(0xFF1E88E5),
                 ),
               ),
-              Text(
-                'Secure Accounting System',
-                textAlign: TextAlign.center,
-                style: GoogleFonts.inter(fontSize: 14, color: Colors.grey[600]),
-              ),
+
               const SizedBox(height: 48),
               _buildLoginForm(),
               const SizedBox(height: 16),
@@ -304,17 +289,11 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 24),
               _buildLoginButton(),
-              const SizedBox(height: 16),
-              Center(
-                child: Text(
-                  'Forget password? Contact Admin',
-                  style: GoogleFonts.inter(color: Colors.grey[600]),
-                ),
-              ),
+
               const SizedBox(height: 32),
               Center(
                 child: Text(
-                  'v1.0 | © ByteCityBD',
+                  'v3.23 | © BC Math',
                   style: TextStyle(color: Colors.grey[400]),
                 ),
               ),
@@ -401,22 +380,6 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       filled: true,
       fillColor: Colors.white,
-    );
-  }
-
-  Widget _buildCheckItem(String text) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12.0),
-      child: Row(
-        children: [
-          const Icon(Icons.check, color: Colors.white, size: 20),
-          const SizedBox(width: 12),
-          Text(
-            text,
-            style: GoogleFonts.inter(color: Colors.white, fontSize: 16),
-          ),
-        ],
-      ),
     );
   }
 
