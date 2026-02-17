@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'side_menu.dart';
 import '../../../../providers/dashboard_provider.dart';
+import '../../../../providers/auth_provider.dart';
 import '../../../../models/transaction_model.dart';
 import 'package:provider/provider.dart';
 
@@ -86,7 +87,11 @@ class DesktopScaffold extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.end,
                             children: [
                               Text(
-                                role,
+                                context
+                                        .watch<AuthProvider>()
+                                        .user
+                                        ?.designation ??
+                                    role,
                                 style: GoogleFonts.inter(
                                   fontSize: 11,
                                   color: Colors.grey[600],
@@ -94,7 +99,8 @@ class DesktopScaffold extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                'User Account',
+                                context.watch<AuthProvider>().user?.name ??
+                                    'User Account',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   color: Colors.black87,
