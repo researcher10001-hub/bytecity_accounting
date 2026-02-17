@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/account_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../admin/users_screen.dart';
 import '../admin/accounts_screen.dart';
 import '../admin/account_groups_screen.dart';
@@ -233,10 +234,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: LucideIcons.users,
                 color: Colors.orange,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const UsersScreen()),
-                  );
+                  final dp = context.read<DashboardProvider>();
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    dp.setView(DashboardView.manageUsers);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const UsersScreen()),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 12),
@@ -246,10 +252,15 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: LucideIcons.wallet,
                 color: Colors.purple,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AccountsScreen()),
-                  );
+                  final dp = context.read<DashboardProvider>();
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    dp.setView(DashboardView.chartOfAccounts);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (_) => const AccountsScreen()),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 12),
@@ -259,12 +270,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: LucideIcons.layers,
                 color: Colors.pink,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AccountGroupsScreen(),
-                    ),
-                  );
+                  final dp = context.read<DashboardProvider>();
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    dp.setView(DashboardView.manageGroups);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AccountGroupsScreen(),
+                      ),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 12),
@@ -274,12 +290,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: Icons.flag_rounded,
                 color: Colors.red.shade700,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const AuditDashboardScreen(),
-                    ),
-                  );
+                  final dp = context.read<DashboardProvider>();
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    dp.setView(DashboardView.auditDashboard);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const AuditDashboardScreen(),
+                      ),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 12),
@@ -289,12 +310,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: LucideIcons.tag,
                 color: Colors.indigo,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const SubCategoryManagementScreen(),
-                    ),
-                  );
+                  final dp = context.read<DashboardProvider>();
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    dp.setView(DashboardView.subCategories);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const SubCategoryManagementScreen(),
+                      ),
+                    );
+                  }
                 },
               ),
               const SizedBox(height: 12),
@@ -304,12 +330,17 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 icon: LucideIcons.settings,
                 color: Colors.blueGrey.shade800,
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const ERPSettingsScreen(),
-                    ),
-                  );
+                  final dp = context.read<DashboardProvider>();
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    dp.setView(DashboardView.erpSettings);
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const ERPSettingsScreen(),
+                      ),
+                    );
+                  }
                 },
               ),
             ],

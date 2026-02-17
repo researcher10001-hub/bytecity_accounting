@@ -2,19 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
+import '../../../../providers/dashboard_provider.dart';
 import '../../../../core/constants/role_constants.dart';
 
 class SideMenu extends StatelessWidget {
   final String role;
-  final int currentIndex;
   final Function(int) onItemSelected;
 
-  const SideMenu({
-    super.key,
-    required this.role,
-    required this.currentIndex,
-    required this.onItemSelected,
-  });
+  const SideMenu({super.key, required this.role, required this.onItemSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +22,7 @@ class SideMenu extends StatelessWidget {
           Expanded(
             child: ListView(
               padding: const EdgeInsets.symmetric(vertical: 20),
-              children: _buildMenuItems(),
+              children: _buildMenuItems(context),
             ),
           ),
           _buildLogoutButton(context),
@@ -74,19 +69,25 @@ class SideMenu extends StatelessWidget {
     );
   }
 
-  List<Widget> _buildMenuItems() {
+  List<Widget> _buildMenuItems(BuildContext context) {
+    final currentView = context.watch<DashboardProvider>().currentView;
     final List<Map<String, dynamic>> items = _getNavItemsForRole(role);
 
     return items.asMap().entries.map((entry) {
       final index = entry.key;
       final item = entry.value;
-      final isSelected = index == currentIndex;
+      final view = item['view'] as DashboardView;
+      final isSelected = currentView == view;
 
       return _SideMenuItem(
         icon: item['icon'] as IconData,
         label: item['label'] as String,
         isSelected: isSelected,
-        onTap: () => onItemSelected(index),
+        onTap: () {
+          final view = item['view'] as DashboardView;
+          context.read<DashboardProvider>().setView(view);
+          onItemSelected(index);
+        },
       );
     }).toList();
   }
@@ -94,23 +95,82 @@ class SideMenu extends StatelessWidget {
   List<Map<String, dynamic>> _getNavItemsForRole(String role) {
     if (role == AppRoles.admin || role == 'Admin') {
       return [
-        {'icon': Icons.grid_view_rounded, 'label': 'Dashboard'},
-        {'icon': Icons.swap_horiz_rounded, 'label': 'Transactions'},
-        {'icon': Icons.search_rounded, 'label': 'Search'},
-        {'icon': Icons.settings_rounded, 'label': 'Settings'},
+        {
+          'icon': Icons.grid_view_rounded,
+          'label': 'Dashboard',
+          'view': DashboardView.home,
+        },
+        {
+          'icon': Icons.add_circle_outline_rounded,
+          'label': 'New Entry',
+          'view': DashboardView.transactionEntry,
+        },
+        {
+          'icon': Icons.swap_horiz_rounded,
+          'label': 'Transactions',
+          'view': DashboardView.transactions,
+        },
+        {
+          'icon': Icons.search_rounded,
+          'label': 'Search',
+          'view': DashboardView.search,
+        },
+        {
+          'icon': Icons.settings_rounded,
+          'label': 'Settings',
+          'view': DashboardView.settings,
+        },
       ];
     } else if (role == AppRoles.management || role == 'Management') {
       return [
-        {'icon': Icons.grid_view_rounded, 'label': 'Dashboard'},
-        {'icon': Icons.history_rounded, 'label': 'History'},
-        {'icon': Icons.analytics_rounded, 'label': 'Reports'},
-        {'icon': Icons.settings_rounded, 'label': 'Settings'},
+        {
+          'icon': Icons.grid_view_rounded,
+          'label': 'Dashboard',
+          'view': DashboardView.home,
+        },
+        {
+          'icon': Icons.add_circle_outline_rounded,
+          'label': 'New Entry',
+          'view': DashboardView.transactionEntry,
+        },
+        {
+          'icon': Icons.history_rounded,
+          'label': 'History',
+          'view': DashboardView.transactions,
+        },
+        {
+          'icon': Icons.analytics_rounded,
+          'label': 'Reports',
+          'view': DashboardView.search,
+        }, // Placeholder
+        {
+          'icon': Icons.settings_rounded,
+          'label': 'Settings',
+          'view': DashboardView.settings,
+        },
       ];
     } else {
       return [
-        {'icon': Icons.grid_view_rounded, 'label': 'Dashboard'},
-        {'icon': Icons.history_rounded, 'label': 'History'},
-        {'icon': Icons.settings_rounded, 'label': 'Settings'},
+        {
+          'icon': Icons.grid_view_rounded,
+          'label': 'Dashboard',
+          'view': DashboardView.home,
+        },
+        {
+          'icon': Icons.add_circle_outline_rounded,
+          'label': 'New Entry',
+          'view': DashboardView.transactionEntry,
+        },
+        {
+          'icon': Icons.history_rounded,
+          'label': 'History',
+          'view': DashboardView.transactions,
+        },
+        {
+          'icon': Icons.settings_rounded,
+          'label': 'Settings',
+          'view': DashboardView.settings,
+        },
       ];
     }
   }

@@ -2,24 +2,37 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
+
 import '../../providers/auth_provider.dart';
-import '../../providers/account_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/transaction_provider.dart';
+import '../../providers/account_provider.dart';
+import '../../providers/notification_provider.dart';
+import '../../providers/user_provider.dart';
+
 import '../../core/constants/role_constants.dart';
+import '../../models/user_model.dart';
+import '../../services/permission_service.dart';
+
 import '../transaction/transaction_entry_screen.dart';
 import '../settings/settings_screen.dart';
 import '../reports/transaction_history_screen.dart';
 import '../reports/ledger_screen.dart';
 import '../search/search_voucher_screen.dart';
-import '../../providers/notification_provider.dart';
-import '../../providers/user_provider.dart';
-import '../../models/user_model.dart';
+import '../admin/pending_transactions_screen.dart';
+import '../admin/erp_sync_queue_screen.dart';
+import '../admin/users_screen.dart';
+import '../admin/accounts_screen.dart';
+import '../admin/account_groups_screen.dart';
+import '../admin/audit_dashboard_screen.dart';
+import '../admin/sub_category_management_screen.dart';
+import '../admin/erp_settings_screen.dart';
+
 import 'widgets/desktop_scaffold.dart';
 import 'widgets/message_card.dart';
 import 'widgets/action_grid.dart';
-import '../../widgets/user_identity_widget.dart';
 import 'dashboard/owned_accounts_screen.dart';
-import '../../services/permission_service.dart';
+import '../../widgets/user_identity_widget.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -122,13 +135,14 @@ class _HomeScreenState extends State<HomeScreen> {
           // Desktop Layout
           return DesktopScaffold(
             role: role,
-            currentIndex: effectiveIndex,
             onNavIndexChanged: (index) {
-              if (index < navItemCount) {
-                setState(() => _currentIndex = index);
-              }
+              setState(() => _currentIndex = index);
+              // DashboardProvider view switching is now handled directly within SideMenu's onTap
+              // but we still keep index in sync for mobile bottom bar transitions
             },
-            body: _buildBody(role, effectiveIndex),
+            body: Consumer<DashboardProvider>(
+              builder: (context, dp, _) => _buildDesktopBody(user, role, dp),
+            ),
           );
         } else {
           // Mobile Layout
@@ -189,134 +203,155 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildBody(String rawRole, int currentIndex) {
-    final role = rawRole.trim();
+  Widget _buildDesktopBody(User user, String role, DashboardProvider dp) {
+    switch (dp.currentView) {
+      case DashboardView.home:
+        return _buildDashboardHome(user, role);
+      case DashboardView.transactions:
+        return const TransactionHistoryScreen();
+      case DashboardView.search:
+        return const SearchVoucherScreen();
+      case DashboardView.settings:
+        return const SettingsScreen();
+      case DashboardView.ledger:
+        return const LedgerScreen();
+      case DashboardView.pending:
+        return const PendingTransactionsScreen();
+      case DashboardView.erpSync:
+        return const ERPSyncQueueScreen();
+      case DashboardView.ownedAccounts:
+        return const OwnedAccountsScreen();
+      case DashboardView.transactionEntry:
+        return const TransactionEntryScreen();
+      case DashboardView.manageUsers:
+        return const UsersScreen();
+      case DashboardView.chartOfAccounts:
+        return const AccountsScreen();
+      case DashboardView.manageGroups:
+        return const AccountGroupsScreen();
+      case DashboardView.auditDashboard:
+        return const AuditDashboardScreen();
+      case DashboardView.subCategories:
+        return const SubCategoryManagementScreen();
+      case DashboardView.erpSettings:
+        return const ERPSettingsScreen();
+    }
+  }
 
-    // Unified Dashboard for index 0 (Home)
-    if (currentIndex == 0) {
-      final user = context.watch<AuthProvider>().user;
+  Widget _buildDashboardHome(User user, String role) {
+    return SingleChildScrollView(
+      child: Column(
+        children: [
+          const MessageCard(),
+          const SizedBox(height: 12),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Consumer<AccountProvider>(
+              builder: (context, provider, child) {
+                final myAccounts = provider.accounts.where((a) {
+                  return PermissionService().isOwner(user, a);
+                }).toList();
+                final countLabel = '${myAccounts.length} Own Accounts';
 
-      return SingleChildScrollView(
-        child: Column(
-          children: [
-            const MessageCard(),
-            const SizedBox(height: 12),
-
-            // Owned Accounts Summary Button
-            if (user != null)
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Consumer<AccountProvider>(
-                  builder: (context, provider, child) {
-                    // ALL users: show only OWNED accounts
-                    final myAccounts = provider.accounts.where((a) {
-                      return PermissionService().isOwner(user, a);
-                    }).toList();
-
-                    final countLabel = '${myAccounts.length} Own Accounts';
-
-                    return InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const OwnedAccountsScreen(),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
-                        decoration: BoxDecoration(
-                          gradient: LinearGradient(
-                            colors: [
-                              Colors.blue.shade600,
-                              Colors.blue.shade800,
-                            ],
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                          ),
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.blue.withValues(alpha: 0.3),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
-                            ),
-                          ],
-                        ),
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(10),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.2),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.account_balance_wallet,
-                                color: Colors.white,
-                                size: 20,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Account Balances',
-                                    style: GoogleFonts.inter(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                  const SizedBox(height: 2),
-                                  Text(
-                                    countLabel,
-                                    style: GoogleFonts.inter(
-                                      color: Colors.white.withValues(
-                                        alpha: 0.8,
-                                      ),
-                                      fontWeight: FontWeight.w500,
-                                      fontSize: 12,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                            Container(
-                              padding: const EdgeInsets.all(6),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.white,
-                                size: 14,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
+                return InkWell(
+                  onTap: () {
+                    // Desktop: use provider. Mobile (current): Push screen.
+                    // But here we are in _buildDashboardHome which is used by desktop.
+                    context.read<DashboardProvider>().setView(
+                      DashboardView.ownedAccounts,
                     );
                   },
-                ),
-              ),
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [Colors.blue.shade600, Colors.blue.shade800],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.blue.withValues(alpha: 0.3),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.2),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.account_balance_wallet,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Account Balances',
+                                style: GoogleFonts.inter(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                countLabel,
+                                style: GoogleFonts.inter(
+                                  color: Colors.white.withValues(alpha: 0.8),
+                                  fontWeight: FontWeight.w500,
+                                  fontSize: 12,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        Container(
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: const Icon(
+                            Icons.arrow_forward_ios,
+                            color: Colors.white,
+                            size: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+          const SizedBox(height: 16),
+          ActionGrid(userRole: role),
+          const SizedBox(height: 24),
+          const SizedBox(height: 60),
+        ],
+      ),
+    );
+  }
 
-            const SizedBox(height: 16),
-
-            // Action Grid
-            ActionGrid(userRole: role),
-
-            const SizedBox(height: 24),
-            // Padding for floating bottom bar
-            const SizedBox(height: 60),
-          ],
-        ),
-      );
+  Widget _buildBody(String rawRole, int currentIndex) {
+    final role = rawRole.trim();
+    if (currentIndex == 0) {
+      final user = context.watch<AuthProvider>().user;
+      if (user == null) return const SizedBox();
+      return _buildDashboardHome(user, role);
     }
 
     final bool isAdmin =

@@ -10,6 +10,7 @@ import 'providers/group_provider.dart';
 import 'providers/settings_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/sub_category_provider.dart';
+import 'providers/dashboard_provider.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -39,6 +40,7 @@ class MyApp extends StatelessWidget {
         ChangeNotifierProvider(
           create: (_) => SubCategoryProvider()..fetchSubCategories(),
         ),
+        ChangeNotifierProvider(create: (_) => DashboardProvider()),
       ],
       child: MaterialApp(
         title: 'ByteCity Accounting',

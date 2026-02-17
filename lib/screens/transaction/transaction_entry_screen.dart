@@ -14,7 +14,6 @@ import '../../models/transaction_model.dart';
 import '../../models/account_model.dart';
 import '../../services/permission_service.dart';
 import 'widgets/account_autocomplete.dart';
-import '../home/widgets/side_menu.dart';
 import '../reports/transaction_history_screen.dart';
 import '../../core/utils/currency_formatter.dart';
 
@@ -80,89 +79,25 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         final bool isDesktop = constraints.maxWidth >= 800;
 
         if (isDesktop) {
-          return Scaffold(
-            backgroundColor: const Color(0xFFF7FAFC),
-            body: Row(
+          return Container(
+            color: const Color(0xFFF7FAFC),
+            child: Column(
               children: [
-                SideMenu(
-                  role: user.role,
-                  currentIndex: 1, // Defaulting to Transactions index
-                  onItemSelected: (index) {
-                    Navigator.of(context).pop();
-                  },
-                ),
+                // Form Body
                 Expanded(
-                  child: Column(
-                    children: [
-                      // Desktop Header
-                      Container(
-                        height: 64,
-                        padding: const EdgeInsets.symmetric(horizontal: 24),
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          border: Border(
-                            bottom: BorderSide(color: Color(0xFFEDF2F7)),
-                          ),
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              title,
-                              style: GoogleFonts.inter(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w700,
-                                color: const Color(0xFF2D3748),
-                              ),
-                            ),
-                            Row(
-                              children: [
-                                Text(
-                                  user.name,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF718096),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                CircleAvatar(
-                                  radius: 16,
-                                  backgroundColor: const Color(
-                                    0xFF4299E1,
-                                  ).withValues(alpha: 0.1),
-                                  child: Text(
-                                    user.name.substring(0, 1).toUpperCase(),
-                                    style: GoogleFonts.inter(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w700,
-                                      color: const Color(0xFF4299E1),
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Center(
+                      child: ConstrainedBox(
+                        constraints: const BoxConstraints(maxWidth: 900),
+                        child: _buildFormBody(
+                          transactionProvider,
+                          accountProvider,
+                          groupProvider,
+                          user,
                         ),
                       ),
-                      // Form Body
-                      Expanded(
-                        child: SingleChildScrollView(
-                          padding: const EdgeInsets.all(24.0),
-                          child: Center(
-                            child: ConstrainedBox(
-                              constraints: const BoxConstraints(maxWidth: 900),
-                              child: _buildFormBody(
-                                transactionProvider,
-                                accountProvider,
-                                groupProvider,
-                                user,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ],

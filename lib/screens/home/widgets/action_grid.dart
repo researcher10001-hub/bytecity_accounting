@@ -5,7 +5,8 @@ import '../../search/search_voucher_screen.dart';
 import '../../admin/pending_transactions_screen.dart';
 import '../../admin/erp_sync_queue_screen.dart';
 import '../../../providers/transaction_provider.dart';
-import '../../../providers/auth_provider.dart';
+import '../../../../providers/auth_provider.dart';
+import '../../../../providers/dashboard_provider.dart';
 import 'package:provider/provider.dart';
 import '../../../models/transaction_model.dart';
 
@@ -33,10 +34,17 @@ class ActionGrid extends StatelessWidget {
                     label: 'Ledger',
                     color: Colors.green,
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(builder: (_) => const LedgerScreen()),
-                      );
+                      final dp = context.read<DashboardProvider>();
+                      if (MediaQuery.of(context).size.width >= 800) {
+                        dp.setView(DashboardView.ledger);
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LedgerScreen(),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
@@ -48,12 +56,17 @@ class ActionGrid extends StatelessWidget {
                     label: 'Search Voucher',
                     color: Colors.orange,
                     onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => const SearchVoucherScreen(),
-                        ),
-                      );
+                      final dp = context.read<DashboardProvider>();
+                      if (MediaQuery.of(context).size.width >= 800) {
+                        dp.setView(DashboardView.search);
+                      } else {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const SearchVoucherScreen(),
+                          ),
+                        );
+                      }
                     },
                   ),
                 ),
@@ -83,19 +96,27 @@ class ActionGrid extends StatelessWidget {
                         label: 'Pending for Approval ($pendingCount)',
                         color: Colors.indigo,
                         onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const PendingTransactionsScreen(),
-                            ),
-                          );
-                          if (context.mounted) {
-                            final auth = context.read<AuthProvider>();
-                            if (auth.user != null) {
-                              context.read<TransactionProvider>().fetchHistory(
-                                auth.user!,
-                                forceRefresh: true,
-                              );
+                          final dp = context.read<DashboardProvider>();
+                          if (MediaQuery.of(context).size.width >= 800) {
+                            dp.setView(DashboardView.pending);
+                          } else {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) =>
+                                    const PendingTransactionsScreen(),
+                              ),
+                            );
+                            if (context.mounted) {
+                              final auth = context.read<AuthProvider>();
+                              if (auth.user != null) {
+                                context
+                                    .read<TransactionProvider>()
+                                    .fetchHistory(
+                                      auth.user!,
+                                      forceRefresh: true,
+                                    );
+                              }
                             }
                           }
                         },
@@ -118,19 +139,26 @@ class ActionGrid extends StatelessWidget {
                         label: 'ERP Sync Queue ($syncCount)',
                         color: Colors.teal,
                         onTap: () async {
-                          await Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const ERPSyncQueueScreen(),
-                            ),
-                          );
-                          if (context.mounted) {
-                            final auth = context.read<AuthProvider>();
-                            if (auth.user != null) {
-                              context.read<TransactionProvider>().fetchHistory(
-                                auth.user!,
-                                forceRefresh: true,
-                              );
+                          final dp = context.read<DashboardProvider>();
+                          if (MediaQuery.of(context).size.width >= 800) {
+                            dp.setView(DashboardView.erpSync);
+                          } else {
+                            await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (_) => const ERPSyncQueueScreen(),
+                              ),
+                            );
+                            if (context.mounted) {
+                              final auth = context.read<AuthProvider>();
+                              if (auth.user != null) {
+                                context
+                                    .read<TransactionProvider>()
+                                    .fetchHistory(
+                                      auth.user!,
+                                      forceRefresh: true,
+                                    );
+                              }
                             }
                           }
                         },

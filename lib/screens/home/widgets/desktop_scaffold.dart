@@ -1,35 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'side_menu.dart';
+import '../../../../providers/dashboard_provider.dart';
+import 'package:provider/provider.dart';
 
 class DesktopScaffold extends StatelessWidget {
   final String role;
-  final int currentIndex;
   final Function(int) onNavIndexChanged;
   final Widget body;
 
   const DesktopScaffold({
     super.key,
     required this.role,
-    required this.currentIndex,
     required this.onNavIndexChanged,
     required this.body,
   });
 
   @override
   Widget build(BuildContext context) {
-    // final user = context.watch<AuthProvider>().user;
-
     return Scaffold(
       backgroundColor: Colors.grey[100],
       body: Row(
         children: [
           // Left Sidebar
-          SideMenu(
-            role: role,
-            currentIndex: currentIndex,
-            onItemSelected: onNavIndexChanged,
-          ),
+          SideMenu(role: role, onItemSelected: onNavIndexChanged),
 
           // Main Content Area
           Expanded(
@@ -52,13 +46,29 @@ class DesktopScaffold extends StatelessWidget {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        _getPageTitle(currentIndex, role),
-                        style: GoogleFonts.inter(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w700,
-                          color: Colors.black87,
-                        ),
+                      Row(
+                        children: [
+                          if (context.watch<DashboardProvider>().canPop) ...[
+                            IconButton(
+                              icon: const Icon(
+                                Icons.arrow_back_ios_new_rounded,
+                                size: 18,
+                              ),
+                              onPressed: () =>
+                                  context.read<DashboardProvider>().popView(),
+                              tooltip: 'Back',
+                            ),
+                            const SizedBox(width: 8),
+                          ],
+                          Text(
+                            _getDynamicPageTitle(context, role),
+                            style: GoogleFonts.inter(
+                              fontSize: 18,
+                              fontWeight: FontWeight.w700,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ],
                       ),
                       Row(
                         children: [
@@ -85,7 +95,7 @@ class DesktopScaffold extends StatelessWidget {
                                 ),
                               ),
                               Text(
-                                'User Account', // Update this if real name available
+                                'User Account',
                                 style: GoogleFonts.inter(
                                   fontSize: 13,
                                   color: Colors.black87,
@@ -111,11 +121,7 @@ class DesktopScaffold extends StatelessWidget {
                 ),
 
                 // Body Content
-                Expanded(
-                  child: ClipRect(
-                    child: body, // Provide the dashboard body here
-                  ),
-                ),
+                Expanded(child: ClipRect(child: body)),
               ],
             ),
           ),
@@ -135,21 +141,39 @@ class DesktopScaffold extends StatelessWidget {
     );
   }
 
-  String _getPageTitle(int index, String role) {
-    // Simple mapper for title based on index
-    // Mirrors SideMenu logic
-    if (index == 0) return 'Dashboard Overview';
-    final bool isAdmin = role.trim().toLowerCase() == 'admin';
-
-    if (isAdmin) {
-      if (index == 1) return 'Transactions History';
-      if (index == 2) return 'Search & Vouchers';
-      if (index == 3) return 'System Settings';
-    } else {
-      if (index == 1) return 'Transaction History';
-      if (index == 2) return 'Profile & Accounts';
-      if (index == 3) return 'General Settings';
+  String _getDynamicPageTitle(BuildContext context, String role) {
+    final dp = context.read<DashboardProvider>();
+    switch (dp.currentView) {
+      case DashboardView.home:
+        return 'Dashboard Overview';
+      case DashboardView.transactions:
+        return 'Transaction History';
+      case DashboardView.search:
+        return 'Search & Vouchers';
+      case DashboardView.settings:
+        return 'System Settings';
+      case DashboardView.ledger:
+        return 'General Ledger';
+      case DashboardView.pending:
+        return 'Pending Approvals';
+      case DashboardView.erpSync:
+        return 'ERP Sync Queue';
+      case DashboardView.ownedAccounts:
+        return 'My Owned Accounts';
+      case DashboardView.transactionEntry:
+        return 'New Transaction Entry';
+      case DashboardView.manageUsers:
+        return 'Manage User Profiles';
+      case DashboardView.chartOfAccounts:
+        return 'Chart of Accounts';
+      case DashboardView.manageGroups:
+        return 'Account Groups';
+      case DashboardView.auditDashboard:
+        return 'Audit & Oversight';
+      case DashboardView.subCategories:
+        return 'Sub-Category Management';
+      case DashboardView.erpSettings:
+        return 'ERP Configuration';
     }
-    return 'Management Console';
   }
 }
