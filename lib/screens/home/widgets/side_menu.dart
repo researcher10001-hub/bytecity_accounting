@@ -153,11 +153,6 @@ class SideMenu extends StatelessWidget {
           'label': 'Reports',
           'view': DashboardView.search,
         }, // Placeholder
-        {
-          'icon': Icons.settings_rounded,
-          'label': 'Settings',
-          'view': DashboardView.settings,
-        },
       ];
     } else {
       return [
@@ -180,11 +175,6 @@ class SideMenu extends StatelessWidget {
           'icon': Icons.account_balance_wallet_rounded,
           'label': 'Account Balances',
           'view': DashboardView.ownedAccounts,
-        },
-        {
-          'icon': Icons.settings_rounded,
-          'label': 'Settings',
-          'view': DashboardView.settings,
         },
       ];
     }
