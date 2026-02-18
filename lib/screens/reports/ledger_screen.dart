@@ -393,11 +393,14 @@ class _LedgerScreenState extends State<LedgerScreen> {
     );
 
     if (isDesktop) {
-      return Column(
-        children: [
-          Expanded(child: bodyContent),
-          _buildStatusBar(totalDebit, totalCredit, runningBalance),
-        ],
+      return Material(
+        color: const Color(0xFFF7FAFC),
+        child: Column(
+          children: [
+            Expanded(child: bodyContent),
+            _buildStatusBar(totalDebit, totalCredit, runningBalance),
+          ],
+        ),
       );
     }
 

@@ -80,7 +80,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         final bool isDesktop = constraints.maxWidth >= 800;
 
         if (isDesktop) {
-          return Container(
+          return Material(
             color: const Color(0xFFF7FAFC),
             child: Column(
               children: [

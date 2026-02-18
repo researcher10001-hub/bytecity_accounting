@@ -376,8 +376,9 @@ class _OwnedAccountsScreenState extends State<OwnedAccountsScreen>
                                           )
                                           .rotate(begin: -0.1, end: 0),
                                 onPressed: () async {
-                                  if (_loadingPins.contains(account.name))
+                                  if (_loadingPins.contains(account.name)) {
                                     return;
+                                  }
 
                                   final isPinned = user.pinnedAccountNames
                                       .contains(account.name);

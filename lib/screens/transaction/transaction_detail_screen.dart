@@ -164,7 +164,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
     );
 
     if (isDesktop) {
-      return bodyContent;
+      return Material(color: const Color(0xFFF7FAFC), child: bodyContent);
     }
 
     return Scaffold(

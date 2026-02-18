@@ -6,6 +6,7 @@ import '../../../providers/notification_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../providers/transaction_provider.dart';
+import '../../../providers/dashboard_provider.dart';
 import '../../../providers/account_provider.dart';
 import '../../../models/transaction_model.dart';
 import '../../../models/message_model.dart';
@@ -203,12 +204,18 @@ class _MessageCardState extends State<MessageCard>
               // View All Button
               InkWell(
                 onTap: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const NotificationScreen(),
-                    ),
-                  );
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    context.read<DashboardProvider>().setView(
+                      DashboardView.messages,
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const NotificationScreen(),
+                      ),
+                    );
+                  }
                 },
                 child: Container(
                   padding: const EdgeInsets.all(16),
@@ -265,15 +272,25 @@ class _MessageCardState extends State<MessageCard>
         return InkWell(
           onTap: () {
             provider.markThreadAsRead(thread.voucherNo);
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => TransactionDetailScreen(
-                  transaction: thread.transaction,
-                  allTransactions: allTransactions,
+            if (MediaQuery.of(context).size.width >= 800) {
+              context.read<DashboardProvider>().setView(
+                DashboardView.transactionDetail,
+                args: {
+                  'transaction': thread.transaction,
+                  'allTransactions': allTransactions,
+                },
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => TransactionDetailScreen(
+                    transaction: thread.transaction,
+                    allTransactions: allTransactions,
+                  ),
                 ),
-              ),
-            );
+              );
+            }
           },
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

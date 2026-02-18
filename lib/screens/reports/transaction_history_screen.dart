@@ -12,6 +12,7 @@ import '../../providers/user_provider.dart';
 
 import '../../providers/account_provider.dart';
 
+import '../../providers/dashboard_provider.dart';
 import '../transaction/transaction_entry_screen.dart';
 import '../transaction/transaction_detail_screen.dart';
 import '../../core/utils/currency_formatter.dart';
@@ -374,22 +375,29 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => TransactionDetailScreen(
-                    transaction: tx,
-                    allTransactions: transactions,
+              if (MediaQuery.of(context).size.width >= 800) {
+                context.read<DashboardProvider>().setView(
+                  DashboardView.transactionDetail,
+                  args: {'transaction': tx, 'allTransactions': transactions},
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TransactionDetailScreen(
+                      transaction: tx,
+                      allTransactions: transactions,
+                    ),
                   ),
-                ),
-              ).then((_) {
-                if (mounted) {
-                  context.read<TransactionProvider>().fetchHistory(
-                    currentUser,
-                    forceRefresh: true,
-                  );
-                }
-              });
+                ).then((_) {
+                  if (mounted) {
+                    context.read<TransactionProvider>().fetchHistory(
+                      currentUser,
+                      forceRefresh: true,
+                    );
+                  }
+                });
+              }
             },
             child: Padding(
               padding: const EdgeInsets.all(14),

@@ -195,6 +195,8 @@ class DesktopScaffold extends StatelessWidget {
         return 'Transaction ${tx?.voucherNo ?? ""}';
       case DashboardView.profile:
         return 'User Profile';
+      case DashboardView.messages:
+        return 'Messages';
     }
   }
 }

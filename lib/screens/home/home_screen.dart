@@ -19,6 +19,7 @@ import '../transaction/transaction_entry_screen.dart';
 import '../transaction/transaction_detail_screen.dart';
 import '../settings/settings_screen.dart';
 import '../reports/transaction_history_screen.dart';
+import '../notifications/notifications_screen.dart';
 import '../reports/ledger_screen.dart';
 import '../search/search_voucher_screen.dart';
 import '../admin/pending_transactions_screen.dart';
@@ -262,6 +263,8 @@ class _HomeScreenState extends State<HomeScreen> {
         );
       case DashboardView.profile:
         return const ProfileScreen();
+      case DashboardView.messages:
+        return const NotificationScreen();
     }
   }
 
@@ -491,16 +494,16 @@ class _HomeScreenState extends State<HomeScreen> {
                   isAdmin ? Icons.settings_rounded : Icons.history_rounded,
                   isAdmin ? 'Settings' : 'History',
                   currentIndex == 3,
-                  onTapOverride: !isAdmin
-                      ? () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => const TransactionHistoryScreen(),
-                            ),
-                          );
-                        }
-                      : null,
+                  onTapOverride: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => isAdmin
+                            ? const SettingsScreen()
+                            : const TransactionHistoryScreen(),
+                      ),
+                    );
+                  },
                 ),
               ],
             ),

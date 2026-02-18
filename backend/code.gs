@@ -2980,9 +2980,9 @@ function syncToERPNext(e) {
     if (!settingsJson) return errorResponse("ERPNext settings not configured");
     
     const settings = JSON.parse(settingsJson);
-    const erpUrl = settings.erp_url; // https://erpnext-181686-0.cloudclusters.net/
-    const apiKey = settings.erp_api_key;
-    const apiSecret = settings.erp_api_secret;
+    const erpUrl = (settings.erp_url || '').trim();
+    const apiKey = (settings.erp_api_key || '').trim();
+    const apiSecret = (settings.erp_api_secret || '').trim();
     const docType = settings.erp_doctype || "Journal Entry";
     
     if (!erpUrl || !apiKey || !apiSecret) {
@@ -3041,7 +3041,9 @@ function syncToERPNext(e) {
             'erp_response': erpResponse
         });
     } else {
-        return errorResponse("ERPNext API Error (" + responseCode + "): " + responseText);
+        // Enhanced error message with URL and masked keys for debugging
+        const maskedKey = apiKey.substring(0, 4) + "****" + apiKey.substring(Math.max(0, apiKey.length - 4));
+        return errorResponse("ERPNext API Error (" + responseCode + ") at " + apiUrl + "\nResponse: " + responseText + "\n(Using Key: " + maskedKey + ")");
     }
     
   } catch (err) {

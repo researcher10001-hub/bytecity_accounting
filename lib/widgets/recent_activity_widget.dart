@@ -3,6 +3,7 @@ import '../models/activity_item.dart';
 import '../models/transaction_model.dart';
 import '../screens/transaction/transaction_detail_screen.dart';
 import '../providers/transaction_provider.dart';
+import '../providers/dashboard_provider.dart';
 import 'package:provider/provider.dart';
 
 class RecentActivityWidget extends StatefulWidget {
@@ -203,15 +204,22 @@ class _RecentActivityWidgetState extends State<RecentActivityWidget> {
         ],
       ),
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TransactionDetailScreen(
-              transaction: tx,
-              allTransactions: transactions,
+        if (MediaQuery.of(context).size.width >= 800) {
+          context.read<DashboardProvider>().setView(
+            DashboardView.transactionDetail,
+            args: {'transaction': tx, 'allTransactions': transactions},
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TransactionDetailScreen(
+                transaction: tx,
+                allTransactions: transactions,
+              ),
             ),
-          ),
-        );
+          );
+        }
       },
     );
   }

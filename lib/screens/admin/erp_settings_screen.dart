@@ -29,10 +29,27 @@ class _ERPSettingsScreenState extends State<ERPSettingsScreen> {
     _apiSecretController.text = settings.erpApiSecret;
     _docTypeController.text = settings.erpDocType;
     _emailEnabled = settings.emailNotificationsEnabled;
+
+    // Add listener to update controllers when settings load from server
+    settings.addListener(_updateControllers);
+  }
+
+  void _updateControllers() {
+    final settings = context.read<SettingsProvider>();
+    if (mounted) {
+      setState(() {
+        _urlController.text = settings.erpUrl;
+        _apiKeyController.text = settings.erpApiKey;
+        _apiSecretController.text = settings.erpApiSecret;
+        _docTypeController.text = settings.erpDocType;
+        _emailEnabled = settings.emailNotificationsEnabled;
+      });
+    }
   }
 
   @override
   void dispose() {
+    context.read<SettingsProvider>().removeListener(_updateControllers);
     _urlController.dispose();
     _apiKeyController.dispose();
     _apiSecretController.dispose();
@@ -62,7 +79,10 @@ class _ERPSettingsScreenState extends State<ERPSettingsScreen> {
             backgroundColor: Colors.green,
           ),
         );
-        Navigator.pop(context);
+        // Only pop if there's a previous route, otherwise stay on screen
+        if (Navigator.canPop(context)) {
+          Navigator.pop(context);
+        }
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

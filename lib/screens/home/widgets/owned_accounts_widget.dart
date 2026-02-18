@@ -10,6 +10,7 @@ import '../../../providers/auth_provider.dart';
 import '../../../providers/user_provider.dart';
 import '../../../providers/notification_provider.dart';
 import '../../reports/ledger_screen.dart';
+import '../../../providers/dashboard_provider.dart';
 import '../../../models/account_model.dart';
 
 class OwnedAccountsWidget extends StatefulWidget {
@@ -335,13 +336,21 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
 
                         return ListTile(
                           onTap: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) =>
-                                    LedgerScreen(initialAccountName: acc.name),
-                              ),
-                            );
+                            if (MediaQuery.of(context).size.width >= 800) {
+                              context.read<DashboardProvider>().setView(
+                                DashboardView.ledger,
+                                args: acc.name,
+                              );
+                            } else {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => LedgerScreen(
+                                    initialAccountName: acc.name,
+                                  ),
+                                ),
+                              );
+                            }
                           },
                           title: Text(
                             acc.name,
@@ -398,8 +407,9 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                                     )
                                   : InkWell(
                                       onTap: () async {
-                                        if (_loadingPins.contains(acc.name))
+                                        if (_loadingPins.contains(acc.name)) {
                                           return;
+                                        }
 
                                         final isPinned = user.pinnedAccountNames
                                             .contains(acc.name);

@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../providers/transaction_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/user_provider.dart';
@@ -239,15 +240,25 @@ class _NotificationScreenState extends State<NotificationScreen>
 
     return InkWell(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => TransactionDetailScreen(
-              transaction: thread.transaction,
-              allTransactions: allTransactions,
+        if (MediaQuery.of(context).size.width >= 800) {
+          context.read<DashboardProvider>().setView(
+            DashboardView.transactionDetail,
+            args: {
+              'transaction': thread.transaction,
+              'allTransactions': allTransactions,
+            },
+          );
+        } else {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => TransactionDetailScreen(
+                transaction: thread.transaction,
+                allTransactions: allTransactions,
+              ),
             ),
-          ),
-        );
+          );
+        }
       },
       child: Container(
         padding: const EdgeInsets.all(16),

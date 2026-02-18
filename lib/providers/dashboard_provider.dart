@@ -18,6 +18,7 @@ enum DashboardView {
   erpSettings,
   transactionDetail,
   profile,
+  messages,
 }
 
 class DashboardProvider with ChangeNotifier {

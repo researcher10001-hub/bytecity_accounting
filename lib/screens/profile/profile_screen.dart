@@ -25,7 +25,7 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final _passwordController = TextEditingController();
-  bool _isUpdating = false;
+  final bool _isUpdating = false;
 
   @override
   void dispose() {

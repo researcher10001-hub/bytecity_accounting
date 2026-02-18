@@ -8,6 +8,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/transaction_model.dart';
 import '../transaction/transaction_detail_screen.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../providers/dashboard_provider.dart';
 
 class AuditDashboardScreen extends StatefulWidget {
   const AuditDashboardScreen({super.key});
@@ -193,15 +194,22 @@ class _AuditDashboardScreenState extends State<AuditDashboardScreen> {
       ),
       child: InkWell(
         onTap: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => TransactionDetailScreen(
-                transaction: tx,
-                allTransactions: allTransactions,
+          if (MediaQuery.of(context).size.width >= 800) {
+            context.read<DashboardProvider>().setView(
+              DashboardView.transactionDetail,
+              args: {'transaction': tx, 'allTransactions': allTransactions},
+            );
+          } else {
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => TransactionDetailScreen(
+                  transaction: tx,
+                  allTransactions: allTransactions,
+                ),
               ),
-            ),
-          ).then((_) => _refresh());
+            ).then((_) => _refresh());
+          }
         },
         borderRadius: BorderRadius.circular(12),
         child: Padding(

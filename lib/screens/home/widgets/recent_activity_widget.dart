@@ -7,6 +7,7 @@ import '../../../providers/transaction_provider.dart';
 import '../../../providers/auth_provider.dart';
 import '../../../models/transaction_model.dart';
 import '../../transaction/transaction_detail_screen.dart';
+import '../../../providers/dashboard_provider.dart';
 
 class RecentActivityWidget extends StatefulWidget {
   const RecentActivityWidget({super.key});
@@ -220,15 +221,22 @@ class _RecentActivityWidgetState extends State<RecentActivityWidget> {
               final tx = txProvider.transactions.firstWhere(
                 (t) => t.voucherNo == voucherNo,
               );
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => TransactionDetailScreen(
-                    transaction: tx,
-                    allTransactions: allTransactions,
+              if (MediaQuery.of(context).size.width >= 800) {
+                context.read<DashboardProvider>().setView(
+                  DashboardView.transactionDetail,
+                  args: {'transaction': tx, 'allTransactions': allTransactions},
+                );
+              } else {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => TransactionDetailScreen(
+                      transaction: tx,
+                      allTransactions: allTransactions,
+                    ),
                   ),
-                ),
-              );
+                );
+              }
             } catch (e) {
               // Not found or not visible
               ScaffoldMessenger.of(context).showSnackBar(

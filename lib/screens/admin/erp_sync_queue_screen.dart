@@ -3,9 +3,11 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:lucide_icons/lucide_icons.dart';
-import '../../../providers/transaction_provider.dart';
-import '../../../providers/auth_provider.dart';
-import '../../../models/transaction_model.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import '../../providers/transaction_provider.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/dashboard_provider.dart';
+import '../../models/transaction_model.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../transaction/transaction_detail_screen.dart';
 
@@ -19,6 +21,7 @@ class ERPSyncQueueScreen extends StatefulWidget {
 class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
     with TickerProviderStateMixin {
   bool _isProcessing = false;
+  String? _syncingVoucherNo;
   late AnimationController _refreshController;
 
   @override
@@ -139,11 +142,13 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
               itemBuilder: (context, index, animation) {
                 if (index >= _internalQueue.length) return const SizedBox();
                 final tx = _internalQueue[index];
+                final isSyncing = _syncingVoucherNo == tx.voucherNo;
+
                 return FadeTransition(
                   opacity: animation,
                   child: SizeTransition(
                     sizeFactor: animation,
-                    child: _buildSyncCard(context, tx),
+                    child: _buildSyncCard(context, tx, isSyncing: isSyncing),
                   ),
                 );
               },
@@ -158,11 +163,12 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
     BuildContext context,
     TransactionModel tx, {
     bool isRemoved = false,
+    bool isSyncing = false,
   }) {
     final debits = tx.details.where((item) => item.debit > 0).toList();
     final credits = tx.details.where((item) => item.credit > 0).toList();
 
-    return Container(
+    Widget card = Container(
       margin: const EdgeInsets.only(bottom: 16, left: 4, right: 4),
       decoration: BoxDecoration(
         color: Colors.white,
@@ -186,15 +192,25 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
           onTap: isRemoved
               ? null
               : () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => TransactionDetailScreen(
-                        transaction: tx,
-                        allTransactions: [tx],
+                  if (MediaQuery.of(context).size.width >= 800) {
+                    context.read<DashboardProvider>().setView(
+                      DashboardView.transactionDetail,
+                      args: {
+                        'transaction': tx,
+                        'allTransactions': [tx],
+                      },
+                    );
+                  } else {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => TransactionDetailScreen(
+                          transaction: tx,
+                          allTransactions: [tx],
+                        ),
                       ),
-                    ),
-                  );
+                    );
+                  }
                 },
           borderRadius: BorderRadius.circular(20),
           child: Padding(
@@ -443,6 +459,7 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
                         icon: LucideIcons.refreshCw,
                         color: const Color(0xFF2563EB),
                         isPrimary: true,
+                        isLoading: isSyncing,
                         onTap: isRemoved
                             ? () {}
                             : () => _handleSync(tx, isManual: false),
@@ -456,6 +473,31 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
         ),
       ),
     );
+
+    // If syncing, add a nice shimmer effect
+    if (isSyncing) {
+      return card
+          .animate(onPlay: (controller) => controller.repeat())
+          .shimmer(
+            duration: 1200.ms,
+            color: const Color(0xFF2563EB).withValues(alpha: 0.1),
+          )
+          .scaleXY(
+            begin: 1.0,
+            end: 1.02,
+            duration: 600.ms,
+            curve: Curves.easeInOut,
+          )
+          .then()
+          .scaleXY(
+            begin: 1.02,
+            end: 1.0,
+            duration: 600.ms,
+            curve: Curves.easeInOut,
+          );
+    }
+
+    return card;
   }
 
   Widget _buildActionButton({
@@ -464,6 +506,7 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
     required Color color,
     required VoidCallback onTap,
     bool isPrimary = false,
+    bool isLoading = false,
   }) {
     return Material(
       color: Colors.transparent,
@@ -491,12 +534,25 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(
-                icon,
-                size: 14,
-                color: isPrimary ? Colors.white : color.withValues(alpha: 0.8),
-              ),
-              const SizedBox(width: 6),
+              if (!isLoading)
+                Icon(
+                  icon,
+                  size: 14,
+                  color: isPrimary
+                      ? Colors.white
+                      : color.withValues(alpha: 0.8),
+                ),
+              if (!isLoading) const SizedBox(width: 6),
+              if (isLoading)
+                SizedBox(
+                  width: 14,
+                  height: 14,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: isPrimary ? Colors.white : color,
+                  ),
+                ),
+              if (isLoading) const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.outfit(
@@ -548,7 +604,11 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
       return;
     }
 
-    setState(() => _isProcessing = true);
+    setState(() {
+      _isProcessing = true;
+      _syncingVoucherNo = tx.voucherNo;
+    });
+
     try {
       final success = await context.read<TransactionProvider>().syncToERPNext(
         voucherNo: tx.voucherNo,
@@ -557,6 +617,7 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
 
       if (mounted) {
         if (success) {
+          // Success Feedback
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text(
@@ -567,7 +628,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
               backgroundColor: Colors.green,
             ),
           );
-          // Auto-refresh on success
+          // Wait a bit for the animation to be visible before refreshing/removing
+          await Future.delayed(const Duration(milliseconds: 1200));
           await _refresh();
         } else {
           final error = context.read<TransactionProvider>().error;
@@ -581,7 +643,10 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
       }
     } finally {
       if (mounted) {
-        setState(() => _isProcessing = false);
+        setState(() {
+          _isProcessing = false;
+          _syncingVoucherNo = null;
+        });
       }
     }
   }
