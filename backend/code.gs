@@ -135,6 +135,7 @@ function changePassword(e) {
     const data = JSON.parse(e.postData.contents);
     const email = data.email;
     const newPassword = data.newPassword;
+    const currentPassword = data.current_password; // Optional for admin, required for self-change if enforced
     
     if (!email || !newPassword) return errorResponse("Missing fields");
     
@@ -146,6 +147,15 @@ function changePassword(e) {
     
     for (let i = 1; i < rows.length; i++) {
        if (rows[i][1].toString().toLowerCase() === email.toLowerCase()) {
+           // If current_password is provided, verify it first (Security for User Change)
+           if (currentPassword) {
+              const currentHash = generateHash(email, currentPassword);
+              const storedHash = rows[i][2].toString();
+              if (currentHash !== storedHash) {
+                  return errorResponse("Current password is incorrect.");
+              }
+           }
+
            const newHash = generateHash(email, newPassword);
            sheet.getRange(i + 1, 3).setValue(newHash);
            userFound = true;

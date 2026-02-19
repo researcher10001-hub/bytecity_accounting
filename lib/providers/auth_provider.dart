@@ -103,7 +103,7 @@ class AuthProvider with ChangeNotifier {
       await _apiService.postRequest(ApiConstants.actionChangePassword, {
         'email': _user!.email,
         'current_password': currentPassword,
-        'new_password': newPassword,
+        'newPassword': newPassword,
       });
 
       _isLoading = false;
