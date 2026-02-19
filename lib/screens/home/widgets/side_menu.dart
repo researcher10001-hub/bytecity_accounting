@@ -303,17 +303,16 @@ class _SideMenuItemState extends State<_SideMenuItem> {
           color: widget.isSelected
               ? Colors.white.withValues(alpha: 0.2)
               : _isHovered
-              ? Colors.white.withValues(alpha: 0.1)
-              : Colors.transparent,
+                  ? Colors.white.withValues(alpha: 0.1)
+                  : Colors.transparent,
           borderRadius: BorderRadius.circular(12),
         ),
         child: ListTile(
           dense: true,
           leading: Icon(
             widget.icon,
-            color: widget.isSelected || _isHovered
-                ? Colors.white
-                : Colors.white70,
+            color:
+                widget.isSelected || _isHovered ? Colors.white : Colors.white70,
             size: 20,
           ),
           title: Text(

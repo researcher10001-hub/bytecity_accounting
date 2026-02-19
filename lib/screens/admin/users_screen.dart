@@ -1503,13 +1503,18 @@ class _UsersScreenState extends State<UsersScreen> {
     final designationController = TextEditingController(); // NEW
     final passwordController = TextEditingController();
     final confirmPasswordController = TextEditingController();
-    String selectedRole = AppRoles.viewer;
+
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+
     final roles = [
-      AppRoles.admin,
+      if (currentUser?.isAdmin == true) AppRoles.admin,
       AppRoles.management,
       AppRoles.associate,
       AppRoles.viewer,
     ];
+    String selectedRole =
+        roles.contains(AppRoles.viewer) ? AppRoles.viewer : roles.first;
 
     showDialog(
       context: context,
@@ -1672,8 +1677,11 @@ class _UsersScreenState extends State<UsersScreen> {
     String selectedRole = user.role;
     String selectedStatus = user.status;
 
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+
     final roles = [
-      AppRoles.admin,
+      if (currentUser?.isAdmin == true) AppRoles.admin,
       AppRoles.management,
       AppRoles.associate,
       AppRoles.viewer,
@@ -1864,10 +1872,10 @@ class _UsersScreenState extends State<UsersScreen> {
     User user, {
     Key? key,
   }) {
-    final bool isAdmin = Provider.of<AuthProvider>(
-      context,
-      listen: false,
-    ).isAdmin;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final currentUser = authProvider.user;
+    final bool canManage = currentUser != null &&
+        (currentUser.isAdmin || currentUser.isManagement);
 
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
@@ -1951,38 +1959,44 @@ class _UsersScreenState extends State<UsersScreen> {
                       ),
                       const SizedBox(height: 12),
                       // Admin Mini Actions
-                      if (isAdmin)
+                      // Admin/Management Mini Actions
+                      if (canManage)
                         Wrap(
                           spacing: 12,
                           runSpacing: 8,
                           children: [
-                            _buildSoftUIIconButton(
-                              onPressed: () =>
-                                  _showEditUserDialog(context, user),
-                              icon: LucideIcons.edit3,
-                              gradient: [
-                                const Color(0xFF4299E1),
-                                const Color(0xFF3182CE),
-                              ],
-                            ),
-                            _buildSoftUIIconButton(
-                              onPressed: () =>
-                                  _showResetPasswordDialog(context, user),
-                              icon: LucideIcons.lock,
-                              gradient: [
-                                const Color(0xFF4299E1),
-                                const Color(0xFF3182CE),
-                              ],
-                            ),
-                            _buildSoftUIIconButton(
-                              onPressed: () =>
-                                  _confirmForceLogout(context, provider, user),
-                              icon: LucideIcons.power,
-                              gradient: [
-                                const Color(0xFFE53E3E),
-                                const Color(0xFFC53030),
-                              ],
-                            ),
+                            // Allow edit/reset/logout if user is admin OR target is NOT admin
+                            if (currentUser.isAdmin || !user.isAdmin) ...[
+                              _buildSoftUIIconButton(
+                                onPressed: () =>
+                                    _showEditUserDialog(context, user),
+                                icon: LucideIcons.edit3,
+                                gradient: [
+                                  const Color(0xFF4299E1),
+                                  const Color(0xFF3182CE),
+                                ],
+                              ),
+                              _buildSoftUIIconButton(
+                                onPressed: () =>
+                                    _showResetPasswordDialog(context, user),
+                                icon: LucideIcons.lock,
+                                gradient: [
+                                  const Color(0xFF4299E1),
+                                  const Color(0xFF3182CE),
+                                ],
+                              ),
+                              _buildSoftUIIconButton(
+                                onPressed: () => _confirmForceLogout(
+                                    context, provider, user),
+                                icon: LucideIcons.power,
+                                gradient: [
+                                  const Color(0xFFE53E3E),
+                                  const Color(0xFFC53030),
+                                ],
+                              ),
+                            ],
+
+                            // Delete Action (Strictly for non-admin targets)
                             if (!user.isAdmin) ...[
                               _buildSoftUIIconButton(
                                 onPressed: () =>

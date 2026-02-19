@@ -14,6 +14,7 @@ import '../../providers/account_provider.dart';
 import '../../services/permission_service.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../main.dart';
+import '../settings/settings_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -340,6 +341,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
         ),
         const SizedBox(height: 16),
+        _buildActionButton(
+          label: 'Settings',
+          icon: LucideIcons.settings,
+          gradient: const [Color(0xFF805AD5), Color(0xFF6B46C1)],
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const SettingsScreen()),
+            );
+          },
+        ),
+        const SizedBox(height: 12),
         _buildActionButton(
           label: 'Change Password',
           icon: LucideIcons.lock,

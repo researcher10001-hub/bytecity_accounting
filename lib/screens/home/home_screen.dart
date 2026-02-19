@@ -70,12 +70,12 @@ class _HomeScreenState extends State<HomeScreen> {
       if (!mounted) return;
 
       context.read<NotificationProvider>().refreshNotifications(
-        user,
-        context.read<TransactionProvider>(),
-        context.read<UserProvider>(),
-        accountProvider: context.read<AccountProvider>(),
-        silent: true,
-      );
+            user,
+            context.read<TransactionProvider>(),
+            context.read<UserProvider>(),
+            accountProvider: context.read<AccountProvider>(),
+            silent: true,
+          );
     });
   }
 
@@ -88,11 +88,11 @@ class _HomeScreenState extends State<HomeScreen> {
       skipLoading: true,
     );
     await context.read<TransactionProvider>().fetchHistory(
-      user,
-      accountProvider: accountProvider,
-      forceRefresh: true,
-      skipLoading: true,
-    );
+          user,
+          accountProvider: accountProvider,
+          forceRefresh: true,
+          skipLoading: true,
+        );
 
     if (context.mounted) {
       // OPTIMIZATION: Removed client-side balance calculation
@@ -102,11 +102,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
       context.read<UserProvider>().fetchUsers(); // Pre-fetch users
       context.read<NotificationProvider>().refreshNotifications(
-        user,
-        context.read<TransactionProvider>(),
-        context.read<UserProvider>(),
-        accountProvider: context.read<AccountProvider>(),
-      );
+            user,
+            context.read<TransactionProvider>(),
+            context.read<UserProvider>(),
+            accountProvider: context.read<AccountProvider>(),
+          );
     }
   }
 
@@ -129,8 +129,8 @@ class _HomeScreenState extends State<HomeScreen> {
     final items = (role == AppRoles.admin || role == 'Admin')
         ? 6
         : (role == AppRoles.management || role == 'Management')
-        ? 5
-        : 4;
+            ? 5
+            : 4;
 
     // Safety check: Reset to 0 if out of bounds
     var effectiveIndex = _currentIndex;
@@ -205,9 +205,8 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             body: _buildBody(role, effectiveIndex),
             bottomNavigationBar: _buildCustomBottomBar(effectiveIndex, role),
-            floatingActionButton: _shouldShowFAB(role)
-                ? _buildGradientFAB()
-                : null,
+            floatingActionButton:
+                _shouldShowFAB(role) ? _buildGradientFAB() : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
             extendBody: true,
@@ -297,8 +296,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     } else {
                       // Desktop: Use provider
                       context.read<DashboardProvider>().setView(
-                        DashboardView.ownedAccounts,
-                      );
+                            DashboardView.ownedAccounts,
+                          );
                     }
                   },
                   borderRadius: BorderRadius.circular(16),
@@ -410,6 +409,7 @@ class _HomeScreenState extends State<HomeScreen> {
         DashboardView.transactions,
         DashboardView.ownedAccounts,
         DashboardView.search,
+        DashboardView.settings, // Added Settings
       ];
     } else {
       views = [
@@ -520,9 +520,8 @@ class _HomeScreenState extends State<HomeScreen> {
     bool isSelected, {
     VoidCallback? onTapOverride,
   }) {
-    final color = isSelected
-        ? const Color(0xFF1E88E5)
-        : const Color(0xFF94A3B8);
+    final color =
+        isSelected ? const Color(0xFF1E88E5) : const Color(0xFF94A3B8);
     return Expanded(
       child: InkWell(
         onTap: onTapOverride ?? () => setState(() => _currentIndex = index),
@@ -584,16 +583,16 @@ class _HomeScreenState extends State<HomeScreen> {
           if (mounted && context.mounted) {
             await context.read<AccountProvider>().fetchAccounts(user);
             await context.read<TransactionProvider>().fetchHistory(
-              user,
-              forceRefresh: true,
-            );
+                  user,
+                  forceRefresh: true,
+                );
             if (context.mounted) {
               context.read<NotificationProvider>().refreshNotifications(
-                user,
-                context.read<TransactionProvider>(),
-                context.read<UserProvider>(),
-                accountProvider: context.read<AccountProvider>(),
-              );
+                    user,
+                    context.read<TransactionProvider>(),
+                    context.read<UserProvider>(),
+                    accountProvider: context.read<AccountProvider>(),
+                  );
             }
           }
         },

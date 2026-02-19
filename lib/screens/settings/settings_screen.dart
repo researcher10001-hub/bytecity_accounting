@@ -178,9 +178,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
                                     return ListTile(
                                       contentPadding:
                                           const EdgeInsets.symmetric(
-                                            horizontal: 16,
-                                            vertical: 4,
-                                          ),
+                                        horizontal: 16,
+                                        vertical: 4,
+                                      ),
                                       leading: Container(
                                         padding: const EdgeInsets.all(10),
                                         decoration: BoxDecoration(
@@ -225,8 +225,8 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 24),
 
-            // Admin Section (Only if Admin)
-            if (user.isAdmin) ...[
+            // Admin & Management Section
+            if (user.isAdmin || user.isManagement) ...[
               _buildSectionHeader('Administration'),
               _buildSettingsTile(
                 title: 'Manage Users',
@@ -246,103 +246,109 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 },
               ),
               const SizedBox(height: 12),
-              _buildSettingsTile(
-                title: 'Chart of Accounts',
-                subtitle: 'Manage account heads & defaults',
-                icon: LucideIcons.wallet,
-                color: Colors.purple,
-                onTap: () {
-                  final dp = context.read<DashboardProvider>();
-                  if (MediaQuery.of(context).size.width >= 800) {
-                    dp.setView(DashboardView.chartOfAccounts);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => const AccountsScreen()),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildSettingsTile(
-                title: 'Manage Groups',
-                subtitle: 'Define and organize account groups',
-                icon: LucideIcons.layers,
-                color: Colors.pink,
-                onTap: () {
-                  final dp = context.read<DashboardProvider>();
-                  if (MediaQuery.of(context).size.width >= 800) {
-                    dp.setView(DashboardView.manageGroups);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AccountGroupsScreen(),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildSettingsTile(
-                title: 'Audit Dashboard',
-                subtitle: 'Review flagged transactions for oversight',
-                icon: Icons.flag_rounded,
-                color: Colors.red.shade700,
-                onTap: () {
-                  final dp = context.read<DashboardProvider>();
-                  if (MediaQuery.of(context).size.width >= 800) {
-                    dp.setView(DashboardView.auditDashboard);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const AuditDashboardScreen(),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildSettingsTile(
-                title: 'Account Sub-Categories',
-                subtitle: 'Manage dynamic sub-categories for accounts',
-                icon: LucideIcons.tag,
-                color: Colors.indigo,
-                onTap: () {
-                  final dp = context.read<DashboardProvider>();
-                  if (MediaQuery.of(context).size.width >= 800) {
-                    dp.setView(DashboardView.subCategories);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const SubCategoryManagementScreen(),
-                      ),
-                    );
-                  }
-                },
-              ),
-              const SizedBox(height: 12),
-              _buildSettingsTile(
-                title: 'ERPNext Configuration',
-                subtitle: 'Setup API credentials & instance URL',
-                icon: LucideIcons.settings,
-                color: Colors.blueGrey.shade800,
-                onTap: () {
-                  final dp = context.read<DashboardProvider>();
-                  if (MediaQuery.of(context).size.width >= 800) {
-                    dp.setView(DashboardView.erpSettings);
-                  } else {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const ERPSettingsScreen(),
-                      ),
-                    );
-                  }
-                },
-              ),
+
+              // Strictly Admin-Only Items
+              if (user.isAdmin) ...[
+                _buildSettingsTile(
+                  title: 'Chart of Accounts',
+                  subtitle: 'Manage account heads & defaults',
+                  icon: LucideIcons.wallet,
+                  color: Colors.purple,
+                  onTap: () {
+                    final dp = context.read<DashboardProvider>();
+                    if (MediaQuery.of(context).size.width >= 800) {
+                      dp.setView(DashboardView.chartOfAccounts);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AccountsScreen(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildSettingsTile(
+                  title: 'Manage Groups',
+                  subtitle: 'Define and organize account groups',
+                  icon: LucideIcons.layers,
+                  color: Colors.pink,
+                  onTap: () {
+                    final dp = context.read<DashboardProvider>();
+                    if (MediaQuery.of(context).size.width >= 800) {
+                      dp.setView(DashboardView.manageGroups);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AccountGroupsScreen(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildSettingsTile(
+                  title: 'Audit Dashboard',
+                  subtitle: 'Review flagged transactions for oversight',
+                  icon: Icons.flag_rounded,
+                  color: Colors.red.shade700,
+                  onTap: () {
+                    final dp = context.read<DashboardProvider>();
+                    if (MediaQuery.of(context).size.width >= 800) {
+                      dp.setView(DashboardView.auditDashboard);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AuditDashboardScreen(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildSettingsTile(
+                  title: 'Account Sub-Categories',
+                  subtitle: 'Manage dynamic sub-categories for accounts',
+                  icon: LucideIcons.tag,
+                  color: Colors.indigo,
+                  onTap: () {
+                    final dp = context.read<DashboardProvider>();
+                    if (MediaQuery.of(context).size.width >= 800) {
+                      dp.setView(DashboardView.subCategories);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SubCategoryManagementScreen(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+                const SizedBox(height: 12),
+                _buildSettingsTile(
+                  title: 'ERPNext Configuration',
+                  subtitle: 'Setup API credentials & instance URL',
+                  icon: LucideIcons.settings,
+                  color: Colors.blueGrey.shade800,
+                  onTap: () {
+                    final dp = context.read<DashboardProvider>();
+                    if (MediaQuery.of(context).size.width >= 800) {
+                      dp.setView(DashboardView.erpSettings);
+                    } else {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const ERPSettingsScreen(),
+                        ),
+                      );
+                    }
+                  },
+                ),
+              ],
             ],
 
             const SizedBox(height: 40),
@@ -607,14 +613,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                             setState(() => isLoading = true);
                             FocusScope.of(context).unfocus();
 
-                            final error =
-                                await Provider.of<AuthProvider>(
-                                  context,
-                                  listen: false,
-                                ).changePassword(
-                                  currentPassController.text,
-                                  newPassController.text,
-                                );
+                            final error = await Provider.of<AuthProvider>(
+                              context,
+                              listen: false,
+                            ).changePassword(
+                              currentPassController.text,
+                              newPassController.text,
+                            );
 
                             if (ctx.mounted) {
                               setState(() => isLoading = false);
@@ -690,8 +695,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
           vertical: 14,
         ),
       ),
-      validator:
-          validator ??
+      validator: validator ??
           (val) {
             if (val == null || val.isEmpty) return 'Required';
             if (val.length < 6) return 'Min 6 characters';
