@@ -1,4 +1,4 @@
-# bytecity_accounting
+# BC Math
 
 A new Flutter project.
 

@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:bytecity_accounting/models/group_model.dart';
+import 'package:bc_math/models/group_model.dart';
 
 void main() {
   group('GroupModel Tests', () {

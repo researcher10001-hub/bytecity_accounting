@@ -211,7 +211,7 @@ class _RecentApprovalsWidgetState extends State<RecentApprovalsWidget> {
         physics: const NeverScrollableScrollPhysics(),
         padding: const EdgeInsets.symmetric(vertical: 8),
         itemCount: approvals.length,
-        separatorBuilder: (_, _) => Divider(
+        separatorBuilder: (_, __) => Divider(
           height: 1,
           indent: 16,
           endIndent: 16,

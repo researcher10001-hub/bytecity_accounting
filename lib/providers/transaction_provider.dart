@@ -784,7 +784,7 @@ class TransactionProvider with ChangeNotifier {
       final response = await _apiService.postRequest('syncToERPNext', {
         'voucher_no': voucherNo,
         'is_manual': isManual,
-        'erp_document_id': ?erpDocumentId,
+        'erp_document_id': erpDocumentId,
       });
 
       if (response != null) {
@@ -1046,8 +1046,7 @@ class TransactionProvider with ChangeNotifier {
             currency: item['currency']?.toString() ?? 'BDT',
             exchangeRate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
             createdBy: item['created_by']?.toString() ?? '',
-            createdByName:
-                item['created_by_name']?.toString() ??
+            createdByName: item['created_by_name']?.toString() ??
                 item['created_by']?.toString() ??
                 '',
             status: TransactionStatus.values.firstWhere(
@@ -1058,25 +1057,22 @@ class TransactionProvider with ChangeNotifier {
                       .toLowerCase(),
               orElse: () => TransactionStatus.pending,
             ),
-            approvalLog:
-                (item['approval_log'] != null &&
+            approvalLog: (item['approval_log'] != null &&
                     item['approval_log'].toString().isNotEmpty)
                 ? (jsonDecode(item['approval_log'].toString()) as List)
-                      .map((e) => ApprovalMessage.fromJson(e))
-                      .toList()
+                    .map((e) => ApprovalMessage.fromJson(e))
+                    .toList()
                 : [],
             lastActionBy: item['last_action_by']?.toString(),
             isFlagged:
                 item['is_flagged'] == true || item['is_flagged'] == 'true',
             flaggedBy: item['flagged_by']?.toString(),
-            flaggedAt:
-                item['flagged_at'] != null &&
+            flaggedAt: item['flagged_at'] != null &&
                     item['flagged_at'].toString().isNotEmpty
                 ? DateTime.tryParse(item['flagged_at'].toString())
                 : null,
             flagReason: item['flag_reason']?.toString(),
-            lastActivityAt:
-                item['last_activity_at'] != null &&
+            lastActivityAt: item['last_activity_at'] != null &&
                     item['last_activity_at'].toString().isNotEmpty
                 ? DateTime.tryParse(item['last_activity_at'].toString())
                 : null,
@@ -1084,8 +1080,8 @@ class TransactionProvider with ChangeNotifier {
             lastActivityBy: item['last_activity_by']?.toString(),
             erpSyncStatus:
                 (item['erp_sync_status']?.toString().trim().isEmpty ?? true)
-                ? 'none'
-                : item['erp_sync_status'].toString().trim().toLowerCase(),
+                    ? 'none'
+                    : item['erp_sync_status'].toString().trim().toLowerCase(),
             erpDocumentId: item['erp_document_id']?.toString(),
             details: [],
           );
@@ -1103,22 +1099,21 @@ class TransactionProvider with ChangeNotifier {
         }
 
         entryMap[key]!.details.add(
-          TransactionDetail(
-            account:
-                realAccount ??
-                Account(
-                  name: item['account']?.toString() ?? 'Unknown',
-                  owners: [],
-                  groupIds: [],
-                  type: 'General',
-                ),
-            debit: _parseSafeDouble(item['debit']),
-            credit: _parseSafeDouble(item['credit']),
-            narration: '',
-            currency: item['currency']?.toString() ?? 'BDT',
-            rate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
-          ),
-        );
+              TransactionDetail(
+                account: realAccount ??
+                    Account(
+                      name: item['account']?.toString() ?? 'Unknown',
+                      owners: [],
+                      groupIds: [],
+                      type: 'General',
+                    ),
+                debit: _parseSafeDouble(item['debit']),
+                credit: _parseSafeDouble(item['credit']),
+                narration: '',
+                currency: item['currency']?.toString() ?? 'BDT',
+                rate: _parseSafeDouble(item['rate'], defaultValue: 1.0),
+              ),
+            );
       } catch (e) {
         print("Skipping invalid row: $e");
       }

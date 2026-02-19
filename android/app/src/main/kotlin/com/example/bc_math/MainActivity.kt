@@ -1,4 +1,4 @@
-package com.example.bytecity_accounting
+package com.example.bc_math
 
 import io.flutter.embedding.android.FlutterActivity
 

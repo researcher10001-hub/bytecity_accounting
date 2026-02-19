@@ -167,7 +167,7 @@ class _RecentActivityWidgetState extends State<RecentActivityWidget> {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.only(bottom: 8),
       itemCount: activities.length,
-      separatorBuilder: (_, _) => const Divider(height: 1, indent: 16),
+      separatorBuilder: (_, __) => const Divider(height: 1, indent: 16),
       itemBuilder: (context, index) {
         final activityData = activities[index];
         final activity = ActivityItem.fromJson(activityData);

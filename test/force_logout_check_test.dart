@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
-import 'package:bytecity_accounting/core/constants/api_constants.dart';
+import 'package:bc_math/core/constants/api_constants.dart';
 
 void main() {
   test('Verify Backend Connectivity and Actions', () async {

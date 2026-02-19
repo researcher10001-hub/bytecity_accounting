@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.example" "\0"
-            VALUE "FileDescription", "bytecity_accounting" "\0"
+            VALUE "FileDescription", "bc_math" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "bytecity_accounting" "\0"
+            VALUE "InternalName", "bc_math" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2026 com.example. All rights reserved." "\0"
-            VALUE "OriginalFilename", "bytecity_accounting.exe" "\0"
-            VALUE "ProductName", "bytecity_accounting" "\0"
+            VALUE "OriginalFilename", "bc_math.exe" "\0"
+            VALUE "ProductName", "bc_math" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

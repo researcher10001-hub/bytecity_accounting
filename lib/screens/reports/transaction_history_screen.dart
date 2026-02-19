@@ -42,9 +42,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       final user = context.read<AuthProvider>().user;
       final accountProvider = context.read<AccountProvider>();
       context.read<TransactionProvider>().fetchHistory(
-        user,
-        accountProvider: accountProvider,
-      );
+            user,
+            accountProvider: accountProvider,
+          );
     });
   }
 
@@ -308,16 +308,16 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     return ListView.separated(
       padding: const EdgeInsets.all(12),
       itemCount: transactions.length,
-      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      separatorBuilder: (_, __) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
         final tx = transactions[index];
         return _buildTransactionCard(
-              tx,
-              transactions, // Pass contextual list
-              userProvider,
-              currentUser,
-              isRemoved: isRemoved,
-            )
+          tx,
+          transactions, // Pass contextual list
+          userProvider,
+          currentUser,
+          isRemoved: isRemoved,
+        )
             .animate()
             .fadeIn(duration: 400.ms, delay: (index * 50).ms)
             .slideY(begin: 0.1, end: 0, curve: Curves.easeOutQuad);
@@ -392,9 +392,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                 ).then((_) {
                   if (mounted) {
                     context.read<TransactionProvider>().fetchHistory(
-                      currentUser,
-                      forceRefresh: true,
-                    );
+                          currentUser,
+                          forceRefresh: true,
+                        );
                   }
                 });
               }
@@ -452,9 +452,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           fontSize: 10,
                           color: Colors.grey.shade400,
                           fontWeight: FontWeight.w500,
-                          decoration: isRemoved
-                              ? TextDecoration.lineThrough
-                              : null,
+                          decoration:
+                              isRemoved ? TextDecoration.lineThrough : null,
                         ),
                       ),
                       if (tx.isFlagged) ...[
@@ -555,9 +554,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               color: isRemoved
                                   ? Colors.grey.shade500
                                   : const Color(0xFF16A34A), // Green
-                              decoration: isRemoved
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                              decoration:
+                                  isRemoved ? TextDecoration.lineThrough : null,
                             ),
                           ),
                         ],
@@ -617,9 +615,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               color: isRemoved
                                   ? Colors.grey.shade500
                                   : const Color(0xFFDC2626), // Red
-                              decoration: isRemoved
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                              decoration:
+                                  isRemoved ? TextDecoration.lineThrough : null,
                             ),
                           ),
                         ],
@@ -707,23 +704,22 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                             onTap: () {
                               Navigator.of(context)
                                   .push(
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          TransactionEntryScreen(
-                                            transaction: tx,
-                                          ),
-                                    ),
-                                  )
+                                MaterialPageRoute(
+                                  builder: (context) => TransactionEntryScreen(
+                                    transaction: tx,
+                                  ),
+                                ),
+                              )
                                   .then((_) {
-                                    if (mounted) {
-                                      context
-                                          .read<TransactionProvider>()
-                                          .fetchHistory(
-                                            currentUser,
-                                            forceRefresh: true,
-                                          );
-                                    }
-                                  });
+                                if (mounted) {
+                                  context
+                                      .read<TransactionProvider>()
+                                      .fetchHistory(
+                                        currentUser,
+                                        forceRefresh: true,
+                                      );
+                                }
+                              });
                             },
                             borderRadius: BorderRadius.circular(6),
                             child: const Padding(
@@ -820,9 +816,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       initialDate: isStart
           ? (_dateRange?.start ?? DateTime.now())
           : (_dateRange?.end ?? _dateRange?.start ?? DateTime.now()),
-      firstDate: isStart
-          ? DateTime(2020)
-          : (_dateRange?.start ?? DateTime(2020)),
+      firstDate:
+          isStart ? DateTime(2020) : (_dateRange?.start ?? DateTime(2020)),
       lastDate: DateTime(2030),
       builder: (context, child) => Theme(
         data: ThemeData(

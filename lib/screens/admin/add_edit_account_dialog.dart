@@ -389,7 +389,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
 
                             final list =
                                 provider.subCategoriesByType[_selectedType] ??
-                                [];
+                                    [];
 
                             return TypeAheadField<String>(
                               controller: _subCategoryController,
@@ -411,8 +411,8 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                                 return list
                                     .where(
                                       (s) => s.toLowerCase().contains(
-                                        pattern.toLowerCase(),
-                                      ),
+                                            pattern.toLowerCase(),
+                                          ),
                                     )
                                     .toList();
                               },
@@ -478,7 +478,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: groupProvider.groups.length,
-                                separatorBuilder: (_, _) => const Divider(
+                                separatorBuilder: (_, __) => const Divider(
                                   height: 1,
                                   color: Color(0xFFF1F5F9),
                                 ),
@@ -542,7 +542,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                                 shrinkWrap: true,
                                 physics: const NeverScrollableScrollPhysics(),
                                 itemCount: activeUsers.length,
-                                separatorBuilder: (_, _) => const Divider(
+                                separatorBuilder: (_, __) => const Divider(
                                   height: 1,
                                   color: Color(0xFFF1F5F9),
                                 ),
@@ -608,8 +608,8 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                               _isSaving
                                   ? 'Processing...'
                                   : (isEditing
-                                        ? 'Update Account'
-                                        : 'Create Account'),
+                                      ? 'Update Account'
+                                      : 'Create Account'),
                             ),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF1E88E5),

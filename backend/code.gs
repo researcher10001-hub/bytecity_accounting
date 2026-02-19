@@ -1164,7 +1164,7 @@ function checkSelfEntry(userEmail, accountsArray) {
 function _notifySelfEntryApproval(voucherNo, description, creator, accounts) {
   // Notify admin about auto-approved self-entry
   const adminEmail = 'admin@test.com'; // Or fetch from settings
-  const subject = `[ByteCity] Self-Entry Auto-Approved: ${voucherNo}`;
+  const subject = `[BC Math] Self-Entry Auto-Approved: ${voucherNo}`;
   const body = `A self-entry transaction was automatically approved:\n\n` +
                `Voucher: ${voucherNo}\n` +
                `Description: ${description}\n` +
@@ -1182,12 +1182,12 @@ function _notifySelfEntryApproval(voucherNo, description, creator, accounts) {
 // --- HELPER: NOTIFY OTHER OWNERS ---
 function _notifyOtherOwners(voucherNo, description, creator, otherOwners) {
   // Notify other co-owners about pending self-entry
-  const subject = `[ByteCity] Self-Entry Pending Review: ${voucherNo}`;
+  const subject = `[BC Math] Self-Entry Pending Review: ${voucherNo}`;
   const body = `A self-entry transaction requires your review:\n\n` +
                `Voucher: ${voucherNo}\n` +
                `Description: ${description}\n` +
                `Creator: ${creator}\n\n` +
-               `Please review and approve this transaction in the ByteCity app.`;
+               `Please review and approve this transaction in the BC Math app.`;
   
   otherOwners.forEach(ownerEmail => {
     try {

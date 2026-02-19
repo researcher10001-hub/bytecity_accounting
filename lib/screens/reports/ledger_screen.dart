@@ -35,7 +35,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
   List<Account> _selectedAccounts = []; // Multi-select support
   DateTimeRange? _dateRange;
   String?
-  _expandedCardKey; // Track currently expanded transaction card (only one)
+      _expandedCardKey; // Track currently expanded transaction card (only one)
 
   @override
   void initState() {
@@ -53,10 +53,10 @@ class _LedgerScreenState extends State<LedgerScreen> {
       );
       final currentUser = context.read<AuthProvider>().user;
       context.read<TransactionProvider>().fetchHistory(
-        currentUser,
-        forceRefresh: true,
-        accountProvider: accountProvider,
-      );
+            currentUser,
+            forceRefresh: true,
+            accountProvider: accountProvider,
+          );
 
       if (widget.initialAccountName != null) {
         final accountProvider = Provider.of<AccountProvider>(
@@ -317,77 +317,77 @@ class _LedgerScreenState extends State<LedgerScreen> {
                   ),
                 )
               : ledgerEntries.isEmpty
-              ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      const Icon(
-                        LucideIcons.fileX,
-                        size: 48,
-                        color: Color(0xFF94A3B8),
+                  ? Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            LucideIcons.fileX,
+                            size: 48,
+                            color: Color(0xFF94A3B8),
+                          ),
+                          const SizedBox(height: 16),
+                          Text(
+                            'No transactions found',
+                            style: GoogleFonts.inter(
+                              fontSize: 14,
+                              color: const Color(0xFF64748B),
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No transactions found',
-                        style: GoogleFonts.inter(
-                          fontSize: 14,
-                          color: const Color(0xFF64748B),
-                        ),
-                      ),
-                    ],
-                  ),
-                )
-              : ListView.separated(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: ledgerEntries.length,
-                  separatorBuilder: (context, index) =>
-                      const SizedBox(height: 12),
-                  itemBuilder: (context, index) {
-                    final entry = ledgerEntries[index];
-                    final date = entry['date'] as DateTime;
-                    final originalTx = entry['originalTx'] as TransactionModel;
+                    )
+                  : ListView.separated(
+                      padding: const EdgeInsets.all(16),
+                      itemCount: ledgerEntries.length,
+                      separatorBuilder: (context, index) =>
+                          const SizedBox(height: 12),
+                      itemBuilder: (context, index) {
+                        final entry = ledgerEntries[index];
+                        final date = entry['date'] as DateTime;
+                        final originalTx =
+                            entry['originalTx'] as TransactionModel;
 
-                    final double debit = (entry['debit'] ?? 0.0).toDouble();
-                    final double credit = (entry['credit'] ?? 0.0).toDouble();
+                        final double debit = (entry['debit'] ?? 0.0).toDouble();
+                        final double credit =
+                            (entry['credit'] ?? 0.0).toDouble();
 
-                    final bool isDebit = debit > 0;
-                    final double txAmount = isDebit ? debit : credit;
-                    final Color amountColor = isDebit
-                        ? Colors.green
-                        : Colors.red;
-                    final String formattedAmount =
-                        '৳${CurrencyFormatter.format(txAmount)}';
+                        final bool isDebit = debit > 0;
+                        final double txAmount = isDebit ? debit : credit;
+                        final Color amountColor =
+                            isDebit ? Colors.green : Colors.red;
+                        final String formattedAmount =
+                            '৳${CurrencyFormatter.format(txAmount)}';
 
-                    String status = 'Approved';
-                    bool isPending = false;
+                        String status = 'Approved';
+                        bool isPending = false;
 
-                    final String currency =
-                        entry['currency']?.toString() ?? 'BDT';
-                    final double rate = (entry['rate'] ?? 1.0).toDouble();
-                    final double originalDebit = (entry['originalDebit'] ?? 0.0)
-                        .toDouble();
-                    final double originalCredit =
-                        (entry['originalCredit'] ?? 0.0).toDouble();
-                    final double originalAmount = isDebit
-                        ? originalDebit
-                        : originalCredit;
+                        final String currency =
+                            entry['currency']?.toString() ?? 'BDT';
+                        final double rate = (entry['rate'] ?? 1.0).toDouble();
+                        final double originalDebit =
+                            (entry['originalDebit'] ?? 0.0).toDouble();
+                        final double originalCredit =
+                            (entry['originalCredit'] ?? 0.0).toDouble();
+                        final double originalAmount =
+                            isDebit ? originalDebit : originalCredit;
 
-                    return _buildTransactionCard(
-                      context,
-                      entry,
-                      date,
-                      formattedAmount,
-                      amountColor,
-                      originalTx,
-                      isPending: isPending,
-                      status: status,
-                      uniqueKeyExtra: index.toString(),
-                      currency: currency,
-                      rate: rate,
-                      originalAmount: originalAmount,
-                    );
-                  },
-                ),
+                        return _buildTransactionCard(
+                          context,
+                          entry,
+                          date,
+                          formattedAmount,
+                          amountColor,
+                          originalTx,
+                          isPending: isPending,
+                          status: status,
+                          uniqueKeyExtra: index.toString(),
+                          currency: currency,
+                          rate: rate,
+                          originalAmount: originalAmount,
+                        );
+                      },
+                    ),
         ),
       ],
     );
@@ -427,12 +427,12 @@ class _LedgerScreenState extends State<LedgerScreen> {
           IconButton(
             icon: transactionProvider.isLoading
                 ? const Icon(
-                        LucideIcons.refreshCw,
-                        size: 18,
-                        color: Color(0xFF64748B),
-                      )
-                      .animate(onPlay: (c) => c.repeat())
-                      .rotate(duration: 1.seconds)
+                    LucideIcons.refreshCw,
+                    size: 18,
+                    color: Color(0xFF64748B),
+                  )
+                    .animate(onPlay: (c) => c.repeat())
+                    .rotate(duration: 1.seconds)
                 : const Icon(
                     LucideIcons.refreshCw,
                     size: 18,
@@ -598,8 +598,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
                       GestureDetector(
                         onTap: () async {
                           // Normal tap - Open in browser
-                          final settingsProvider = context
-                              .read<SettingsProvider>();
+                          final settingsProvider =
+                              context.read<SettingsProvider>();
                           final erpUrl = settingsProvider.erpUrl;
 
                           // Extract ID from URL if needed
@@ -637,8 +637,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
                         },
                         onLongPress: () async {
                           // Long press - Copy to clipboard
-                          final settingsProvider = context
-                              .read<SettingsProvider>();
+                          final settingsProvider =
+                              context.read<SettingsProvider>();
                           final erpUrl = settingsProvider.erpUrl;
 
                           // Extract ID from URL if needed
@@ -1202,9 +1202,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
       initialDate: isStart
           ? (_dateRange?.start ?? DateTime.now())
           : (_dateRange?.end ?? _dateRange?.start ?? DateTime.now()),
-      firstDate: isStart
-          ? DateTime(2020)
-          : (_dateRange?.start ?? DateTime(2020)),
+      firstDate:
+          isStart ? DateTime(2020) : (_dateRange?.start ?? DateTime(2020)),
       lastDate: DateTime(2030),
       builder: (context, child) => Theme(
         data: ThemeData(
@@ -1250,9 +1249,9 @@ class _LedgerScreenState extends State<LedgerScreen> {
   void _showEditTransactionDialog(BuildContext context, TransactionModel tx) {
     if (MediaQuery.of(context).size.width >= 800) {
       context.read<DashboardProvider>().setView(
-        DashboardView.transactionEntry,
-        args: tx,
-      );
+            DashboardView.transactionEntry,
+            args: tx,
+          );
     } else {
       Navigator.push(
         context,
@@ -1290,8 +1289,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
                     _selectedAccounts.isEmpty
                         ? 'Select Accounts'
                         : _selectedAccounts.length == 1
-                        ? _selectedAccounts.first.name
-                        : '${_selectedAccounts.length} Accounts Selected',
+                            ? _selectedAccounts.first.name
+                            : '${_selectedAccounts.length} Accounts Selected',
                     style: GoogleFonts.inter(
                       fontSize: 14,
                       color: _selectedAccounts.isEmpty
@@ -1394,8 +1393,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                     MaterialPageRoute(
                                       builder: (context) =>
                                           const AccountGroupsScreen(
-                                            initialTab: 'report',
-                                          ),
+                                        initialTab: 'report',
+                                      ),
                                     ),
                                   );
 
@@ -1403,11 +1402,10 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                   setModalState(() => isRefreshing = true);
 
                                   // Auto-refresh accounts when returning
-                                  final provider = context
-                                      .read<AccountProvider>();
-                                  final user = context
-                                      .read<AuthProvider>()
-                                      .user;
+                                  final provider =
+                                      context.read<AccountProvider>();
+                                  final user =
+                                      context.read<AuthProvider>().user;
                                   await provider.fetchAccounts(
                                     user,
                                     forceRefresh: true,
@@ -1469,7 +1467,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             scrollDirection: Axis.horizontal,
                             itemCount: reportGroups.length,
-                            separatorBuilder: (_, _) =>
+                            separatorBuilder: (_, __) =>
                                 const SizedBox(width: 8),
                             itemBuilder: (context, index) {
                               final group = reportGroups[index];
@@ -1486,9 +1484,9 @@ class _LedgerScreenState extends State<LedgerScreen> {
 
                               final isFullySelected =
                                   accountsInGroup.isNotEmpty &&
-                                  accountsInGroup.every(
-                                    (a) => _selectedAccounts.contains(a),
-                                  );
+                                      accountsInGroup.every(
+                                        (a) => _selectedAccounts.contains(a),
+                                      );
 
                               return ActionChip(
                                 label: Text(group.name),

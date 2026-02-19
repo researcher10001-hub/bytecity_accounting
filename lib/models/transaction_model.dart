@@ -1,4 +1,4 @@
-import 'package:bytecity_accounting/models/account_model.dart';
+import 'package:bc_math/models/account_model.dart';
 
 enum VoucherType { payment, receipt, journal, contra }
 
