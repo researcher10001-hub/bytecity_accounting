@@ -58,7 +58,8 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
   }
 
-  Future<bool> login(String email, String password) async {
+  Future<bool> login(String email, String password,
+      {bool rememberMe = false}) async {
     _isLoading = true;
     _error = null;
     notifyListeners();
@@ -76,7 +77,7 @@ class AuthProvider with ChangeNotifier {
         throw ApiException('Your account has been suspended.');
       }
 
-      await _sessionManager.saveUser(_user!);
+      await _sessionManager.saveUser(_user!, rememberMe: rememberMe);
       _startSessionMonitor(); // Start monitoring
 
       _isLoading = false;

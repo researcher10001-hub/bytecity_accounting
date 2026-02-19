@@ -28,9 +28,10 @@ class _LoginScreenState extends State<LoginScreen> {
   Future<void> _handleLogin() async {
     if (_formKey.currentState!.validate()) {
       final success = await context.read<AuthProvider>().login(
-        _emailController.text.trim(),
-        _passwordController.text.trim(),
-      );
+            _emailController.text.trim(),
+            _passwordController.text.trim(),
+            rememberMe: _rememberMe,
+          );
 
       // If successful, and we were pushed manually, go to AuthWrapper (root)
       // If we are already under AuthWrapper, it will react naturally.

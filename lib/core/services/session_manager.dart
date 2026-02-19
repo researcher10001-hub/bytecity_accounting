@@ -6,7 +6,8 @@ class SessionManager {
   static const String _userKey = 'user_session';
 
   // Save User Session
-  Future<void> saveUser(User user) async {
+  Future<void> saveUser(User user, {bool rememberMe = true}) async {
+    if (!rememberMe) return; // Don't persist if not requested
     final prefs = await SharedPreferences.getInstance();
     String userJson = jsonEncode(user.toJson());
     await prefs.setString(_userKey, userJson);
