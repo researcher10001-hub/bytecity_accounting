@@ -10,7 +10,6 @@ import '../../providers/group_provider.dart';
 import '../reports/ledger_screen.dart';
 import '../../models/user_model.dart';
 import '../../providers/auth_provider.dart';
-import '../../providers/user_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../services/permission_service.dart';
 import '../../providers/dashboard_provider.dart';
@@ -560,8 +559,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           vertical: 14,
         ),
       ),
-      validator:
-          validator ??
+      validator: validator ??
           (val) {
             if (val == null || val.isEmpty) return 'Required';
             if (val.length < 6) return 'Min 6 characters';
@@ -671,9 +669,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       if (MediaQuery.of(context).size.width >= 800) {
                         Navigator.pop(context); // Close sheet
                         context.read<DashboardProvider>().setView(
-                          DashboardView.ledger,
-                          args: account.name,
-                        );
+                              DashboardView.ledger,
+                              args: account.name,
+                            );
                       } else {
                         Navigator.pop(context);
                         Navigator.push(
@@ -706,9 +704,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             child: Icon(
                               LucideIcons.landmark,
                               size: 20,
-                              color: balance >= 0
-                                  ? Colors.green
-                                  : Colors.orange,
+                              color:
+                                  balance >= 0 ? Colors.green : Colors.orange,
                             ),
                           ),
                           const SizedBox(width: 16),

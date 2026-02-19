@@ -60,8 +60,7 @@ class _UsersScreenState extends State<UsersScreen> {
 
     // Filter Users
     final filteredUsers = userProvider.users.where((u) {
-      final matchesSearch =
-          u.name.toLowerCase().contains(_searchQuery) ||
+      final matchesSearch = u.name.toLowerCase().contains(_searchQuery) ||
           u.email.toLowerCase().contains(_searchQuery);
 
       final matchesStatus = _showDeleted ? true : !u.isDeleted;
@@ -189,7 +188,6 @@ class _UsersScreenState extends State<UsersScreen> {
                             userProvider,
                             accountProvider,
                           ),
-
                         if (filteredUsers.isEmpty)
                           const Center(
                             child: Padding(
@@ -707,8 +705,8 @@ class _UsersScreenState extends State<UsersScreen> {
                   // Filter logic
                   final groups = allGroups.where((g) {
                     return g.name.toLowerCase().contains(
-                      searchQuery.toLowerCase(),
-                    );
+                          searchQuery.toLowerCase(),
+                        );
                   }).toList();
 
                   // Get assigned group names for display
@@ -819,7 +817,6 @@ class _UsersScreenState extends State<UsersScreen> {
                 },
               ),
             ),
-
             actions: [
               TextButton(
                 onPressed: isSaving ? null : () => Navigator.pop(ctx),
@@ -994,13 +991,13 @@ class _UsersScreenState extends State<UsersScreen> {
                         // Filter logic
                         final accounts = allAccounts.where((a) {
                           return a.name.toLowerCase().contains(
-                            searchQuery.toLowerCase(),
-                          );
+                                searchQuery.toLowerCase(),
+                              );
                         }).toList();
                         accounts.sort(
                           (a, b) => a.name.toLowerCase().compareTo(
-                            b.name.toLowerCase(),
-                          ),
+                                b.name.toLowerCase(),
+                              ),
                         );
 
                         // Get assigned accounts for display
@@ -1079,33 +1076,32 @@ class _UsersScreenState extends State<UsersScreen> {
                                                       ? null
                                                       : () {
                                                           setState(() {
-                                                            ownershipChanges[name] =
-                                                                false;
+                                                            ownershipChanges[
+                                                                name] = false;
                                                           });
                                                         },
                                                   child: Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 10,
-                                                          vertical: 6,
-                                                        ),
+                                                    padding: const EdgeInsets
+                                                        .symmetric(
+                                                      horizontal: 10,
+                                                      vertical: 6,
+                                                    ),
                                                     decoration: BoxDecoration(
                                                       color: Colors.white,
                                                       borderRadius:
                                                           BorderRadius.circular(
-                                                            8,
-                                                          ),
+                                                        8,
+                                                      ),
                                                       border: Border.all(
                                                         color: Colors
-                                                            .purple
-                                                            .shade100,
+                                                            .purple.shade100,
                                                       ),
                                                       boxShadow: [
                                                         BoxShadow(
                                                           color: Colors.purple
                                                               .withValues(
-                                                                alpha: 0.05,
-                                                              ),
+                                                            alpha: 0.05,
+                                                          ),
                                                           blurRadius: 4,
                                                           offset: const Offset(
                                                             0,
@@ -1122,14 +1118,12 @@ class _UsersScreenState extends State<UsersScreen> {
                                                           name,
                                                           style:
                                                               GoogleFonts.inter(
-                                                                fontSize: 11,
-                                                                fontWeight:
-                                                                    FontWeight
-                                                                        .w500,
-                                                                color: Colors
-                                                                    .purple
-                                                                    .shade800,
-                                                              ),
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w500,
+                                                            color: Colors.purple
+                                                                .shade800,
+                                                          ),
                                                         ),
                                                         const SizedBox(
                                                           width: 6,
@@ -1138,8 +1132,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                                           LucideIcons.x,
                                                           size: 10,
                                                           color: Colors
-                                                              .purple
-                                                              .shade300,
+                                                              .purple.shade300,
                                                         ),
                                                       ],
                                                     ),
@@ -1229,11 +1222,11 @@ class _UsersScreenState extends State<UsersScreen> {
                                           const SizedBox(height: 8),
                                       itemBuilder: (context, index) {
                                         final account = accounts[index];
-                                        final isOriginallyOwned = account.owners
-                                            .contains(user.email);
+                                        final isOriginallyOwned =
+                                            account.owners.contains(user.email);
                                         final isOwned =
                                             ownershipChanges[account.name] ??
-                                            isOriginallyOwned;
+                                                isOriginallyOwned;
 
                                         return InkWell(
                                           onTap: isSaving
@@ -1241,8 +1234,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                               : () {
                                                   setState(() {
                                                     ownershipChanges[account
-                                                            .name] =
-                                                        !isOwned;
+                                                        .name] = !isOwned;
                                                   });
                                                 },
                                           borderRadius: BorderRadius.circular(
@@ -1254,7 +1246,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                             decoration: BoxDecoration(
                                               color: isOwned
                                                   ? Colors.indigo.shade50
-                                                        .withValues(alpha: 0.5)
+                                                      .withValues(alpha: 0.5)
                                                   : Colors.white,
                                               borderRadius:
                                                   BorderRadius.circular(12),
@@ -1274,32 +1266,30 @@ class _UsersScreenState extends State<UsersScreen> {
                                                     children: [
                                                       Text(
                                                         account.name,
-                                                        style: GoogleFonts.inter(
+                                                        style:
+                                                            GoogleFonts.inter(
                                                           fontWeight: isOwned
                                                               ? FontWeight.w600
                                                               : FontWeight
-                                                                    .normal,
+                                                                  .normal,
                                                           fontSize: 14,
                                                           color: isOwned
-                                                              ? Colors
-                                                                    .indigo
-                                                                    .shade900
-                                                              : Colors
-                                                                    .grey
-                                                                    .shade800,
+                                                              ? Colors.indigo
+                                                                  .shade900
+                                                              : Colors.grey
+                                                                  .shade800,
                                                         ),
                                                       ),
                                                       Text(
                                                         '${account.type} • ${account.owners.length} Current Owners',
-                                                        style: GoogleFonts.inter(
+                                                        style:
+                                                            GoogleFonts.inter(
                                                           fontSize: 11,
                                                           color: isOwned
-                                                              ? Colors
-                                                                    .indigo
-                                                                    .shade400
-                                                              : Colors
-                                                                    .grey
-                                                                    .shade500,
+                                                              ? Colors.indigo
+                                                                  .shade400
+                                                              : Colors.grey
+                                                                  .shade500,
                                                         ),
                                                       ),
                                                     ],
@@ -1318,8 +1308,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                                       color: isOwned
                                                           ? Colors.indigo
                                                           : Colors
-                                                                .grey
-                                                                .shade300,
+                                                              .grey.shade300,
                                                       width: 2,
                                                     ),
                                                   ),
@@ -1356,9 +1345,8 @@ class _UsersScreenState extends State<UsersScreen> {
                       children: [
                         Expanded(
                           child: TextButton(
-                            onPressed: isSaving
-                                ? null
-                                : () => Navigator.pop(ctx),
+                            onPressed:
+                                isSaving ? null : () => Navigator.pop(ctx),
                             style: TextButton.styleFrom(
                               foregroundColor: Colors.grey.shade600,
                               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -1417,8 +1405,8 @@ class _UsersScreenState extends State<UsersScreen> {
                                       );
                                       if (account.name.isEmpty) continue;
 
-                                      final currentlyOwns = account.owners
-                                          .contains(user.email);
+                                      final currentlyOwns =
+                                          account.owners.contains(user.email);
 
                                       if (shouldOwn != currentlyOwns) {
                                         final newOwners = List<String>.from(
@@ -1433,16 +1421,15 @@ class _UsersScreenState extends State<UsersScreen> {
                                         try {
                                           final success = await accountProvider
                                               .updateAccount(
-                                                authUser,
-                                                account,
-                                                account.name,
-                                                account.type,
-                                                account.groupIds,
-                                                newOwners,
-                                                account.defaultCurrency ??
-                                                    'BDT',
-                                                account.subCategory,
-                                              );
+                                            authUser,
+                                            account,
+                                            account.name,
+                                            account.type,
+                                            account.groupIds,
+                                            newOwners,
+                                            account.defaultCurrency ?? 'BDT',
+                                            account.subCategory,
+                                          );
                                           if (success) {
                                             successCount++;
                                           } else {
@@ -1604,8 +1591,8 @@ class _UsersScreenState extends State<UsersScreen> {
                         final name = nameController.text.trim();
                         final email = emailController.text.trim();
                         final pass = passwordController.text.trim();
-                        final confirmPass = confirmPasswordController.text
-                            .trim();
+                        final confirmPass =
+                            confirmPasswordController.text.trim();
 
                         if (name.isEmpty || email.isEmpty || pass.isEmpty) {
                           ScaffoldMessenger.of(context).showSnackBar(
@@ -1629,15 +1616,14 @@ class _UsersScreenState extends State<UsersScreen> {
 
                         setState(() => isCreating = true);
 
-                        final success = await context
-                            .read<UserProvider>()
-                            .addUser(
-                              name,
-                              email,
-                              pass,
-                              selectedRole,
-                              designationController.text.trim(),
-                            );
+                        final success =
+                            await context.read<UserProvider>().addUser(
+                                  name,
+                                  email,
+                                  pass,
+                                  selectedRole,
+                                  designationController.text.trim(),
+                                );
 
                         if (context.mounted) {
                           if (success) {
@@ -2107,8 +2093,7 @@ class _UsersScreenState extends State<UsersScreen> {
               runSpacing: 12,
               children: [
                 SizedBox(
-                  width:
-                      (MediaQuery.of(context).size.width - 72) /
+                  width: (MediaQuery.of(context).size.width - 72) /
                       2, // Approximate half width
                   child: _buildSoftUIButton(
                     onPressed: () => _showGroupDialog(context, user),
@@ -2345,47 +2330,92 @@ class _UsersScreenState extends State<UsersScreen> {
 
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Reset Password'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('Enter new password for ${user.name}:'),
-            const SizedBox(height: 12),
-            TextField(
-              controller: passwordController,
-              obscureText: true,
-              decoration: const InputDecoration(
-                labelText: 'New Password',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(LucideIcons.lock),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () async {
-              if (passwordController.text.trim().isEmpty) return;
-
-              // Implement change password logic here.
-              // We will mock this for now
-              Navigator.pop(ctx);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text("Password reset triggered (Mock)"),
+      builder: (ctx) {
+        bool isResetting = false;
+        return StatefulBuilder(
+          builder: (context, setState) => AlertDialog(
+            title: const Text('Reset Password'),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Enter new password for ${user.name}:'),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: passwordController,
+                  obscureText: true,
+                  decoration: const InputDecoration(
+                    labelText: 'New Password',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(LucideIcons.lock),
+                  ),
                 ),
-              );
-            },
-            child: const Text('Reset'),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Cancel'),
+              ),
+              ElevatedButton(
+                onPressed: isResetting
+                    ? null
+                    : () async {
+                        final newPass = passwordController.text.trim();
+                        if (newPass.isEmpty) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('Password cannot be empty'),
+                              backgroundColor: Colors.red,
+                            ),
+                          );
+                          return;
+                        }
+
+                        setState(() => isResetting = true);
+
+                        final success = await context
+                            .read<UserProvider>()
+                            .changePassword(user.email, newPass);
+
+                        if (context.mounted) {
+                          if (success) {
+                            Navigator.pop(ctx);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(
+                                content: Text('Password reset successfully'),
+                                backgroundColor: Colors.green,
+                              ),
+                            );
+                          } else {
+                            setState(() => isResetting = false);
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  context.read<UserProvider>().error ??
+                                      'Failed to reset password',
+                                ),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
+                        }
+                      },
+                child: isResetting
+                    ? const SizedBox(
+                        height: 20,
+                        width: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Reset'),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 
