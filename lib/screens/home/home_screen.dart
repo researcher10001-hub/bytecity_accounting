@@ -469,7 +469,14 @@ class _HomeScreenState extends State<HomeScreen> {
                             ),
                           );
                         }
-                      : null,
+                      : () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const SearchVoucherScreen(),
+                            ),
+                          );
+                        },
                 ),
                 const SizedBox(width: 60), // Space for FAB
                 _buildNavItem(

@@ -176,6 +176,11 @@ class SideMenu extends StatelessWidget {
           'label': 'My Accounts',
           'view': DashboardView.ownedAccounts,
         },
+        {
+          'icon': Icons.search_rounded,
+          'label': 'Search Voucher',
+          'view': DashboardView.search,
+        },
       ];
     }
   }
