@@ -186,7 +186,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       child: Scaffold(
         appBar: AppBar(
           title: Text(
-            'Transaction History',
+            'History',
             style: GoogleFonts.inter(
               fontWeight: FontWeight.w700,
               fontSize: 20,
