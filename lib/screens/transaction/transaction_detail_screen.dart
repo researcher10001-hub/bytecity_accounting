@@ -279,604 +279,622 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
     return Column(
       children: [
-        // Flag Banner
-        if (_currentTransaction.isFlagged)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              color: const Color(0xFFFFF5F5),
-              border: Border(
-                bottom: BorderSide(color: Colors.red.withValues(alpha: 0.1)),
-              ),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: 0.1),
-                    shape: BoxShape.circle,
-                  ),
-                  child: const Icon(
-                    LucideIcons.flag,
-                    color: Color(0xFFE53E3E),
-                    size: 16,
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "FLAGGED FOR AUDIT",
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFFC53030),
-                          fontWeight: FontWeight.w800,
-                          fontSize: 11,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        _currentTransaction.flagReason ?? "No reason given",
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFF742A2A),
-                          fontSize: 13,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      Text(
-                        "By ${_currentTransaction.flaggedBy} at ${DateFormat('MMM d, h:mm a').format(_currentTransaction.flaggedAt ?? DateTime.now())}",
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFFC53030).withValues(alpha: 0.6),
-                          fontSize: 10,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-
-        // Transaction Summary Card
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withValues(alpha: 0.03),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
+        Expanded(
+          child: SingleChildScrollView(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Header Row
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            "DATE",
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF718096),
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            DateFormat(
-                              'dd MMM yyyy',
-                            ).format(_currentTransaction.date),
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                              color: const Color(0xFF2D3748),
-                            ),
-                          ),
-                        ],
-                      ),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          if (MediaQuery.of(context).size.width >= 800 &&
-                              (localIsCreator || user.isAdmin))
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 8),
-                              child: InkWell(
-                                onTap: () =>
-                                    context.read<DashboardProvider>().setView(
-                                      DashboardView.transactionEntry,
-                                      args: _currentTransaction,
-                                    ),
-                                borderRadius: BorderRadius.circular(8),
-                                child: Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.blue.withAlpha(0x15),
-                                    borderRadius: BorderRadius.circular(8),
-                                    border: Border.all(
-                                      color: Colors.blue.withAlpha(0x40),
-                                    ),
-                                  ),
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Icon(
-                                        LucideIcons.pencil,
-                                        size: 14,
-                                        color: Colors.blue,
-                                      ),
-                                      const SizedBox(width: 8),
-                                      Text(
-                                        "EDIT",
-                                        style: GoogleFonts.inter(
-                                          fontSize: 11,
-                                          fontWeight: FontWeight.w800,
-                                          color: Colors.blue,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          Text(
-                            "TOTAL AMOUNT",
-                            style: GoogleFonts.inter(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                              color: const Color(0xFF718096),
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            "${CurrencyFormatter.getCurrencySymbol(_currentTransaction.currency)} ${CurrencyFormatter.format(_currentTransaction.totalDebit)}",
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.w900,
-                              fontSize: 18,
-                              color: const Color(0xFF2D3748),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-
-                // Account Detailed Breakdown
-                Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  decoration: const BoxDecoration(
-                    color: Color(0xFFF7FAFC),
-                    border: Border.symmetric(
-                      horizontal: BorderSide(color: Color(0xFFEDF2F7)),
-                    ),
-                  ),
-                  child: Column(
-                    children: _currentTransaction.details.map((d) {
-                      final isDebit = d.debit > 0;
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 2),
-                        child: Row(
-                          children: [
-                            Container(
-                              width: 24,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color:
-                                    (isDebit
-                                            ? const Color(0xFF38A169)
-                                            : const Color(0xFFE53E3E))
-                                        .withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
-                              ),
-                              child: Icon(
-                                isDebit
-                                    ? LucideIcons.arrowDown
-                                    : LucideIcons.arrowUp,
-                                size: 12,
-                                color: isDebit
-                                    ? const Color(0xFF38A169)
-                                    : const Color(0xFFE53E3E),
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Text(
-                                d.account?.name ?? 'Unknown Account',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: const Color(0xFF4A5568),
-                                ),
-                              ),
-                            ),
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.end,
-                              children: [
-                                Text(
-                                  "${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(isDebit ? d.debit : d.credit)}",
-                                  style: GoogleFonts.inter(
-                                    fontSize: 13,
-                                    fontWeight: FontWeight.w700,
-                                    color: isDebit
-                                        ? const Color(0xFF2F855A)
-                                        : const Color(0xFFC53030),
-                                  ),
-                                ),
-                                Text(
-                                  isDebit ? "DEBIT" : "CREDIT",
-                                  style: GoogleFonts.inter(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w800,
-                                    color:
-                                        (isDebit
-                                                ? const Color(0xFF2F855A)
-                                                : const Color(0xFFC53030))
-                                            .withValues(alpha: 0.6),
-                                    letterSpacing: 0.5,
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
-                      );
-                    }).toList(),
-                  ),
-                ),
-
-                // Note and Entry Meta
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 14,
-                    vertical: 12,
-                  ),
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Icon(
-                            LucideIcons.messageSquare,
-                            size: 13,
-                            color: Color(0xFFA0AEC0),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Text(
-                              _currentTransaction.mainNarration.isNotEmpty
-                                  ? _currentTransaction.mainNarration
-                                  : "No additional notes",
-                              style: GoogleFonts.inter(
-                                height: 1.3,
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: const Color(0xFF4A5568),
-                                fontStyle:
-                                    _currentTransaction.mainNarration.isEmpty
-                                    ? FontStyle.italic
-                                    : FontStyle.normal,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Row(
-                            children: [
-                              CircleAvatar(
-                                radius: 8,
-                                backgroundColor: const Color(
-                                  0xFF4299E1,
-                                ).withValues(alpha: 0.1),
-                                child: Text(
-                                  _currentTransaction.createdBy
-                                      .substring(0, 1)
-                                      .toUpperCase(),
-                                  style: GoogleFonts.inter(
-                                    fontSize: 8,
-                                    fontWeight: FontWeight.w800,
-                                    color: const Color(0xFF4299E1),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 6),
-                              Builder(
-                                builder: (context) {
-                                  final userProvider = context
-                                      .read<UserProvider>();
-                                  String creatorName =
-                                      _currentTransaction.createdBy;
-                                  try {
-                                    creatorName = userProvider.users
-                                        .firstWhere(
-                                          (u) =>
-                                              u.email.trim().toLowerCase() ==
-                                              _currentTransaction.createdBy
-                                                  .trim()
-                                                  .toLowerCase(),
-                                        )
-                                        .name;
-                                  } catch (_) {}
-                                  return Text(
-                                    "Entry by $creatorName",
-                                    style: GoogleFonts.inter(
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w600,
-                                      color: const Color(0xFF718096),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                          Row(
-                            children: [
-                              _buildSyncIndicator(
-                                _currentTransaction.erpSyncStatus,
-                              ),
-                              const SizedBox(width: 8),
-                              Builder(
-                                builder: (context) {
-                                  final statusColor = _getStatusColor(
-                                    _currentTransaction.status,
-                                  );
-                                  return Container(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 10,
-                                      vertical: 4,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: statusColor.withValues(alpha: 0.1),
-                                      borderRadius: BorderRadius.circular(20),
-                                      border: Border.all(
-                                        color: statusColor.withValues(
-                                          alpha: 0.2,
-                                        ),
-                                        width: 1,
-                                      ),
-                                    ),
-                                    child: Text(
-                                      _currentTransaction.status
-                                          .toString()
-                                          .split('.')
-                                          .last
-                                          .toUpperCase(),
-                                      style: GoogleFonts.inter(
-                                        color: statusColor,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w800,
-                                        letterSpacing: 0.8,
-                                      ),
-                                    ),
-                                  );
-                                },
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-
-        // ERP Sync Information Section
-        if (_currentTransaction.erpDocumentId != null &&
-            _currentTransaction.erpDocumentId!.isNotEmpty)
-          Padding(
-            padding: const EdgeInsets.only(left: 24, right: 24, top: 16),
-            child: Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7FAFC),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: const Color(0xFFE2E8F0)),
-              ),
-              child: Row(
-                children: [
+                // Flag Banner
+                if (_currentTransaction.isFlagged)
                   Container(
-                    padding: const EdgeInsets.all(8),
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    margin: const EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF2563EB).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
+                      color: const Color(0xFFFFF5F5),
+                      border: Border(
+                        bottom: BorderSide(
+                            color: Colors.red.withValues(alpha: 0.1)),
+                      ),
                     ),
-                    child: const Icon(
-                      LucideIcons.link2,
-                      size: 18,
-                      color: Color(0xFF2563EB),
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                    child: Row(
                       children: [
-                        Row(
-                          children: [
-                            Icon(
-                              LucideIcons.server,
-                              size: 12,
-                              color: const Color(0xFF718096),
-                            ),
-                            const SizedBox(width: 4),
-                            Text(
-                              'ERP SYNC',
-                              style: GoogleFonts.inter(
-                                fontSize: 10,
-                                fontWeight: FontWeight.w800,
-                                color: const Color(0xFF718096),
-                                letterSpacing: 0.5,
-                              ),
-                            ),
-                          ],
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: BoxDecoration(
+                            color: Colors.red.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.flag,
+                            color: Color(0xFFE53E3E),
+                            size: 16,
+                          ),
                         ),
-                        const SizedBox(height: 6),
-                        GestureDetector(
-                          onTap: () async {
-                            // Normal tap - Open in browser
-                            final settingsProvider = context
-                                .read<SettingsProvider>();
-                            final erpUrl = settingsProvider.erpUrl;
-                            if (erpUrl.isNotEmpty) {
-                              final docUrl =
-                                  '${erpUrl.endsWith('/') ? erpUrl : '$erpUrl/'}app/journal-entry/${_extractDocumentId(_currentTransaction.erpDocumentId!)}';
-                              final uri = Uri.parse(docUrl);
-                              if (await canLaunchUrl(uri)) {
-                                await launchUrl(
-                                  uri,
-                                  mode: LaunchMode.externalApplication,
-                                );
-                              } else {
-                                if (context.mounted) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Could not open ERPNext link',
-                                      ),
-                                      backgroundColor: Colors.red,
-                                    ),
-                                  );
-                                }
-                              }
-                            }
-                          },
-                          onLongPress: () async {
-                            // Long press - Copy to clipboard
-                            final settingsProvider = context
-                                .read<SettingsProvider>();
-                            final erpUrl = settingsProvider.erpUrl;
-                            if (erpUrl.isNotEmpty) {
-                              final docUrl =
-                                  '${erpUrl.endsWith('/') ? erpUrl : '$erpUrl/'}app/journal-entry/${_extractDocumentId(_currentTransaction.erpDocumentId!)}';
-                              await Clipboard.setData(
-                                ClipboardData(text: docUrl),
-                              );
-                              if (context.mounted) {
-                                ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text(
-                                      'ERPNext link copied to clipboard',
-                                    ),
-                                    backgroundColor: Color(0xFF38A169),
-                                    duration: Duration(seconds: 2),
-                                  ),
-                                );
-                              }
-                            }
-                          },
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                _extractDocumentId(
-                                  _currentTransaction.erpDocumentId!,
-                                ),
+                                "FLAGGED FOR AUDIT",
                                 style: GoogleFonts.inter(
-                                  fontSize: 14,
-                                  fontWeight: FontWeight.w700,
-                                  color: const Color(0xFF2563EB),
-                                  decoration: TextDecoration.underline,
+                                  color: const Color(0xFFC53030),
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 11,
+                                  letterSpacing: 0.5,
                                 ),
                               ),
-                              const SizedBox(width: 8),
-                              const Icon(
-                                LucideIcons.externalLink,
-                                size: 14,
-                                color: Color(0xFF2563EB),
+                              const SizedBox(height: 2),
+                              Text(
+                                _currentTransaction.flagReason ??
+                                    "No reason given",
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF742A2A),
+                                  fontSize: 13,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                              Text(
+                                "By ${_currentTransaction.flaggedBy} at ${DateFormat('MMM d, h:mm a').format(_currentTransaction.flaggedAt ?? DateTime.now())}",
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFFC53030)
+                                      .withValues(alpha: 0.6),
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ],
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          'Tap to open • Long press to copy',
-                          style: GoogleFonts.inter(
-                            fontSize: 9,
-                            color: const Color(0xFF718096),
-                            fontStyle: FontStyle.italic,
                           ),
                         ),
                       ],
                     ),
                   ),
-                ],
-              ),
-            ),
-          ),
 
-        const SizedBox(height: 24),
-
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 24),
-                child: Row(
-                  children: [
-                    const Icon(
-                      LucideIcons.history,
-                      size: 14,
-                      color: Color(0xFF718096),
+                // Transaction Summary Card
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.03),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 8),
-                    Text(
-                      "AUDIT TRAIL / MESSAGES",
-                      style: GoogleFonts.inter(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.0,
-                        color: const Color(0xFF718096),
+                    child: Column(
+                      children: [
+                        // Header Row
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    "DATE",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF718096),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    DateFormat(
+                                      'dd MMM yyyy',
+                                    ).format(_currentTransaction.date),
+                                    style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 14,
+                                      color: const Color(0xFF2D3748),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  if (MediaQuery.of(context).size.width >=
+                                          800 &&
+                                      (localIsCreator || user.isAdmin))
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 8),
+                                      child: InkWell(
+                                        onTap: () => context
+                                            .read<DashboardProvider>()
+                                            .setView(
+                                              DashboardView.transactionEntry,
+                                              args: _currentTransaction,
+                                            ),
+                                        borderRadius: BorderRadius.circular(8),
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 6,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.blue.withAlpha(0x15),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            border: Border.all(
+                                              color:
+                                                  Colors.blue.withAlpha(0x40),
+                                            ),
+                                          ),
+                                          child: Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              const Icon(
+                                                LucideIcons.pencil,
+                                                size: 14,
+                                                color: Colors.blue,
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Text(
+                                                "EDIT",
+                                                style: GoogleFonts.inter(
+                                                  fontSize: 11,
+                                                  fontWeight: FontWeight.w800,
+                                                  color: Colors.blue,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  Text(
+                                    "TOTAL AMOUNT",
+                                    style: GoogleFonts.inter(
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w800,
+                                      color: const Color(0xFF718096),
+                                      letterSpacing: 0.5,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 2),
+                                  Text(
+                                    "${CurrencyFormatter.getCurrencySymbol(_currentTransaction.currency)} ${CurrencyFormatter.format(_currentTransaction.totalDebit)}",
+                                    style: GoogleFonts.inter(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 18,
+                                      color: const Color(0xFF2D3748),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+
+                        // Account Detailed Breakdown
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFF7FAFC),
+                            border: Border.symmetric(
+                              horizontal: BorderSide(color: Color(0xFFEDF2F7)),
+                            ),
+                          ),
+                          child: Column(
+                            children: _currentTransaction.details.map((d) {
+                              final isDebit = d.debit > 0;
+                              return Padding(
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 2),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 24,
+                                      height: 24,
+                                      decoration: BoxDecoration(
+                                        color: (isDebit
+                                                ? const Color(0xFF38A169)
+                                                : const Color(0xFFE53E3E))
+                                            .withValues(alpha: 0.1),
+                                        shape: BoxShape.circle,
+                                      ),
+                                      child: Icon(
+                                        isDebit
+                                            ? LucideIcons.arrowDown
+                                            : LucideIcons.arrowUp,
+                                        size: 12,
+                                        color: isDebit
+                                            ? const Color(0xFF38A169)
+                                            : const Color(0xFFE53E3E),
+                                      ),
+                                    ),
+                                    const SizedBox(width: 10),
+                                    Expanded(
+                                      child: Text(
+                                        d.account?.name ?? 'Unknown Account',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: const Color(0xFF4A5568),
+                                        ),
+                                      ),
+                                    ),
+                                    Column(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.end,
+                                      children: [
+                                        Text(
+                                          "${CurrencyFormatter.getCurrencySymbol(d.currency)} ${CurrencyFormatter.format(isDebit ? d.debit : d.credit)}",
+                                          style: GoogleFonts.inter(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w700,
+                                            color: isDebit
+                                                ? const Color(0xFF2F855A)
+                                                : const Color(0xFFC53030),
+                                          ),
+                                        ),
+                                        Text(
+                                          isDebit ? "DEBIT" : "CREDIT",
+                                          style: GoogleFonts.inter(
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w800,
+                                            color: (isDebit
+                                                    ? const Color(0xFF2F855A)
+                                                    : const Color(0xFFC53030))
+                                                .withValues(alpha: 0.6),
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        ),
+
+                        // Note and Entry Meta
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          child: Column(
+                            children: [
+                              Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Icon(
+                                    LucideIcons.messageSquare,
+                                    size: 13,
+                                    color: Color(0xFFA0AEC0),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _currentTransaction
+                                              .mainNarration.isNotEmpty
+                                          ? _currentTransaction.mainNarration
+                                          : "No additional notes",
+                                      style: GoogleFonts.inter(
+                                        height: 1.3,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                        color: const Color(0xFF4A5568),
+                                        fontStyle: _currentTransaction
+                                                .mainNarration.isEmpty
+                                            ? FontStyle.italic
+                                            : FontStyle.normal,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 12),
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Row(
+                                    children: [
+                                      CircleAvatar(
+                                        radius: 8,
+                                        backgroundColor: const Color(
+                                          0xFF4299E1,
+                                        ).withValues(alpha: 0.1),
+                                        child: Text(
+                                          _currentTransaction.createdBy
+                                              .substring(0, 1)
+                                              .toUpperCase(),
+                                          style: GoogleFonts.inter(
+                                            fontSize: 8,
+                                            fontWeight: FontWeight.w800,
+                                            color: const Color(0xFF4299E1),
+                                          ),
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      Builder(
+                                        builder: (context) {
+                                          final userProvider =
+                                              context.read<UserProvider>();
+                                          String creatorName =
+                                              _currentTransaction.createdBy;
+                                          try {
+                                            creatorName = userProvider.users
+                                                .firstWhere(
+                                                  (u) =>
+                                                      u.email
+                                                          .trim()
+                                                          .toLowerCase() ==
+                                                      _currentTransaction
+                                                          .createdBy
+                                                          .trim()
+                                                          .toLowerCase(),
+                                                )
+                                                .name;
+                                          } catch (_) {}
+                                          return Text(
+                                            "Entry by $creatorName",
+                                            style: GoogleFonts.inter(
+                                              fontSize: 10,
+                                              fontWeight: FontWeight.w600,
+                                              color: const Color(0xFF718096),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                  Row(
+                                    children: [
+                                      _buildSyncIndicator(
+                                        _currentTransaction.erpSyncStatus,
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Builder(
+                                        builder: (context) {
+                                          final statusColor = _getStatusColor(
+                                            _currentTransaction.status,
+                                          );
+                                          return Container(
+                                            padding: const EdgeInsets.symmetric(
+                                              horizontal: 10,
+                                              vertical: 4,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: statusColor.withValues(
+                                                  alpha: 0.1),
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                              border: Border.all(
+                                                color: statusColor.withValues(
+                                                  alpha: 0.2,
+                                                ),
+                                                width: 1,
+                                              ),
+                                            ),
+                                            child: Text(
+                                              _currentTransaction.status
+                                                  .toString()
+                                                  .split('.')
+                                                  .last
+                                                  .toUpperCase(),
+                                              style: GoogleFonts.inter(
+                                                color: statusColor,
+                                                fontSize: 10,
+                                                fontWeight: FontWeight.w800,
+                                                letterSpacing: 0.8,
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // ERP Sync Information Section
+                if (_currentTransaction.erpDocumentId != null &&
+                    _currentTransaction.erpDocumentId!.isNotEmpty)
+                  Padding(
+                    padding:
+                        const EdgeInsets.only(left: 24, right: 24, top: 16),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF7FAFC),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2563EB).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Icon(
+                              LucideIcons.link2,
+                              size: 18,
+                              color: Color(0xFF2563EB),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      LucideIcons.server,
+                                      size: 12,
+                                      color: const Color(0xFF718096),
+                                    ),
+                                    const SizedBox(width: 4),
+                                    Text(
+                                      'ERP SYNC',
+                                      style: GoogleFonts.inter(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w800,
+                                        color: const Color(0xFF718096),
+                                        letterSpacing: 0.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                GestureDetector(
+                                  onTap: () async {
+                                    // Normal tap - Open in browser
+                                    final settingsProvider =
+                                        context.read<SettingsProvider>();
+                                    final erpUrl = settingsProvider.erpUrl;
+                                    if (erpUrl.isNotEmpty) {
+                                      final docUrl =
+                                          '${erpUrl.endsWith('/') ? erpUrl : '$erpUrl/'}app/journal-entry/${_extractDocumentId(_currentTransaction.erpDocumentId!)}';
+                                      final uri = Uri.parse(docUrl);
+                                      if (await canLaunchUrl(uri)) {
+                                        await launchUrl(
+                                          uri,
+                                          mode: LaunchMode.externalApplication,
+                                        );
+                                      } else {
+                                        if (context.mounted) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            const SnackBar(
+                                              content: Text(
+                                                'Could not open ERPNext link',
+                                              ),
+                                              backgroundColor: Colors.red,
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    }
+                                  },
+                                  onLongPress: () async {
+                                    // Long press - Copy to clipboard
+                                    final settingsProvider =
+                                        context.read<SettingsProvider>();
+                                    final erpUrl = settingsProvider.erpUrl;
+                                    if (erpUrl.isNotEmpty) {
+                                      final docUrl =
+                                          '${erpUrl.endsWith('/') ? erpUrl : '$erpUrl/'}app/journal-entry/${_extractDocumentId(_currentTransaction.erpDocumentId!)}';
+                                      await Clipboard.setData(
+                                        ClipboardData(text: docUrl),
+                                      );
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                            .showSnackBar(
+                                          const SnackBar(
+                                            content: Text(
+                                              'ERPNext link copied to clipboard',
+                                            ),
+                                            backgroundColor: Color(0xFF38A169),
+                                            duration: Duration(seconds: 2),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        _extractDocumentId(
+                                          _currentTransaction.erpDocumentId!,
+                                        ),
+                                        style: GoogleFonts.inter(
+                                          fontSize: 14,
+                                          fontWeight: FontWeight.w700,
+                                          color: const Color(0xFF2563EB),
+                                          decoration: TextDecoration.underline,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      const Icon(
+                                        LucideIcons.externalLink,
+                                        size: 14,
+                                        color: Color(0xFF2563EB),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  'Tap to open • Long press to copy',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 9,
+                                    color: const Color(0xFF718096),
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                  ],
+                  ),
+
+                const SizedBox(height: 24),
+
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24),
+                  child: Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.history,
+                        size: 14,
+                        color: Color(0xFF718096),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        "AUDIT TRAIL / MESSAGES",
+                        style: GoogleFonts.inter(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          letterSpacing: 1.0,
+                          color: const Color(0xFF718096),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: SingleChildScrollView(
+                const SizedBox(height: 8),
+                Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
                   child: ApprovalTimelineWidget(
                     logs: _currentTransaction.approvalLog,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
 
