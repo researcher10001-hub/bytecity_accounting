@@ -27,8 +27,7 @@ class TransactionHistoryScreen extends StatefulWidget {
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   DateTimeRange? _dateRange;
-
-  @override
+  String _selectedViewFilter = 'My History';
   void initState() {
     super.initState();
     // Default to show TODAY's transactions
@@ -60,13 +59,41 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     // 1. Get transactions visible to role
     final roleBasedList = provider.getVisibleTransactions(user);
 
-    // 2. Strict Filter for "My History" + Date Filter
+    // 2. Strict Filter for "My History" / "Owned Accounts" / "All Transactions" + Date Filter
+    final bool canViewOthers =
+        user.isAdmin || user.role == 'management' || user.role == 'viewer';
+
     final allTransactions = roleBasedList.where((tx) {
       final txOwner = tx.createdBy.trim().toLowerCase();
       final me = user.email.trim().toLowerCase();
-      final isOwner = txOwner == me || txOwner.isEmpty;
+      final isCreator = txOwner == me || txOwner.isEmpty;
 
-      if (!isOwner) return false;
+      bool isOwnedAccount = false;
+      if (_selectedViewFilter == 'Owned Accounts') {
+        final accountProvider = context.read<AccountProvider>();
+        isOwnedAccount = tx.details.any((d) {
+          try {
+            final realAccount = accountProvider.accounts.firstWhere(
+              (a) => a.name == d.account?.name,
+            );
+            return realAccount.owners.any((o) => o.toLowerCase() == me);
+          } catch (e) {
+            return false;
+          }
+        });
+      }
+
+      bool isVisible = false;
+      if (!canViewOthers || _selectedViewFilter == 'My History') {
+        isVisible = isCreator;
+      } else if (_selectedViewFilter == 'Owned Accounts') {
+        isVisible = isCreator || isOwnedAccount;
+      } else if (_selectedViewFilter == 'All Transactions') {
+        isVisible =
+            true; // Role-based list already filters for Admin/Mgmt/Viewer
+      }
+
+      if (!isVisible) return false;
 
       // Date Filter with Normalization
       if (_dateRange != null) {
@@ -117,21 +144,37 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       final isDeleter = (tx.lastActionBy ?? '').trim().toLowerCase() == me;
 
       // Check if I am an owner of any account in this transaction
-      // Note: This relies on fetchHistory being called with AccountProvider
-      // to populate 'owners' in the Account objects.
-      final isAccountOwner = tx.details.any((d) {
-        return d.account?.owners.any((o) => o.trim().toLowerCase() == me) ??
-            false;
+      bool isOwnedAccount = false;
+      final accountProvider = context.read<AccountProvider>();
+      isOwnedAccount = tx.details.any((d) {
+        try {
+          final realAccount = accountProvider.accounts.firstWhere(
+            (a) => a.name == d.account?.name,
+          );
+          return realAccount.owners.any((o) => o.toLowerCase() == me);
+        } catch (e) {
+          return false;
+        }
       });
 
-      // Show if I created it OR I deleted it OR I own an account involved
-      bool show = isCreator || isDeleter || isAccountOwner;
-      if (show) {
+      bool isVisible = false;
+      if (!canViewOthers || _selectedViewFilter == 'My History') {
+        isVisible = isCreator ||
+            isDeleter ||
+            isOwnedAccount; // Keep original "My History" logic for removed which is broader
+      } else if (_selectedViewFilter == 'Owned Accounts') {
+        isVisible = isCreator || isDeleter || isOwnedAccount;
+      } else if (_selectedViewFilter == 'All Transactions') {
+        isVisible =
+            true; // Role-based list already filters for Admin/Mgmt/Viewer
+      }
+
+      if (isVisible) {
         print(
-          "DEBUG: Showing Removed TX: ${tx.voucherNo} (Creator: $isCreator, Deleter: $isDeleter, Owner: $isAccountOwner)",
+          "DEBUG: Showing Removed TX: ${tx.voucherNo} (Creator: $isCreator, Deleter: $isDeleter, Owner: $isOwnedAccount)",
         );
       }
-      return show;
+      return isVisible;
     }).toList();
 
     print(
@@ -153,8 +196,51 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           backgroundColor: Colors.white,
           foregroundColor: const Color(0xFF1E293B),
           elevation: 0,
-          centerTitle: false,
           actions: [
+            if (canViewOthers)
+              Padding(
+                padding: const EdgeInsets.only(right: 8.0),
+                child: Center(
+                  child: Container(
+                    height: 36,
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: DropdownButtonHideUnderline(
+                      child: DropdownButton<String>(
+                        value: _selectedViewFilter,
+                        icon: const Icon(LucideIcons.chevronDown,
+                            size: 16, color: Color(0xFF64748B)),
+                        style: GoogleFonts.inter(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF475569),
+                        ),
+                        items: [
+                          'My History',
+                          'Owned Accounts',
+                          'All Transactions'
+                        ].map((String value) {
+                          return DropdownMenuItem<String>(
+                            value: value,
+                            child: Text(value),
+                          );
+                        }).toList(),
+                        onChanged: (String? newValue) {
+                          if (newValue != null) {
+                            setState(() {
+                              _selectedViewFilter = newValue;
+                            });
+                          }
+                        },
+                      ),
+                    ),
+                  ),
+                ),
+              ),
             IconButton(
               icon: const Icon(LucideIcons.refreshCw, size: 20),
               onPressed: () {
