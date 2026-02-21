@@ -71,9 +71,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
-    final String title = widget.transaction != null
-        ? 'Edit Transaction'
-        : 'New Entry';
+    final String title =
+        widget.transaction != null ? 'Edit Transaction' : 'New Entry';
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -175,9 +174,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         children: [
           _buildActionSelector(tp),
           const SizedBox(height: 16),
-
           if (tp.error != null) _buildErrorBanner(tp),
-
           _buildTransactionForm(context, tp, ap, gp, user),
         ],
       ),
@@ -421,33 +418,34 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         const SizedBox(height: 24),
 
         _buildSectionCard(
-              title: 'Observations',
-              icon: LucideIcons.messageSquare,
-              child: TextFormField(
-                maxLines: 2,
-                onChanged: provider.setMainNarration,
-                initialValue: provider.mainNarration,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF2D3748),
-                ),
-                decoration: InputDecoration(
-                  hintText: 'Add some notes or details here...',
-                  hintStyle: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: const Color(0xFFA0AEC0),
-                  ),
-                  filled: true,
-                  fillColor: const Color(0xFFF7FAFC),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.all(12),
-                ),
+          title: 'Observations',
+          icon: LucideIcons.messageSquare,
+          child: TextFormField(
+            minLines: 2,
+            maxLines: null,
+            onChanged: provider.setMainNarration,
+            initialValue: provider.mainNarration,
+            style: GoogleFonts.inter(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+              color: const Color(0xFF2D3748),
+            ),
+            decoration: InputDecoration(
+              hintText: 'Add some notes or details here...',
+              hintStyle: GoogleFonts.inter(
+                fontSize: 14,
+                color: const Color(0xFFA0AEC0),
               ),
-            )
+              filled: true,
+              fillColor: const Color(0xFFF7FAFC),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+              contentPadding: const EdgeInsets.all(12),
+            ),
+          ),
+        )
             .animate()
             .fadeIn(duration: 400.ms, delay: 200.ms)
             .slideY(begin: 0.1, end: 0),
@@ -507,9 +505,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               color: const Color(0xFFF7FAFC),
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: canEditDate
-                    ? const Color(0xFFE2E8F0)
-                    : Colors.transparent,
+                color:
+                    canEditDate ? const Color(0xFFE2E8F0) : Colors.transparent,
               ),
             ),
             child: Row(
@@ -648,76 +645,73 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
   Widget _buildGradientSaveButton(TransactionProvider provider, dynamic user) {
     return InkWell(
-          onTap: provider.isLoading
-              ? null
-              : () async {
-                  // ... keep existing validation/logic from button below
-                  if (!provider.isBalanced) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Voucher is not balanced!'),
-                        backgroundColor: Colors.red,
-                      ),
-                    );
-                    return;
-                  }
-                  // Trigger final save logic (mimicking the elevated button)
-                  _submitForm(provider, user);
-                },
-          borderRadius: BorderRadius.circular(20),
-          child: Container(
-            width: double.infinity,
-            height: 52,
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(20),
-              gradient: LinearGradient(
-                colors: provider.isEditing
-                    ? [const Color(0xFF3182CE), const Color(0xFF2B6CB0)]
-                    : [const Color(0xFF38A169), const Color(0xFF2F855A)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color:
-                      (provider.isEditing
-                              ? const Color(0xFF3182CE)
-                              : const Color(0xFF38A169))
-                          .withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            alignment: Alignment.center,
-            child: provider.isLoading
-                ? const CircularProgressIndicator(color: Colors.white)
-                : Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        provider.isEditing
-                            ? LucideIcons.save
-                            : LucideIcons.check,
-                        color: Colors.white,
-                        size: 20,
-                      ),
-                      const SizedBox(width: 12),
-                      Text(
-                        provider.isEditing
-                            ? 'UPDATE TRANSACTION'
-                            : 'SAVE TRANSACTION',
-                        style: GoogleFonts.inter(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w800,
-                          color: Colors.white,
-                          letterSpacing: 1,
-                        ),
-                      ),
-                    ],
+      onTap: provider.isLoading
+          ? null
+          : () async {
+              // ... keep existing validation/logic from button below
+              if (!provider.isBalanced) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Voucher is not balanced!'),
+                    backgroundColor: Colors.red,
                   ),
+                );
+                return;
+              }
+              // Trigger final save logic (mimicking the elevated button)
+              _submitForm(provider, user);
+            },
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        width: double.infinity,
+        height: 52,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          gradient: LinearGradient(
+            colors: provider.isEditing
+                ? [const Color(0xFF3182CE), const Color(0xFF2B6CB0)]
+                : [const Color(0xFF38A169), const Color(0xFF2F855A)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
           ),
-        )
+          boxShadow: [
+            BoxShadow(
+              color: (provider.isEditing
+                      ? const Color(0xFF3182CE)
+                      : const Color(0xFF38A169))
+                  .withValues(alpha: 0.3),
+              blurRadius: 12,
+              offset: const Offset(0, 6),
+            ),
+          ],
+        ),
+        alignment: Alignment.center,
+        child: provider.isLoading
+            ? const CircularProgressIndicator(color: Colors.white)
+            : Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    provider.isEditing ? LucideIcons.save : LucideIcons.check,
+                    color: Colors.white,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 12),
+                  Text(
+                    provider.isEditing
+                        ? 'UPDATE TRANSACTION'
+                        : 'SAVE TRANSACTION',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w800,
+                      color: Colors.white,
+                      letterSpacing: 1,
+                    ),
+                  ),
+                ],
+              ),
+      ),
+    )
         .animate()
         .fadeIn(delay: 400.ms)
         .scale(begin: const Offset(0.95, 0.95), end: const Offset(1, 1));
@@ -736,9 +730,9 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         if (!context.mounted) return;
         context.read<AccountProvider>().fetchAccounts(user);
         context.read<TransactionProvider>().fetchHistory(
-          user,
-          forceRefresh: true,
-        );
+              user,
+              forceRefresh: true,
+            );
         if (MediaQuery.of(context).size.width >= 800) {
           context.read<DashboardProvider>().popView();
         } else {
@@ -752,9 +746,9 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         if (savedTx != null && context.mounted) {
           context.read<AccountProvider>().fetchAccounts(user);
           context.read<TransactionProvider>().fetchHistory(
-            user,
-            forceRefresh: true,
-          );
+                user,
+                forceRefresh: true,
+              );
         }
       } catch (e) {
         if (context.mounted) {
@@ -858,8 +852,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                   Navigator.pop(ctx); // Pop Dialog
                   if (MediaQuery.of(context).size.width >= 800) {
                     context.read<DashboardProvider>().setView(
-                      DashboardView.transactions,
-                    );
+                          DashboardView.transactions,
+                        );
                   } else {
                     Navigator.push(
                       context,
@@ -966,44 +960,44 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         .toList();
 
     return _buildSectionCard(
-          title: 'Transaction Details',
-          icon: LucideIcons.layers,
-          child: Column(
-            children: [
-              AccountAutocomplete(
-                key: const ValueKey('simple_dest'),
-                initialValue:
-                    simpleModeAccounts.contains(provider.simpleDestAccount)
+      title: 'Transaction Details',
+      icon: LucideIcons.layers,
+      child: Column(
+        children: [
+          AccountAutocomplete(
+            key: const ValueKey('simple_dest'),
+            initialValue:
+                simpleModeAccounts.contains(provider.simpleDestAccount)
                     ? provider.simpleDestAccount
                     : null,
-                label: toLabel,
-                options: simpleModeAccounts,
-                groupProvider: groupProvider,
-                onSelected: (acc) => provider.setSimpleDestAccount(acc),
-              ),
-              const SizedBox(height: 16),
-              AccountAutocomplete(
-                key: const ValueKey('simple_source'),
-                initialValue:
-                    simpleModeAccounts.contains(provider.simpleSourceAccount)
+            label: toLabel,
+            options: simpleModeAccounts,
+            groupProvider: groupProvider,
+            onSelected: (acc) => provider.setSimpleDestAccount(acc),
+          ),
+          const SizedBox(height: 16),
+          AccountAutocomplete(
+            key: const ValueKey('simple_source'),
+            initialValue:
+                simpleModeAccounts.contains(provider.simpleSourceAccount)
                     ? provider.simpleSourceAccount
                     : null,
-                label: fromLabel,
-                options: simpleModeAccounts,
-                groupProvider: groupProvider,
-                onSelected: (acc) => provider.setSimpleSourceAccount(acc),
-              ),
-              const SizedBox(height: 16),
-              FormattedAmountField(
-                initialValue: provider.simpleAmount,
-                label: 'Amount (BDT)',
-                currency: 'BDT',
-                isLarge: true,
-                onChanged: (val) => provider.setSimpleAmount(val),
-              ),
-            ],
+            label: fromLabel,
+            options: simpleModeAccounts,
+            groupProvider: groupProvider,
+            onSelected: (acc) => provider.setSimpleSourceAccount(acc),
           ),
-        )
+          const SizedBox(height: 16),
+          FormattedAmountField(
+            initialValue: provider.simpleAmount,
+            label: 'Amount (BDT)',
+            currency: 'BDT',
+            isLarge: true,
+            onChanged: (val) => provider.setSimpleAmount(val),
+          ),
+        ],
+      ),
+    )
         .animate()
         .fadeIn(duration: 400.ms, delay: 100.ms)
         .slideY(begin: 0.1, end: 0);
@@ -1183,9 +1177,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     required String currency,
     bool canUseForeignCurrency = false,
   }) {
-    final List<String> availableCurrencies = canUseForeignCurrency
-        ? ['BDT', 'USD', 'RM', 'AED']
-        : ['BDT'];
+    final List<String> availableCurrencies =
+        canUseForeignCurrency ? ['BDT', 'USD', 'RM', 'AED'] : ['BDT'];
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -1233,7 +1226,6 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-
                     if (entries.isEmpty)
                       Center(
                         child: Padding(
@@ -1311,8 +1303,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                                         key: ValueKey(entry.id),
                                         initialValue:
                                             accounts.contains(entry.account)
-                                            ? entry.account
-                                            : null,
+                                                ? entry.account
+                                                : null,
                                         label: 'Account',
                                         options: accounts,
                                         groupProvider: groupProvider,
@@ -1408,10 +1400,9 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                                           Expanded(
                                             child: AccountAutocomplete(
                                               key: ValueKey(entry.id),
-                                              initialValue:
-                                                  accounts.contains(
-                                                    entry.account,
-                                                  )
+                                              initialValue: accounts.contains(
+                                                entry.account,
+                                              )
                                                   ? entry.account
                                                   : null,
                                               label: 'Account',
@@ -1594,8 +1585,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         borderRadius: BorderRadius.circular(12),
         borderSide: const BorderSide(color: Colors.redAccent),
       ),
-      contentPadding:
-          contentPadding ??
+      contentPadding: contentPadding ??
           (isDense
               ? EdgeInsets.fromLTRB(startPadding ?? 12, 12, 12, 12)
               : const EdgeInsets.symmetric(horizontal: 16, vertical: 14)),
