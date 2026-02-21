@@ -647,6 +647,35 @@ class TransactionProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> deleteTransaction(User user, String voucherNo) async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final response = await _apiService.postRequest('deleteEntry', {
+        'voucher_no': voucherNo,
+        'user_email': user.email,
+      });
+
+      if (response != null && response['status'] != 'error') {
+        _transactions.removeWhere((tx) => tx.voucherNo == voucherNo);
+        _isLoading = false;
+        notifyListeners();
+        return true;
+      } else {
+        _error = response?['message'] ?? 'Failed to delete transaction';
+        _isLoading = false;
+        notifyListeners();
+        return false;
+      }
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
+      notifyListeners();
+      return false;
+    }
+  }
+
   // --- APPROVAL SYSTEM ---
   Future<bool> addMessage({
     required String voucherNo,

@@ -217,6 +217,49 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       _transactions[_currentIndex] = updatedTx;
                     });
                   }
+                } else if (value == 'delete') {
+                  final confirm = await showDialog<bool>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Delete Entry'),
+                      content: const Text(
+                          'Are you sure you want to delete this entry? This action cannot be undone.'),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, false),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, true),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.red,
+                          ),
+                          child: const Text('Delete'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm == true && context.mounted) {
+                    final success = await context
+                        .read<TransactionProvider>()
+                        .deleteTransaction(user, _currentTransaction.voucherNo);
+                    if (success && context.mounted) {
+                      Navigator.pop(context); // Go back to previous screen
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('Transaction deleted')),
+                      );
+                    } else if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(
+                              context.read<TransactionProvider>().error ??
+                                  'Failed to delete transaction'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
                 }
               },
               itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
@@ -234,6 +277,27 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                         'Edit Entry',
                         style: GoogleFonts.inter(
                           color: const Color(0xFF2D3748),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const PopupMenuDivider(),
+                PopupMenuItem<String>(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      const Icon(
+                        LucideIcons.trash2,
+                        size: 16,
+                        color: Color(0xFFE53E3E),
+                      ),
+                      const SizedBox(width: 8),
+                      Text(
+                        'Delete Entry',
+                        style: GoogleFonts.inter(
+                          color: const Color(0xFFE53E3E),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -411,48 +475,170 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                       (localIsCreator || user.isAdmin))
                                     Padding(
                                       padding: const EdgeInsets.only(bottom: 8),
-                                      child: InkWell(
-                                        onTap: () => context
-                                            .read<DashboardProvider>()
-                                            .setView(
-                                              DashboardView.transactionEntry,
-                                              args: _currentTransaction,
-                                            ),
-                                        borderRadius: BorderRadius.circular(8),
-                                        child: Container(
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 12,
-                                            vertical: 6,
-                                          ),
-                                          decoration: BoxDecoration(
-                                            color: Colors.blue.withAlpha(0x15),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: [
+                                          InkWell(
+                                            onTap: () => context
+                                                .read<DashboardProvider>()
+                                                .setView(
+                                                  DashboardView
+                                                      .transactionEntry,
+                                                  args: _currentTransaction,
+                                                ),
                                             borderRadius:
                                                 BorderRadius.circular(8),
-                                            border: Border.all(
-                                              color:
-                                                  Colors.blue.withAlpha(0x40),
-                                            ),
-                                          ),
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              const Icon(
-                                                LucideIcons.pencil,
-                                                size: 14,
-                                                color: Colors.blue,
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 6,
                                               ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                "EDIT",
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 11,
-                                                  fontWeight: FontWeight.w800,
-                                                  color: Colors.blue,
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    Colors.blue.withAlpha(0x15),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: Colors.blue
+                                                      .withAlpha(0x40),
                                                 ),
                                               ),
-                                            ],
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    LucideIcons.pencil,
+                                                    size: 14,
+                                                    color: Colors.blue,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    "EDIT",
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: Colors.blue,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
-                                        ),
+                                          const SizedBox(width: 8),
+                                          InkWell(
+                                            onTap: () async {
+                                              final confirm =
+                                                  await showDialog<bool>(
+                                                context: context,
+                                                builder: (context) =>
+                                                    AlertDialog(
+                                                  title: const Text(
+                                                      'Delete Entry'),
+                                                  content: const Text(
+                                                      'Are you sure you want to delete this entry? This action cannot be undone.'),
+                                                  actions: [
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, false),
+                                                      child:
+                                                          const Text('Cancel'),
+                                                    ),
+                                                    TextButton(
+                                                      onPressed: () =>
+                                                          Navigator.pop(
+                                                              context, true),
+                                                      style:
+                                                          TextButton.styleFrom(
+                                                        foregroundColor:
+                                                            Colors.red,
+                                                      ),
+                                                      child:
+                                                          const Text('Delete'),
+                                                    ),
+                                                  ],
+                                                ),
+                                              );
+
+                                              if (confirm == true &&
+                                                  context.mounted) {
+                                                final success = await context
+                                                    .read<TransactionProvider>()
+                                                    .deleteTransaction(
+                                                        user,
+                                                        _currentTransaction
+                                                            .voucherNo);
+                                                if (success &&
+                                                    context.mounted) {
+                                                  context
+                                                      .read<DashboardProvider>()
+                                                      .setView(
+                                                          DashboardView.home);
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    const SnackBar(
+                                                        content: Text(
+                                                            'Transaction deleted')),
+                                                  );
+                                                } else if (context.mounted) {
+                                                  ScaffoldMessenger.of(context)
+                                                      .showSnackBar(
+                                                    SnackBar(
+                                                      content: Text(context
+                                                              .read<
+                                                                  TransactionProvider>()
+                                                              .error ??
+                                                          'Failed to delete transaction'),
+                                                      backgroundColor:
+                                                          Colors.red,
+                                                    ),
+                                                  );
+                                                }
+                                              }
+                                            },
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Container(
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                horizontal: 12,
+                                                vertical: 6,
+                                              ),
+                                              decoration: BoxDecoration(
+                                                color:
+                                                    Colors.red.withAlpha(0x15),
+                                                borderRadius:
+                                                    BorderRadius.circular(8),
+                                                border: Border.all(
+                                                  color: Colors.red
+                                                      .withAlpha(0x40),
+                                                ),
+                                              ),
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  const Icon(
+                                                    LucideIcons.trash2,
+                                                    size: 14,
+                                                    color: Colors.red,
+                                                  ),
+                                                  const SizedBox(width: 8),
+                                                  Text(
+                                                    "DELETE",
+                                                    style: GoogleFonts.inter(
+                                                      fontSize: 11,
+                                                      fontWeight:
+                                                          FontWeight.w800,
+                                                      color: Colors.red,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                        ],
                                       ),
                                     ),
                                   Text(
