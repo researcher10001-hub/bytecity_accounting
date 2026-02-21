@@ -198,51 +198,147 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           elevation: 0,
           actions: [
             if (canViewOthers)
-              Padding(
-                padding: const EdgeInsets.only(right: 8.0),
+              PopupMenuButton<String>(
+                tooltip: 'View Filter',
                 child: Center(
                   child: Container(
-                    height: 36,
-                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    height: 32,
+                    margin: const EdgeInsets.only(right: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
                     decoration: BoxDecoration(
                       color: const Color(0xFFF1F5F9),
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0xFFE2E8F0)),
                     ),
-                    child: DropdownButtonHideUnderline(
-                      child: DropdownButton<String>(
-                        value: _selectedViewFilter,
-                        icon: const Icon(LucideIcons.chevronDown,
-                            size: 16, color: Color(0xFF64748B)),
-                        style: GoogleFonts.inter(
-                          fontSize: 13,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475569),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          _selectedViewFilter == 'My History'
+                              ? LucideIcons.user
+                              : _selectedViewFilter == 'Owned Accounts'
+                                  ? LucideIcons.briefcase
+                                  : LucideIcons.globe,
+                          size: 14,
+                          color: const Color(0xFF2563EB),
                         ),
-                        items: [
-                          'My History',
-                          'Owned Accounts',
-                          'All Transactions'
-                        ].map((String value) {
-                          return DropdownMenuItem<String>(
-                            value: value,
-                            child: Text(value),
-                          );
-                        }).toList(),
-                        onChanged: (String? newValue) {
-                          if (newValue != null) {
-                            setState(() {
-                              _selectedViewFilter = newValue;
-                            });
-                          }
-                        },
-                      ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _selectedViewFilter,
+                          style: GoogleFonts.inter(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF475569),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(LucideIcons.chevronDown,
+                            size: 14, color: Color(0xFF64748B)),
+                      ],
                     ),
                   ),
                 ),
+                onSelected: (String newValue) {
+                  setState(() {
+                    _selectedViewFilter = newValue;
+                  });
+                },
+                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+                  PopupMenuItem<String>(
+                    value: 'My History',
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.user,
+                          size: 16,
+                          color: _selectedViewFilter == 'My History'
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'My History',
+                          style: GoogleFonts.inter(
+                            fontWeight: _selectedViewFilter == 'My History'
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: _selectedViewFilter == 'My History'
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF475569),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'Owned Accounts',
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.briefcase,
+                          size: 16,
+                          color: _selectedViewFilter == 'Owned Accounts'
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'Owned Accounts',
+                          style: GoogleFonts.inter(
+                            fontWeight: _selectedViewFilter == 'Owned Accounts'
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: _selectedViewFilter == 'Owned Accounts'
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF475569),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  PopupMenuItem<String>(
+                    value: 'All Transactions',
+                    child: Row(
+                      children: [
+                        Icon(
+                          LucideIcons.globe,
+                          size: 16,
+                          color: _selectedViewFilter == 'All Transactions'
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'All Transactions',
+                          style: GoogleFonts.inter(
+                            fontWeight:
+                                _selectedViewFilter == 'All Transactions'
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                            color: _selectedViewFilter == 'All Transactions'
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF475569),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
             IconButton(
+              icon: Icon(
+                LucideIcons.calendar,
+                size: 20,
+                color: _dateRange != null
+                    ? const Color(0xFF2563EB)
+                    : const Color(0xFF64748B),
+              ),
+              tooltip: 'Date Filter',
+              onPressed: () => _showDateFilterDialog(context),
+            ),
+            IconButton(
               icon: const Icon(LucideIcons.refreshCw, size: 20),
+              tooltip: 'Refresh',
               onPressed: () {
                 final accountProvider = context.read<AccountProvider>();
                 provider.fetchHistory(
@@ -257,72 +353,36 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           bottom: TabBar(
             labelColor: const Color(0xFF2563EB),
             unselectedLabelColor: const Color(0xFF64748B),
-            indicatorColor: const Color(0xFF2563EB),
+            indicatorSize: TabBarIndicatorSize.tab,
             labelStyle: GoogleFonts.inter(
               fontWeight: FontWeight.w600,
-              fontSize: 14,
+              fontSize: 12, // Made text smaller
             ),
-            tabs: const [
-              Tab(text: 'Active'),
-              Tab(text: 'Removed'),
+            tabs: [
+              const Tab(text: 'Active'),
+              Tab(
+                child: Builder(
+                  builder: (context) {
+                    final int tabIndex = DefaultTabController.of(context).index;
+                    final bool isSelected = tabIndex == 1;
+                    return Text(
+                      'Removed',
+                      style: TextStyle(
+                        color: isSelected
+                            ? const Color(0xFFEF4444)
+                            : const Color(0xFF64748B),
+                      ),
+                    );
+                  },
+                ),
+              ),
             ],
           ),
         ),
         backgroundColor: const Color(0xFFF8FAFC),
         body: Column(
           children: [
-            // Pro Dual-Field Filter Bar (Shared for both tabs)
-            Container(
-              color: Colors.white,
-              padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: _buildDateTile(
-                      'From',
-                      _dateRange?.start,
-                      () => _selectDate(isStart: true),
-                    ),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Icon(
-                      LucideIcons.arrowRight,
-                      size: 14,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildDateTile(
-                      'To',
-                      _dateRange?.end,
-                      _dateRange?.start == null
-                          ? null
-                          : () => _selectDate(isStart: false),
-                    ),
-                  ),
-                  if (_dateRange != null) ...[
-                    const SizedBox(width: 8),
-                    Material(
-                      color: const Color(0xFFEF4444).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(10),
-                      child: InkWell(
-                        onTap: () => setState(() => _dateRange = null),
-                        borderRadius: BorderRadius.circular(10),
-                        child: Container(
-                          padding: const EdgeInsets.all(12),
-                          child: const Icon(
-                            LucideIcons.x,
-                            size: 18,
-                            color: Color(0xFFEF4444),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ],
-              ),
-            ),
+            // Date Filter removed from here, now in AppBar via dialog
             const Divider(height: 1, color: Color(0xFFF1F5F9)),
 
             // TabBar View
@@ -830,120 +890,179 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     );
   }
 
-  Widget _buildDateTile(String label, DateTime? date, VoidCallback? onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: onTap == null ? const Color(0xFFF1F5F9) : Colors.white,
-          borderRadius: BorderRadius.circular(10),
-          border: Border.all(
-            color: date != null
-                ? const Color(0xFF2563EB).withValues(alpha: 0.2)
-                : const Color(0xFFE2E8F0),
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Text(
-              label,
-              style: GoogleFonts.inter(
-                fontSize: 11,
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF94A3B8),
-                letterSpacing: 0.5,
+  // --- New Date Filter Dialog ---
+  Future<void> _showDateFilterDialog(BuildContext context) async {
+    await showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return StatefulBuilder(
+          builder: (context, setDialogState) {
+            return AlertDialog(
+              title: Text(
+                'Select Date Range',
+                style: GoogleFonts.inter(
+                  fontWeight: FontWeight.w700,
+                  fontSize: 18,
+                  color: const Color(0xFF1E293B),
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.end,
+              content: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Icon(
-                    LucideIcons.calendar,
-                    size: 14,
-                    color: date != null
-                        ? const Color(0xFF2563EB)
-                        : const Color(0xFF64748B),
-                  ),
-                  const SizedBox(width: 6),
-                  Flexible(
-                    child: Text(
-                      date == null
-                          ? 'Select'
-                          : DateFormat('dd MMM, yy').format(date),
-                      style: GoogleFonts.inter(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: date != null
-                            ? const Color(0xFF1E293B)
-                            : const Color(0xFF94A3B8),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDateTile(
+                          'From',
+                          _dateRange?.start,
+                          () async {
+                            final now = DateTime.now();
+                            final selected = await showDatePicker(
+                              context: context,
+                              initialDate: _dateRange?.start ?? now,
+                              firstDate: DateTime(2000),
+                              lastDate: now,
+                            );
+                            if (selected != null) {
+                              setDialogState(() {
+                                _dateRange = DateTimeRange(
+                                  start: selected,
+                                  end: _dateRange?.end ?? selected,
+                                );
+                              });
+                              setState(() {});
+                            }
+                          },
+                        ),
                       ),
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.right,
-                    ),
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 10),
+                        child: Icon(
+                          LucideIcons.arrowRight,
+                          size: 14,
+                          color: Color(0xFF94A3B8),
+                        ),
+                      ),
+                      Expanded(
+                        child: _buildDateTile(
+                          'To',
+                          _dateRange?.end,
+                          _dateRange?.start == null
+                              ? null
+                              : () async {
+                                  final selected = await showDatePicker(
+                                    context: context,
+                                    initialDate:
+                                        _dateRange?.end ?? _dateRange!.start,
+                                    firstDate: _dateRange!.start,
+                                    lastDate: DateTime.now(),
+                                  );
+                                  if (selected != null) {
+                                    setDialogState(() {
+                                      _dateRange = DateTimeRange(
+                                        start: _dateRange!.start,
+                                        end: selected,
+                                      );
+                                    });
+                                    setState(() {});
+                                  }
+                                },
+                        ),
+                      ),
+                    ],
                   ),
+                  if (_dateRange != null) ...[
+                    const SizedBox(height: 16),
+                    SizedBox(
+                      width: double.infinity,
+                      child: TextButton.icon(
+                        style: TextButton.styleFrom(
+                          foregroundColor: const Color(0xFFEF4444),
+                          backgroundColor:
+                              const Color(0xFFEF4444).withValues(alpha: 0.1),
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                        ),
+                        icon: const Icon(LucideIcons.x, size: 16),
+                        label: const Text('Clear Filter'),
+                        onPressed: () {
+                          setDialogState(() {
+                            _dateRange = null;
+                          });
+                          setState(() {});
+                          Navigator.pop(dialogContext);
+                        },
+                      ),
+                    ),
+                  ],
                 ],
               ),
-            ),
-          ],
-        ),
-      ),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.pop(dialogContext),
+                  child: const Text('Done'),
+                ),
+              ],
+            );
+          },
+        );
+      },
     );
   }
 
-  Future<void> _selectDate({required bool isStart}) async {
-    final primaryColor = const Color(0xFF2563EB);
-    final picked = await showDatePicker(
-      context: context,
-      initialDate: isStart
-          ? (_dateRange?.start ?? DateTime.now())
-          : (_dateRange?.end ?? _dateRange?.start ?? DateTime.now()),
-      firstDate:
-          isStart ? DateTime(2020) : (_dateRange?.start ?? DateTime(2020)),
-      lastDate: DateTime(2030),
-      builder: (context, child) => Theme(
-        data: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: primaryColor,
-          brightness: Brightness.light,
-          textTheme: GoogleFonts.interTextTheme(),
-          datePickerTheme: DatePickerThemeData(
-            headerBackgroundColor: primaryColor,
-            headerForegroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(28),
+  // Extracted Date Tile Widget for Cleaner UI Code
+  Widget _buildDateTile(String label, DateTime? date, VoidCallback? onTap) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(10),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          decoration: BoxDecoration(
+            border: Border.all(
+              color: date != null
+                  ? const Color(0xFF2563EB)
+                  : const Color(0xFFE2E8F0),
             ),
-            dayStyle: GoogleFonts.inter(
-              fontSize: 13,
-              fontWeight: FontWeight.w500,
-            ),
+            borderRadius: BorderRadius.circular(10),
+            color: date != null
+                ? const Color(0xFF2563EB).withValues(alpha: 0.05)
+                : const Color(0xFFF8FAFC),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                  color: date != null
+                      ? const Color(0xFF2563EB)
+                      : const Color(0xFF64748B),
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                date != null ? DateFormat('dd MMM, yy').format(date) : "Select",
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: date != null
+                      ? const Color(0xFF1E293B)
+                      : const Color(0xFF94A3B8),
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
           ),
         ),
-        child: child!,
       ),
     );
-
-    if (picked != null) {
-      setState(() {
-        if (isStart) {
-          _dateRange = DateTimeRange(
-            start: picked,
-            end: _dateRange?.end != null && _dateRange!.end.isAfter(picked)
-                ? _dateRange!.end
-                : picked,
-          );
-        } else {
-          _dateRange = DateTimeRange(
-            start: _dateRange?.start ?? picked,
-            end: picked,
-          );
-        }
-      });
-    }
   }
 
   Color _getStatusColor(TransactionStatus status) {

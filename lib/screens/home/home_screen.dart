@@ -457,8 +457,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 _buildDivider(),
                 _buildNavItem(
                   1,
-                  isAdmin ? Icons.swap_horiz_rounded : Icons.search_rounded,
-                  isAdmin ? 'Trans.' : 'Search',
+                  isAdmin ? Icons.history_rounded : Icons.search_rounded,
+                  isAdmin ? 'History' : 'Search',
                   currentIndex == 1,
                   onTapOverride: isAdmin
                       ? () {

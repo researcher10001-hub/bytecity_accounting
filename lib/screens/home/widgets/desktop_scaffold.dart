@@ -162,7 +162,7 @@ class DesktopScaffold extends StatelessWidget {
       case DashboardView.home:
         return 'Dashboard Overview';
       case DashboardView.transactions:
-        return 'Transaction History';
+        return 'History';
       case DashboardView.search:
         return 'Search Voucher';
       case DashboardView.settings:

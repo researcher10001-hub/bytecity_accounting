@@ -106,8 +106,8 @@ class SideMenu extends StatelessWidget {
           'view': DashboardView.transactionEntry,
         },
         {
-          'icon': Icons.swap_horiz_rounded,
-          'label': 'Transactions',
+          'icon': Icons.history_rounded,
+          'label': 'History',
           'view': DashboardView.transactions,
         },
         {
