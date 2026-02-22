@@ -890,121 +890,223 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     );
   }
 
-  // --- New Date Filter Dialog ---
+  // --- Modern Date Filter Dialog ---
   Future<void> _showDateFilterDialog(BuildContext context) async {
     await showDialog(
       context: context,
       builder: (BuildContext dialogContext) {
         return StatefulBuilder(
           builder: (context, setDialogState) {
-            return AlertDialog(
-              title: Text(
-                'Select Date Range',
-                style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w700,
-                  fontSize: 18,
-                  color: const Color(0xFF1E293B),
-                ),
-              ),
-              content: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDateTile(
-                          'From',
-                          _dateRange?.start,
-                          () async {
-                            final now = DateTime.now();
-                            final selected = await showDatePicker(
-                              context: context,
-                              initialDate: _dateRange?.start ?? now,
-                              firstDate: DateTime(2000),
-                              lastDate: now,
-                            );
-                            if (selected != null) {
-                              setDialogState(() {
-                                _dateRange = DateTimeRange(
-                                  start: selected,
-                                  end: _dateRange?.end ?? selected,
-                                );
-                              });
-                              setState(() {});
-                            }
-                          },
-                        ),
-                      ),
-                      const Padding(
-                        padding: EdgeInsets.symmetric(horizontal: 10),
-                        child: Icon(
-                          LucideIcons.arrowRight,
-                          size: 14,
-                          color: Color(0xFF94A3B8),
-                        ),
-                      ),
-                      Expanded(
-                        child: _buildDateTile(
-                          'To',
-                          _dateRange?.end,
-                          _dateRange?.start == null
-                              ? null
-                              : () async {
-                                  final selected = await showDatePicker(
-                                    context: context,
-                                    initialDate:
-                                        _dateRange?.end ?? _dateRange!.start,
-                                    firstDate: _dateRange!.start,
-                                    lastDate: DateTime.now(),
-                                  );
-                                  if (selected != null) {
-                                    setDialogState(() {
-                                      _dateRange = DateTimeRange(
-                                        start: _dateRange!.start,
-                                        end: selected,
-                                      );
-                                    });
-                                    setState(() {});
-                                  }
-                                },
-                        ),
-                      ),
-                    ],
-                  ),
-                  if (_dateRange != null) ...[
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton.icon(
-                        style: TextButton.styleFrom(
-                          foregroundColor: const Color(0xFFEF4444),
-                          backgroundColor:
-                              const Color(0xFFEF4444).withValues(alpha: 0.1),
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        ),
-                        icon: const Icon(LucideIcons.x, size: 16),
-                        label: const Text('Clear Filter'),
-                        onPressed: () {
-                          setDialogState(() {
-                            _dateRange = null;
-                          });
-                          setState(() {});
-                          Navigator.pop(dialogContext);
-                        },
-                      ),
+            return Dialog(
+              backgroundColor: Colors.transparent,
+              child: Container(
+                width: 340,
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: const Color(0xFF1E293B).withValues(alpha: 0.1),
+                      blurRadius: 24,
+                      offset: const Offset(0, 12),
                     ),
                   ],
-                ],
-              ),
-              actions: [
-                TextButton(
-                  onPressed: () => Navigator.pop(dialogContext),
-                  child: const Text('Done'),
                 ),
-              ],
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // Header Section
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color:
+                                const Color(0xFF2563EB).withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.calendar,
+                            color: Color(0xFF2563EB),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'Filter by Date',
+                                style: GoogleFonts.inter(
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                'Select a custom time period',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Date Selection Area
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: const Color(0xFFF8FAFC),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: const Color(0xFFE2E8F0)),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: _buildDateTile(
+                              'Start Date',
+                              _dateRange?.start,
+                              () async {
+                                final now = DateTime.now();
+                                final selected = await showDatePicker(
+                                  context: context,
+                                  initialDate: _dateRange?.start ?? now,
+                                  firstDate: DateTime(2000),
+                                  lastDate: now,
+                                );
+                                if (selected != null) {
+                                  setDialogState(() {
+                                    _dateRange = DateTimeRange(
+                                      start: selected,
+                                      end: _dateRange?.end ?? selected,
+                                    );
+                                  });
+                                  setState(() {});
+                                }
+                              },
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12),
+                            child: const Icon(
+                              LucideIcons.arrowRight,
+                              color: Color(0xFF94A3B8),
+                              size: 16,
+                            ),
+                          ),
+                          Expanded(
+                            child: _buildDateTile(
+                              'End Date',
+                              _dateRange?.end,
+                              _dateRange?.start == null
+                                  ? null
+                                  : () async {
+                                      final selected = await showDatePicker(
+                                        context: context,
+                                        initialDate: _dateRange?.end ??
+                                            _dateRange!.start,
+                                        firstDate: _dateRange!.start,
+                                        lastDate: DateTime.now(),
+                                      );
+                                      if (selected != null) {
+                                        setDialogState(() {
+                                          _dateRange = DateTimeRange(
+                                            start: _dateRange!.start,
+                                            end: selected,
+                                          );
+                                        });
+                                        setState(() {});
+                                      }
+                                    },
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+
+                    // Action Buttons
+                    Row(
+                      children: [
+                        if (_dateRange != null)
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () {
+                                setDialogState(() => _dateRange = null);
+                                setState(() {});
+                                Navigator.pop(dialogContext);
+                              },
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFFEF4444),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Clear',
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          )
+                        else
+                          Expanded(
+                            child: TextButton(
+                              onPressed: () => Navigator.pop(dialogContext),
+                              style: TextButton.styleFrom(
+                                foregroundColor: const Color(0xFF64748B),
+                                padding:
+                                    const EdgeInsets.symmetric(vertical: 14),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                              ),
+                              child: Text(
+                                'Cancel',
+                                style: GoogleFonts.inter(
+                                    fontWeight: FontWeight.w600),
+                              ),
+                            ),
+                          ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          flex: 2,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.pop(dialogContext),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF2563EB),
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                              padding: const EdgeInsets.symmetric(vertical: 14),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                            ),
+                            child: Text(
+                              'Apply Range',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             );
           },
         );
@@ -1012,25 +1114,33 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     );
   }
 
-  // Extracted Date Tile Widget for Cleaner UI Code
+  // --- Modern Date Tile Widget ---
   Widget _buildDateTile(String label, DateTime? date, VoidCallback? onTap) {
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(10),
+        borderRadius: BorderRadius.circular(12),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
           decoration: BoxDecoration(
             border: Border.all(
-              color: date != null
-                  ? const Color(0xFF2563EB)
-                  : const Color(0xFFE2E8F0),
+              color:
+                  date != null ? const Color(0xFF2563EB) : Colors.transparent,
             ),
-            borderRadius: BorderRadius.circular(10),
             color: date != null
                 ? const Color(0xFF2563EB).withValues(alpha: 0.05)
-                : const Color(0xFFF8FAFC),
+                : Colors.white,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: date == null
+                ? [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.03),
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    )
+                  ]
+                : null,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
