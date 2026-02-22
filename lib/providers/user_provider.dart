@@ -158,10 +158,12 @@ class UserProvider with ChangeNotifier {
 
       await _apiService.postRequest(ApiConstants.actionDeleteUser, payload);
 
-      // Optimistic Remove
-      _users.removeWhere((u) => u.email == email);
+      // Optimistic Soft Delete: Update status to 'Deleted' instead of removing
+      final index = _users.indexWhere((u) => u.email == email);
+      if (index != -1) {
+        _users[index] = _users[index].copyWith(status: 'Deleted');
+      }
 
-      // _isLoading = false;
       notifyListeners();
       return true;
     } catch (e) {

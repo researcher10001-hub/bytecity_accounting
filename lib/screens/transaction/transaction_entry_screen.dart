@@ -429,7 +429,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           title: 'Observations',
           icon: LucideIcons.messageSquare,
           child: TextFormField(
-            key: ValueKey('narration_${provider.voucherNo}'),
+            key: ValueKey('narration_${provider.formSessionId}'),
             minLines: 2,
             maxLines: null,
             onChanged: provider.setMainNarration,

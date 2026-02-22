@@ -59,6 +59,9 @@ class TransactionProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Session ID for forcing UI redraws on reset
+  String _formSessionId = UniqueKey().toString();
+
   // Getters
   DateTime get selectedDate => _selectedDate;
   VoucherType? get selectedType => _selectedType;
@@ -69,6 +72,7 @@ class TransactionProvider with ChangeNotifier {
 
   List<SplitEntry> get sources => _sources;
   List<SplitEntry> get destinations => _destinations;
+  String get formSessionId => _formSessionId;
 
   TransactionProvider() {
     _loadFromCache();
@@ -148,6 +152,7 @@ class TransactionProvider with ChangeNotifier {
     _isEditing = false;
     _editingOldVoucherNo = null;
     _error = null;
+    _formSessionId = UniqueKey().toString();
     notifyListeners();
   }
 

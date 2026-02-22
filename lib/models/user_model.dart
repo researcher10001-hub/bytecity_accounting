@@ -48,8 +48,7 @@ class User {
     // Use 'active' flag if status is missing or empty
     if (statusRaw.isEmpty) {
       if (json['active'] != null) {
-        statusRaw =
-            (json['active'] == true ||
+        statusRaw = (json['active'] == true ||
                 json['active'].toString().toUpperCase() == 'TRUE')
             ? 'Active'
             : 'Suspended';
@@ -60,6 +59,8 @@ class User {
       // Normalize common status strings to "Active" if close enough
       if (statusRaw.toLowerCase().startsWith('activ')) {
         statusRaw = 'Active';
+      } else if (statusRaw.toLowerCase() == 'deleted') {
+        statusRaw = 'Deleted';
       }
     }
 
@@ -70,8 +71,7 @@ class User {
       designation: designationRaw,
       status: statusRaw,
       allowForeignCurrency: json['allow_foreign_currency'] == true,
-      allowDateEdit:
-          (json['allow_date_edit'] == true ||
+      allowDateEdit: (json['allow_date_edit'] == true ||
           json['allow_date_edit'].toString().toUpperCase() == 'TRUE'),
       groupIds: parsedGroups,
       sessionToken: json['session_token']?.toString().trim(),

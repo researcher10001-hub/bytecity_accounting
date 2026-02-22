@@ -16,7 +16,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
-  bool _rememberMe = false;
+  bool _rememberMe = true;
 
   @override
   void dispose() {
@@ -287,6 +287,20 @@ class _LoginScreenState extends State<LoginScreen> {
                   }
                   return const SizedBox.shrink();
                 },
+              ),
+              // Remember me
+              Row(
+                children: [
+                  Checkbox(
+                    value: _rememberMe,
+                    activeColor: const Color(0xFF1E88E5),
+                    onChanged: (v) => setState(() => _rememberMe = v!),
+                  ),
+                  Text(
+                    'Remember me',
+                    style: GoogleFonts.inter(color: Colors.grey[700]),
+                  ),
+                ],
               ),
               const SizedBox(height: 24),
               _buildLoginButton(),
