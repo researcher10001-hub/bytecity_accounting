@@ -145,32 +145,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
   }
 
   Color _getBackgroundColor(VoucherType? type) {
-    if (type == null) return const Color(0xFFF7FAFC);
-    switch (type) {
-      case VoucherType.payment:
-        return const Color(
-            0xFFFFF7ED); // Soft Peach/Orange 50 (Very eye-friendly)
-      case VoucherType.receipt:
-        return const Color(0xFFF0FDF4); // Extremely soft green
-      case VoucherType.contra:
-        return const Color(0xFFEFF6FF); // Extremely soft blue
-      default:
-        return const Color(0xFFF7FAFC);
-    }
-  }
-
-  Color _getBorderColor(VoucherType type) {
-    switch (type) {
-      case VoucherType.payment:
-        return const Color(0xFFF97316)
-            .withValues(alpha: 0.1); // Orange 600 tint
-      case VoucherType.receipt:
-        return Colors.green.withValues(alpha: 0.15);
-      case VoucherType.contra:
-        return Colors.blue.withValues(alpha: 0.15);
-      default:
-        return Colors.transparent;
-    }
+    return const Color(0xFFF7FAFC);
   }
 
   Widget _buildFormBody(
@@ -217,7 +192,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       children: [
         Container(
           decoration: BoxDecoration(
-            color: const Color(0xFFEDF2F7),
+            color: const Color(
+                0xFFE2E8F0), // Slightly darker base for better contrast
             borderRadius: BorderRadius.circular(16),
           ),
           padding: const EdgeInsets.all(6),
@@ -228,22 +204,21 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                 VoucherType.payment,
                 'Payment',
                 LucideIcons.arrowUp,
-                const Color(
-                    0xFFEA580C), // Deep Orange 600 (Eye-friendly accent)
+                const Color(0xFFF43F5E), // Muted Rose (Eye-friendly)
               ),
               _buildSegmentButton(
                 provider,
                 VoucherType.receipt,
                 'Receipt',
                 LucideIcons.arrowDown,
-                const Color(0xFF38A169),
+                const Color(0xFF10B981), // Muted Emerald
               ),
               _buildSegmentButton(
                 provider,
                 VoucherType.contra,
                 'Transfer',
                 LucideIcons.repeat,
-                const Color(0xFF3182CE),
+                const Color(0xFF3B82F6), // Muted Blue
               ),
             ],
           ),
@@ -268,13 +243,13 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           curve: Curves.easeInOut,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.white : Colors.transparent,
+            color: isSelected ? activeColor : Colors.transparent,
             borderRadius: BorderRadius.circular(12),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.06),
-                      blurRadius: 10,
+                      color: activeColor.withValues(alpha: 0.3),
+                      blurRadius: 8,
                       offset: const Offset(0, 4),
                     ),
                   ]
@@ -286,15 +261,15 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               Icon(
                 icon,
                 size: 18,
-                color: isSelected ? activeColor : Colors.grey.shade500,
+                color: isSelected ? Colors.white : Colors.grey.shade600,
               ),
               const SizedBox(width: 8),
               Text(
                 label,
                 style: GoogleFonts.inter(
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   fontSize: 14,
-                  color: isSelected ? activeColor : Colors.grey.shade600,
+                  color: isSelected ? Colors.white : Colors.grey.shade700,
                 ),
               ),
             ],
@@ -624,7 +599,6 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     required Widget child,
     Widget? trailing,
   }) {
-    final type = context.read<TransactionProvider>().selectedType;
     Color bgColor =
         Colors.white; // Keep cards clean white so it doesn't hurt eyes
 
@@ -634,7 +608,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         color: bgColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: type != null ? _getBorderColor(type) : Colors.transparent,
+          color: const Color(0xFFE2E8F0), // Neutral border
           width: 1,
         ),
         boxShadow: [
@@ -709,15 +683,37 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           gradient: LinearGradient(
             colors: provider.isEditing
                 ? [const Color(0xFF3182CE), const Color(0xFF2B6CB0)]
-                : [const Color(0xFF38A169), const Color(0xFF2F855A)],
+                : provider.selectedType == VoucherType.payment
+                    ? [
+                        const Color(0xFFF43F5E),
+                        const Color(0xFFE11D48)
+                      ] // Rose for Payment
+                    : provider.selectedType == VoucherType.receipt
+                        ? [
+                            const Color(0xFF10B981),
+                            const Color(0xFF059669)
+                          ] // Green for Receipt
+                        : provider.selectedType == VoucherType.contra
+                            ? [
+                                const Color(0xFF3B82F6),
+                                const Color(0xFF2563EB)
+                              ] // Blue for Transfer
+                            : [
+                                const Color(0xFF38A169),
+                                const Color(0xFF2F855A)
+                              ], // Default Green
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
           boxShadow: [
             BoxShadow(
-              color: (provider.isEditing
-                      ? const Color(0xFF3182CE)
-                      : const Color(0xFF38A169))
+              color: (provider.selectedType == VoucherType.payment
+                      ? const Color(0xFFF43F5E)
+                      : provider.selectedType == VoucherType.receipt
+                          ? const Color(0xFF10B981)
+                          : provider.selectedType == VoucherType.contra
+                              ? const Color(0xFF3B82F6)
+                              : const Color(0xFF38A169))
                   .withValues(alpha: 0.3),
               blurRadius: 12,
               offset: const Offset(0, 6),
