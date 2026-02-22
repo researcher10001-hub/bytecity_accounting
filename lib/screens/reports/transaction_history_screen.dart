@@ -62,7 +62,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     // 2. Strict Filter for "My History" / "Owned Accounts" / "All Transactions" + Date Filter
     final bool canViewOthers =
-        user.isAdmin || user.role == 'management' || user.role == 'viewer';
+        user.isAdmin || user.isManagement || user.isViewer;
+
+    // Associate users can see "My History" and "Owned Accounts" filters
+    final bool canShowFilters = canViewOthers || user.isAssociate;
 
     final allTransactions = roleBasedList.where((tx) {
       final txOwner = tx.createdBy.trim().toLowerCase();
@@ -85,13 +88,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       }
 
       bool isVisible = false;
-      if (!canViewOthers || _selectedViewFilter == 'My History') {
+      if (_selectedViewFilter == 'My History') {
         isVisible = isCreator;
       } else if (_selectedViewFilter == 'Owned Accounts') {
         isVisible = isCreator || isOwnedAccount;
       } else if (_selectedViewFilter == 'All Transactions') {
-        isVisible =
-            true; // Role-based list already filters for Admin/Mgmt/Viewer
+        isVisible = true;
       }
 
       if (!isVisible) return false;
@@ -159,15 +161,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       });
 
       bool isVisible = false;
-      if (!canViewOthers || _selectedViewFilter == 'My History') {
-        isVisible = isCreator ||
-            isDeleter ||
-            isOwnedAccount; // Keep original "My History" logic for removed which is broader
+      if (_selectedViewFilter == 'My History') {
+        isVisible = isCreator || isDeleter || isOwnedAccount;
       } else if (_selectedViewFilter == 'Owned Accounts') {
         isVisible = isCreator || isDeleter || isOwnedAccount;
       } else if (_selectedViewFilter == 'All Transactions') {
-        isVisible =
-            true; // Role-based list already filters for Admin/Mgmt/Viewer
+        isVisible = true;
       }
 
       if (isVisible) {
@@ -198,7 +197,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           foregroundColor: const Color(0xFF1E293B),
           elevation: 0,
           actions: [
-            if (canViewOthers)
+            if (canShowFilters)
               PopupMenuButton<String>(
                 tooltip: 'View Filter',
                 child: Center(
@@ -297,33 +296,34 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                       ],
                     ),
                   ),
-                  PopupMenuItem<String>(
-                    value: 'All Transactions',
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.globe,
-                          size: 16,
-                          color: _selectedViewFilter == 'All Transactions'
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'All Transactions',
-                          style: GoogleFonts.inter(
-                            fontWeight:
-                                _selectedViewFilter == 'All Transactions'
-                                    ? FontWeight.w600
-                                    : FontWeight.w500,
+                  if (canViewOthers)
+                    PopupMenuItem<String>(
+                      value: 'All Transactions',
+                      child: Row(
+                        children: [
+                          Icon(
+                            LucideIcons.globe,
+                            size: 16,
                             color: _selectedViewFilter == 'All Transactions'
                                 ? const Color(0xFF2563EB)
-                                : const Color(0xFF475569),
+                                : const Color(0xFF64748B),
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: 8),
+                          Text(
+                            'All Transactions',
+                            style: GoogleFonts.inter(
+                              fontWeight:
+                                  _selectedViewFilter == 'All Transactions'
+                                      ? FontWeight.w600
+                                      : FontWeight.w500,
+                              color: _selectedViewFilter == 'All Transactions'
+                                  ? const Color(0xFF2563EB)
+                                  : const Color(0xFF475569),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
                 ],
               ),
             IconButton(
