@@ -1,7 +1,7 @@
 import 'transaction_model.dart';
 
 /// Represents the status of a message thread
-enum MessageStatus { pending, clarify, approved, underReview }
+enum MessageStatus { pending, clarify, approved, underReview, rejected }
 
 /// Represents a single message in a thread
 class MessageItem {
@@ -102,9 +102,8 @@ class MessageThread {
     this.flaggedBy,
     this.flaggedAt,
     this.flagReason,
-  }) : lastMessageTime =
-           lastMessageTime ??
-           (messages.isNotEmpty ? messages.last.timestamp : DateTime.now());
+  }) : lastMessageTime = lastMessageTime ??
+            (messages.isNotEmpty ? messages.last.timestamp : DateTime.now());
 
   /// Get the latest message in the thread
   MessageItem? get latestMessage => messages.isNotEmpty ? messages.last : null;
@@ -132,6 +131,8 @@ class MessageThread {
         return MessageStatus.clarify;
       case TransactionStatus.approved:
         return MessageStatus.approved;
+      case TransactionStatus.rejected:
+        return MessageStatus.rejected;
       case TransactionStatus.underReview:
         return MessageStatus.underReview;
       default:
@@ -173,8 +174,7 @@ class MessageThread {
     final isUnread = !readVouchers.contains(transaction.voucherNo);
 
     // 2. Identify the last HUMAN actor
-    String lastActorEmail =
-        transaction.lastActivityBy ??
+    String lastActorEmail = transaction.lastActivityBy ??
         transaction.lastActionBy ??
         transaction.createdBy;
 
@@ -210,12 +210,11 @@ class MessageThread {
       isSelfEntry: false, // Will be determined by backend
       approvedBy: approvalMsg.senderEmail.isNotEmpty
           ? (approvalMsg.senderName.isNotEmpty
-                ? approvalMsg.senderName
-                : approvalMsg.senderEmail)
+              ? approvalMsg.senderName
+              : approvalMsg.senderEmail)
           : null,
-      approvedAt: approvalMsg.senderEmail.isNotEmpty
-          ? approvalMsg.timestamp
-          : null,
+      approvedAt:
+          approvalMsg.senderEmail.isNotEmpty ? approvalMsg.timestamp : null,
       lastActionBy: lastActorEmail,
       isFlagged: transaction.isFlagged,
       flaggedBy: transaction.flaggedBy,

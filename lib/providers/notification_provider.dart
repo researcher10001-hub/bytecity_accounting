@@ -35,7 +35,8 @@ class NotificationProvider with ChangeNotifier {
   List<MessageThread> receivedForReview(String currentUserEmail) {
     return _messageThreads.where((t) {
       // Exclude approved/rejected
-      if (t.status == MessageStatus.approved) return false;
+      if (t.status == MessageStatus.approved ||
+          t.status == MessageStatus.rejected) return false;
 
       // Received = last action was NOT by me (waiting on me to respond)
       return t.lastActionBy.toLowerCase() != currentUserEmail.toLowerCase();
@@ -45,7 +46,8 @@ class NotificationProvider with ChangeNotifier {
   List<MessageThread> sentForReview(String currentUserEmail) {
     return _messageThreads.where((t) {
       // Exclude approved/rejected
-      if (t.status == MessageStatus.approved) return false;
+      if (t.status == MessageStatus.approved ||
+          t.status == MessageStatus.rejected) return false;
 
       // Sent = last action WAS by me (waiting on them to respond)
       return t.lastActionBy.toLowerCase() == currentUserEmail.toLowerCase();
@@ -159,11 +161,11 @@ class NotificationProvider with ChangeNotifier {
       _messageThreads = [];
 
       for (var tx in allTransactions) {
-        // Skip deleted transactions for Message Card / Notifications
-        if (tx.status == TransactionStatus.deleted) continue;
+        // Skip deleted and rejected transactions for Message Card / Notifications
+        if (tx.status == TransactionStatus.deleted ||
+            tx.status == TransactionStatus.rejected) continue;
 
-        bool isMyCreation =
-            tx.createdBy.trim().toLowerCase() ==
+        bool isMyCreation = tx.createdBy.trim().toLowerCase() ==
             user.email.trim().toLowerCase();
 
         // Check if there are messages
@@ -269,13 +271,13 @@ class NotificationProvider with ChangeNotifier {
   ) async {
     try {
       final apiService = ApiService();
-      final response = await apiService
-          .postRequest(ApiConstants.actionFlagForReview, {
-            'voucher_no': voucherNo,
-            'admin_email': adminEmail,
-            'reason': reason,
-            'new_status': newStatus,
-          });
+      final response =
+          await apiService.postRequest(ApiConstants.actionFlagForReview, {
+        'voucher_no': voucherNo,
+        'admin_email': adminEmail,
+        'reason': reason,
+        'new_status': newStatus,
+      });
 
       if (response != null) {
         // Move thread from approved to clarify/underReview

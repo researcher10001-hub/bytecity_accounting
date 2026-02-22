@@ -34,11 +34,11 @@ class _NotificationScreenState extends State<NotificationScreen>
       final txProvider = context.read<TransactionProvider>();
       if (user != null) {
         context.read<NotificationProvider>().refreshNotifications(
-          user,
-          txProvider,
-          context.read<UserProvider>(),
-          accountProvider: context.read<AccountProvider>(),
-        );
+              user,
+              txProvider,
+              context.read<UserProvider>(),
+              accountProvider: context.read<AccountProvider>(),
+            );
       }
     });
   }
@@ -83,11 +83,11 @@ class _NotificationScreenState extends State<NotificationScreen>
             onPressed: () {
               final txProvider = context.read<TransactionProvider>();
               context.read<NotificationProvider>().refreshNotifications(
-                user,
-                txProvider,
-                context.read<UserProvider>(),
-                accountProvider: context.read<AccountProvider>(),
-              );
+                    user,
+                    txProvider,
+                    context.read<UserProvider>(),
+                    accountProvider: context.read<AccountProvider>(),
+                  );
             },
           ),
         ],
@@ -219,6 +219,10 @@ class _NotificationScreenState extends State<NotificationScreen>
         icon = Icons.check_circle_outline;
         color = Colors.green;
         break;
+      case MessageStatus.rejected:
+        icon = Icons.cancel_outlined;
+        color = Colors.red;
+        break;
       case MessageStatus.clarify:
         icon = Icons.help_outline;
         color = Colors.orange;
@@ -234,9 +238,8 @@ class _NotificationScreenState extends State<NotificationScreen>
     }
 
     // Get the latest message for display
-    final latestMessage = thread.messages.isNotEmpty
-        ? thread.messages.last
-        : null;
+    final latestMessage =
+        thread.messages.isNotEmpty ? thread.messages.last : null;
 
     return InkWell(
       onTap: () {
@@ -266,9 +269,8 @@ class _NotificationScreenState extends State<NotificationScreen>
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
           border: Border.all(
-            color: thread.isFlagged
-                ? Colors.red.shade200
-                : Colors.grey.shade200,
+            color:
+                thread.isFlagged ? Colors.red.shade200 : Colors.grey.shade200,
             width: thread.isFlagged ? 2 : 1,
           ),
           boxShadow: [
@@ -354,19 +356,18 @@ class _NotificationScreenState extends State<NotificationScreen>
                   const SizedBox(height: 4),
                   Builder(
                     builder: (context) {
-                      String displayMsg =
-                          (latestMessage?.message ??
-                                  thread.transaction.mainNarration)
-                              .trim();
+                      String displayMsg = (latestMessage?.message ??
+                              thread.transaction.mainNarration)
+                          .trim();
                       final tx = thread.transaction;
 
                       // Show [Amount] - [Description] for automated system/creation messages
                       bool isAutomated =
                           (latestMessage?.actionType ?? '').startsWith(
-                            'auto_',
-                          ) ||
-                          displayMsg.contains('Transaction Created') ||
-                          displayMsg.contains('Self-entry');
+                                'auto_',
+                              ) ||
+                              displayMsg.contains('Transaction Created') ||
+                              displayMsg.contains('Self-entry');
 
                       if (isAutomated) {
                         final amountStr = NumberFormat(
