@@ -167,7 +167,7 @@ class _AccountAutocompleteState extends State<AccountAutocomplete> {
       },
       offset: const Offset(0, 5),
       constraints: const BoxConstraints(maxHeight: 350),
-      animationDuration: const Duration(milliseconds: 200),
+      animationDuration: const Duration(milliseconds: 100),
     );
   }
 }

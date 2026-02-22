@@ -164,7 +164,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
             ),
           ],
         ),
-      ).animate().fadeIn(duration: 600.ms).scale(begin: const Offset(0.9, 0.9));
+      ).animate().fade(duration: 150.ms);
     }
 
     return GestureDetector(
@@ -233,7 +233,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       child: GestureDetector(
         onTap: () => provider.setVoucherType(type),
         child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
+          duration: const Duration(milliseconds: 100),
           curve: Curves.easeInOut,
           padding: const EdgeInsets.symmetric(vertical: 12),
           decoration: BoxDecoration(
@@ -385,7 +385,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               ),
             ],
           ),
-        ).animate().fadeIn(duration: 400.ms).slideY(begin: 0.1, end: 0),
+        ).animate().fade(duration: 150.ms),
 
         // Per-line currency is now handled inside each form (simple/split)
         const SizedBox(height: 8),
@@ -445,10 +445,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               contentPadding: const EdgeInsets.all(12),
             ),
           ),
-        )
-            .animate()
-            .fadeIn(duration: 400.ms, delay: 200.ms)
-            .slideY(begin: 0.1, end: 0),
+        ).animate().fade(duration: 150.ms, delay: 50.ms),
 
         const SizedBox(height: 24),
 
@@ -997,10 +994,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           ),
         ],
       ),
-    )
-        .animate()
-        .fadeIn(duration: 400.ms, delay: 100.ms)
-        .slideY(begin: 0.1, end: 0);
+    ).animate().fade(duration: 150.ms);
   }
 
   Widget _buildTwoListSplitForm(
