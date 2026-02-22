@@ -111,6 +111,11 @@ class SideMenu extends StatelessWidget {
           'view': DashboardView.transactions,
         },
         {
+          'icon': Icons.menu_book_rounded,
+          'label': 'Ledger',
+          'view': DashboardView.ledger,
+        },
+        {
           'icon': Icons.account_balance_wallet_rounded,
           'label': 'My Accounts',
           'view': DashboardView.ownedAccounts,
@@ -144,6 +149,11 @@ class SideMenu extends StatelessWidget {
           'view': DashboardView.transactions,
         },
         {
+          'icon': Icons.menu_book_rounded,
+          'label': 'Ledger',
+          'view': DashboardView.ledger,
+        },
+        {
           'icon': Icons.account_balance_wallet_rounded,
           'label': 'My Accounts',
           'view': DashboardView.ownedAccounts,
@@ -170,6 +180,11 @@ class SideMenu extends StatelessWidget {
           'icon': Icons.history_rounded,
           'label': 'History',
           'view': DashboardView.transactions,
+        },
+        {
+          'icon': Icons.menu_book_rounded,
+          'label': 'Ledger',
+          'view': DashboardView.ledger,
         },
         {
           'icon': Icons.account_balance_wallet_rounded,

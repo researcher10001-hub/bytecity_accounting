@@ -28,6 +28,7 @@ class TransactionHistoryScreen extends StatefulWidget {
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   DateTimeRange? _dateRange;
   String _selectedViewFilter = 'My History';
+  @override
   void initState() {
     super.initState();
     // Default to show TODAY's transactions

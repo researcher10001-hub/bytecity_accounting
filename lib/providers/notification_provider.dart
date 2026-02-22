@@ -36,7 +36,9 @@ class NotificationProvider with ChangeNotifier {
     return _messageThreads.where((t) {
       // Exclude approved/rejected
       if (t.status == MessageStatus.approved ||
-          t.status == MessageStatus.rejected) return false;
+          t.status == MessageStatus.rejected) {
+        return false;
+      }
 
       // Received = last action was NOT by me (waiting on me to respond)
       return t.lastActionBy.toLowerCase() != currentUserEmail.toLowerCase();
@@ -47,7 +49,9 @@ class NotificationProvider with ChangeNotifier {
     return _messageThreads.where((t) {
       // Exclude approved/rejected
       if (t.status == MessageStatus.approved ||
-          t.status == MessageStatus.rejected) return false;
+          t.status == MessageStatus.rejected) {
+        return false;
+      }
 
       // Sent = last action WAS by me (waiting on them to respond)
       return t.lastActionBy.toLowerCase() == currentUserEmail.toLowerCase();
@@ -163,7 +167,9 @@ class NotificationProvider with ChangeNotifier {
       for (var tx in allTransactions) {
         // Skip deleted and rejected transactions for Message Card / Notifications
         if (tx.status == TransactionStatus.deleted ||
-            tx.status == TransactionStatus.rejected) continue;
+            tx.status == TransactionStatus.rejected) {
+          continue;
+        }
 
         bool isMyCreation = tx.createdBy.trim().toLowerCase() ==
             user.email.trim().toLowerCase();
