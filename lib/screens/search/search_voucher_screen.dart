@@ -82,12 +82,53 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
     final List<TransactionModel> filteredTransactions = _searchQuery.isEmpty
         ? []
         : baseList
-              .where(
-                (tx) => tx.voucherNo.toLowerCase().contains(
-                  _searchQuery.toLowerCase(),
-                ),
-              )
-              .toList();
+            .where(
+              (tx) =>
+                  tx.voucherNo.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      ) ||
+                  tx.mainNarration.toLowerCase().contains(
+                        _searchQuery.toLowerCase(),
+                      ),
+            )
+            .toList();
+
+    Widget _highlightText(String text, TextStyle baseStyle) {
+      if (_searchQuery.isEmpty) {
+        return Text(text,
+            style: baseStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
+      }
+
+      final String lowerText = text.toLowerCase();
+      final String lowerQuery = _searchQuery.toLowerCase();
+      final int startIndex = lowerText.indexOf(lowerQuery);
+
+      if (startIndex == -1) {
+        return Text(text,
+            style: baseStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
+      }
+
+      return RichText(
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
+        text: TextSpan(
+          style: baseStyle,
+          children: [
+            if (startIndex > 0) TextSpan(text: text.substring(0, startIndex)),
+            TextSpan(
+              text:
+                  text.substring(startIndex, startIndex + _searchQuery.length),
+              style: baseStyle.copyWith(
+                backgroundColor: Colors.yellow.withValues(alpha: 0.5),
+                color: Colors.black,
+              ),
+            ),
+            if (startIndex + _searchQuery.length < text.length)
+              TextSpan(text: text.substring(startIndex + _searchQuery.length)),
+          ],
+        ),
+      );
+    }
 
     return Scaffold(
       backgroundColor: Colors.grey[50],
@@ -115,7 +156,7 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
                 });
               },
               decoration: InputDecoration(
-                hintText: 'Enter voucher number (e.g., 2601-0001)',
+                hintText: 'Search by voucher no or comment...',
                 hintStyle: GoogleFonts.inter(
                   fontSize: 14,
                   color: Colors.grey[400],
@@ -160,7 +201,7 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
                         ),
                         const SizedBox(height: 16),
                         Text(
-                          'Enter a voucher number to search',
+                          'Enter a voucher number or comment to search',
                           style: GoogleFonts.inter(
                             fontSize: 14,
                             color: Colors.grey[500],
@@ -170,118 +211,116 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
                     ),
                   )
                 : filteredTransactions.isEmpty
-                ? Center(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.receipt_long_rounded,
-                          size: 64,
-                          color: Colors.grey[300],
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          'No vouchers found',
-                          style: GoogleFonts.inter(
-                            fontSize: 14,
-                            color: Colors.grey[500],
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.all(16),
-                    itemCount: filteredTransactions.length,
-                    itemBuilder: (context, index) {
-                      final tx = filteredTransactions[index];
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 12),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          borderRadius: BorderRadius.circular(12),
-                          boxShadow: [
-                            BoxShadow(
-                              color: Colors.black.withValues(alpha: 0.05),
-                              blurRadius: 4,
-                              offset: const Offset(0, 2),
+                    ? Center(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.receipt_long_rounded,
+                              size: 64,
+                              color: Colors.grey[300],
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              'No vouchers found',
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: Colors.grey[500],
+                              ),
                             ),
                           ],
                         ),
-                        child: ListTile(
-                          contentPadding: const EdgeInsets.all(16),
-                          leading: Container(
-                            padding: const EdgeInsets.all(12),
+                      )
+                    : ListView.builder(
+                        padding: const EdgeInsets.all(16),
+                        itemCount: filteredTransactions.length,
+                        itemBuilder: (context, index) {
+                          final tx = filteredTransactions[index];
+                          return Container(
+                            margin: const EdgeInsets.only(bottom: 12),
                             decoration: BoxDecoration(
-                              color: Colors.blue.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(8),
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(alpha: 0.05),
+                                  blurRadius: 4,
+                                  offset: const Offset(0, 2),
+                                ),
+                              ],
                             ),
-                            child: const Icon(
-                              Icons.receipt_rounded,
-                              color: Colors.blue,
-                              size: 24,
-                            ),
-                          ),
-                          title: Text(
-                            tx.voucherNo,
-                            style: GoogleFonts.inter(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 15,
-                            ),
-                          ),
-                          subtitle: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const SizedBox(height: 4),
-                              Text(
-                                tx.mainNarration,
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  color: Colors.grey[600],
+                            child: ListTile(
+                              contentPadding: const EdgeInsets.all(16),
+                              leading: Container(
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Colors.blue.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: const Icon(
+                                  Icons.receipt_rounded,
+                                  color: Colors.blue,
+                                  size: 24,
                                 ),
                               ),
-                              const SizedBox(height: 4),
-                              Text(
-                                '${tx.currency} ${CurrencyFormatter.format(tx.totalDebit)}',
-                                style: GoogleFonts.inter(
-                                  fontSize: 13,
-                                  fontWeight: FontWeight.w600,
-                                  color: Colors.green,
+                              title: _highlightText(
+                                tx.voucherNo,
+                                GoogleFonts.inter(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 15,
                                 ),
                               ),
-                            ],
-                          ),
-                          trailing: const Icon(
-                            Icons.chevron_right,
-                            color: Colors.grey,
-                          ),
-                          onTap: () {
-                            if (MediaQuery.of(context).size.width >= 800) {
-                              context.read<DashboardProvider>().setView(
-                                DashboardView.transactionDetail,
-                                args: {
-                                  'transaction': tx,
-                                  'allTransactions': filteredTransactions,
-                                },
-                              );
-                            } else {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) => TransactionDetailScreen(
-                                    transaction: tx,
-                                    allTransactions: filteredTransactions,
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const SizedBox(height: 4),
+                                  _highlightText(
+                                    tx.mainNarration,
+                                    GoogleFonts.inter(
+                                      fontSize: 13,
+                                      color: Colors.grey[600],
+                                    ),
                                   ),
-                                ),
-                              );
-                            }
-                          },
-                        ),
-                      );
-                    },
-                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '${tx.currency} ${CurrencyFormatter.format(tx.totalDebit)}',
+                                    style: GoogleFonts.inter(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              trailing: const Icon(
+                                Icons.chevron_right,
+                                color: Colors.grey,
+                              ),
+                              onTap: () {
+                                if (MediaQuery.of(context).size.width >= 800) {
+                                  context.read<DashboardProvider>().setView(
+                                    DashboardView.transactionDetail,
+                                    args: {
+                                      'transaction': tx,
+                                      'allTransactions': filteredTransactions,
+                                    },
+                                  );
+                                } else {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => TransactionDetailScreen(
+                                        transaction: tx,
+                                        allTransactions: filteredTransactions,
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                            ),
+                          );
+                        },
+                      ),
           ),
         ],
       ),
