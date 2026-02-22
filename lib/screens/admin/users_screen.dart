@@ -82,7 +82,7 @@ class _UsersScreenState extends State<UsersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(
-          'User Management',
+          'Manage Users',
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
             fontSize: 18,
