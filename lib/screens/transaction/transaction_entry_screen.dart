@@ -429,6 +429,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
           title: 'Observations',
           icon: LucideIcons.messageSquare,
           child: TextFormField(
+            key: ValueKey('narration_${provider.voucherNo}'),
             minLines: 2,
             maxLines: null,
             onChanged: provider.setMainNarration,
@@ -816,24 +817,55 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
     String typeStr = "Transaction";
     Color typeColor = Colors.blue;
-    String fromLabel = 'Credits (From / Paid By)';
-    String toLabel = 'Debits (To / Received / Transferred To)';
+    String fromTitle = 'Credits';
+    String fromSubtitle = ' (From / Paid By)';
+    String toTitle = 'Debits';
+    String toSubtitle = ' (To / Received / Transferred To)';
 
     if (isPayment) {
       typeStr = "Payment";
       typeColor = const Color(0xFFF43F5E);
-      toLabel = 'Debits (Expense On / Paid To)';
-      fromLabel = 'Credits (Paid From / Payment Method)';
+      toTitle = 'Expense on';
+      toSubtitle = ' (Debit)';
+      fromTitle = 'Paid from';
+      fromSubtitle = ' (Credit)';
     } else if (isReceipt) {
       typeStr = "Receipt";
       typeColor = const Color(0xFF10B981);
-      toLabel = 'Debits (Received In)';
-      fromLabel = 'Credits (Income From / Received From)';
+      toTitle = 'Received in';
+      toSubtitle = ' (Debit)';
+      fromTitle = 'Income from';
+      fromSubtitle = ' (Credit)';
     } else if (isTransfer) {
       typeStr = "Transfer";
       typeColor = const Color(0xFF3B82F6);
-      toLabel = 'Debits (Transfer To)';
-      fromLabel = 'Credits (Transfer From)';
+      toTitle = 'Transfer to';
+      toSubtitle = ' (Debit)';
+      fromTitle = 'Transfer from';
+      fromSubtitle = ' (Credit)';
+    }
+
+    Widget _buildHeader(String title, String subtitle) {
+      return RichText(
+        text: TextSpan(
+          text: title,
+          style: GoogleFonts.inter(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: Colors.grey.shade700,
+          ),
+          children: [
+            TextSpan(
+              text: subtitle,
+              style: GoogleFonts.inter(
+                fontSize: 12,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey.shade400, // Dimmed
+              ),
+            ),
+          ],
+        ),
+      );
     }
 
     showDialog(
@@ -925,14 +957,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       '৳ ${NumberFormat('#,##0.00').format(provider.totalDestBDT)}',
                     ),
                     const Divider(height: 16),
-                    Text(
-                      toLabel,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
+                    _buildHeader(toTitle, toSubtitle),
                     const SizedBox(height: 4),
                     ...provider.destinations.map(
                       (d) => _rowDetail(
@@ -943,14 +968,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       ),
                     ),
                     const Divider(height: 16),
-                    Text(
-                      fromLabel,
-                      style: GoogleFonts.inter(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.grey.shade700,
-                      ),
-                    ),
+                    _buildHeader(fromTitle, fromSubtitle),
                     const SizedBox(height: 4),
                     ...provider.sources.map(
                       (s) => _rowDetail(
