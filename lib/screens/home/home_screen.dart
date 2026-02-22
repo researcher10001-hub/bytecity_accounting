@@ -160,6 +160,40 @@ class _HomeScreenState extends State<HomeScreen> {
           );
         } else {
           // Mobile Layout
+          final List<DashboardView> views;
+          if (role == AppRoles.admin || role == 'Admin') {
+            views = [
+              DashboardView.home,
+              DashboardView.transactionEntry,
+              DashboardView.transactions,
+              DashboardView.ledger,
+              DashboardView.ownedAccounts,
+              DashboardView.search,
+              DashboardView.settings,
+            ];
+          } else if (role == AppRoles.management || role == 'Management') {
+            views = [
+              DashboardView.home,
+              DashboardView.transactionEntry,
+              DashboardView.transactions,
+              DashboardView.ledger,
+              DashboardView.ownedAccounts,
+              DashboardView.search,
+              DashboardView.settings,
+            ];
+          } else {
+            views = [
+              DashboardView.home,
+              DashboardView.transactionEntry,
+              DashboardView.transactions,
+              DashboardView.ledger,
+              DashboardView.ownedAccounts,
+            ];
+          }
+          final currentView = effectiveIndex >= views.length
+              ? DashboardView.home
+              : views[effectiveIndex];
+
           return Scaffold(
             backgroundColor: Colors.grey[50],
             appBar: AppBar(
@@ -204,9 +238,14 @@ class _HomeScreenState extends State<HomeScreen> {
               ],
             ),
             body: _buildBody(role, effectiveIndex),
-            bottomNavigationBar: _buildCustomBottomBar(effectiveIndex, role),
-            floatingActionButton:
-                _shouldShowFAB(role) ? _buildGradientFAB() : null,
+            bottomNavigationBar: currentView == DashboardView.ledger
+                ? null
+                : _buildCustomBottomBar(effectiveIndex, role),
+            floatingActionButton: currentView == DashboardView.ledger
+                ? null
+                : _shouldShowFAB(role)
+                    ? _buildGradientFAB()
+                    : null,
             floatingActionButtonLocation:
                 FloatingActionButtonLocation.centerDocked,
             extendBody: true,
@@ -398,6 +437,7 @@ class _HomeScreenState extends State<HomeScreen> {
         DashboardView.home,
         DashboardView.transactionEntry,
         DashboardView.transactions,
+        DashboardView.ledger,
         DashboardView.ownedAccounts,
         DashboardView.search,
         DashboardView.settings,
@@ -407,6 +447,7 @@ class _HomeScreenState extends State<HomeScreen> {
         DashboardView.home,
         DashboardView.transactionEntry,
         DashboardView.transactions,
+        DashboardView.ledger,
         DashboardView.ownedAccounts,
         DashboardView.search,
         DashboardView.settings, // Added Settings
@@ -416,6 +457,7 @@ class _HomeScreenState extends State<HomeScreen> {
         DashboardView.home,
         DashboardView.transactionEntry,
         DashboardView.transactions,
+        DashboardView.ledger,
         DashboardView.ownedAccounts,
       ];
     }

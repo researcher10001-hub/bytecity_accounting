@@ -206,7 +206,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
       children: [
         // FILTERS
         Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
           decoration: BoxDecoration(
             color: Colors.white,
             boxShadow: [
@@ -232,7 +232,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
               Row(
                 children: [
                   Expanded(
@@ -409,17 +409,19 @@ class _LedgerScreenState extends State<LedgerScreen> {
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(LucideIcons.bookOpen, size: 20, color: Colors.blue),
+            const Icon(LucideIcons.bookOpen, size: 18, color: Colors.blue),
             const SizedBox(width: 8),
             Text(
               'Ledger Books',
               style: GoogleFonts.inter(
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: const Color(0xFF0F172A),
               ),
             ),
           ],
         ),
+        toolbarHeight: 40, // Maximally compact
         centerTitle: true,
         backgroundColor: Colors.white,
         elevation: 0,
@@ -1135,7 +1137,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
       onTap: onTap,
       borderRadius: BorderRadius.circular(10),
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: onTap == null ? const Color(0xFFF1F5F9) : Colors.white,
           borderRadius: BorderRadius.circular(10),
@@ -1274,7 +1276,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
         InkWell(
           onTap: () => _showAccountMultiSelect(context, accounts),
           child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
             decoration: BoxDecoration(
               border: Border.all(color: Colors.grey.shade300),
               borderRadius: BorderRadius.circular(8),
@@ -1435,7 +1437,8 @@ class _LedgerScreenState extends State<LedgerScreen> {
 
                     // Search Input
                     Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 16, vertical: 8),
                       child: TextField(
                         decoration: InputDecoration(
                           hintText: "Search accounts...",
