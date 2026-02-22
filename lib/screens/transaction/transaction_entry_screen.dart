@@ -671,8 +671,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                 );
                 return;
               }
-              // Trigger final save logic (mimicking the elevated button)
-              _submitForm(provider, user);
+              _showPreviewDialog(context, provider, user);
             },
       borderRadius: BorderRadius.circular(20),
       child: Container(
@@ -800,6 +799,225 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     if (savedTx != null && context.mounted) {
       _showSuccessDialog(context, savedTx, provider);
     }
+  }
+
+  void _showPreviewDialog(
+    BuildContext context,
+    TransactionProvider provider,
+    dynamic user,
+  ) {
+    if (provider.mainNarration.trim().isEmpty) {
+      provider.setMainNarration("No additional notes");
+    }
+
+    final isPayment = provider.selectedType == VoucherType.payment;
+    final isReceipt = provider.selectedType == VoucherType.receipt;
+    final isTransfer = provider.selectedType == VoucherType.contra;
+
+    String typeStr = "Transaction";
+    Color typeColor = Colors.blue;
+    String fromLabel = 'Credits (From / Paid By)';
+    String toLabel = 'Debits (To / Received / Transferred To)';
+
+    if (isPayment) {
+      typeStr = "Payment";
+      typeColor = const Color(0xFFF43F5E);
+      toLabel = 'Debits (Expense On / Paid To)';
+      fromLabel = 'Credits (Paid From / Payment Method)';
+    } else if (isReceipt) {
+      typeStr = "Receipt";
+      typeColor = const Color(0xFF10B981);
+      toLabel = 'Debits (Received In)';
+      fromLabel = 'Credits (Income From / Received From)';
+    } else if (isTransfer) {
+      typeStr = "Transfer";
+      typeColor = const Color(0xFF3B82F6);
+      toLabel = 'Debits (Transfer To)';
+      fromLabel = 'Credits (Transfer From)';
+    }
+
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Row(
+          children: [
+            Icon(LucideIcons.eye, color: typeColor),
+            const SizedBox(width: 12),
+            Text(
+              'Preview $typeStr',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w800,
+                fontSize: 18,
+              ),
+            ),
+          ],
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                'Please review before ${provider.isEditing ? 'updating' : 'saving'}:',
+                style: GoogleFonts.inter(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey.shade600,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF7FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: const Color(0xFFEDF2F7)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    _rowDetail('Date',
+                        DateFormat('yyyy-MM-dd').format(provider.selectedDate)),
+                    if (provider.selectedType != null)
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            flex: 2,
+                            child: Text(
+                              'Type',
+                              style: TextStyle(
+                                fontSize: 13,
+                                color: Colors.grey.shade500,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            flex: 3,
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 8, vertical: 4),
+                                decoration: BoxDecoration(
+                                  color: typeColor.withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(6),
+                                ),
+                                child: Text(
+                                  typeStr,
+                                  style: GoogleFonts.inter(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.bold,
+                                    color: typeColor,
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    const SizedBox(height: 8),
+                    _rowDetail(
+                      'Total Amount',
+                      '৳ ${NumberFormat('#,##0.00').format(provider.totalDestBDT)}',
+                    ),
+                    const Divider(height: 16),
+                    Text(
+                      toLabel,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ...provider.destinations.map(
+                      (d) => _rowDetail(
+                        d.account?.name ?? 'Unknown',
+                        '${d.currency} ${NumberFormat('#,##0.00').format(d.amount)}',
+                        icon: LucideIcons.arrowDown,
+                        iconColor: const Color(0xFF38A169),
+                      ),
+                    ),
+                    const Divider(height: 16),
+                    Text(
+                      fromLabel,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    ...provider.sources.map(
+                      (s) => _rowDetail(
+                        s.account?.name ?? 'Unknown',
+                        '${s.currency} ${NumberFormat('#,##0.00').format(s.amount)}',
+                        icon: LucideIcons.arrowUp,
+                        iconColor: const Color(0xFFD69E2E),
+                      ),
+                    ),
+                    const Divider(height: 16),
+                    Text(
+                      'Narration',
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      provider.mainNarration,
+                      style: GoogleFonts.inter(
+                        fontSize: 13,
+                        color: Colors.black87,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(
+              'EDIT',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                color: Colors.grey.shade600,
+              ),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx); // Close preview
+              _submitForm(provider, user); // Actually submit
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: typeColor,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              elevation: 0,
+            ),
+            child: Text(
+              provider.isEditing ? 'CONFIRM UPDATE' : 'CONFIRM SAVE',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                fontSize: 12,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   void _showSuccessDialog(
