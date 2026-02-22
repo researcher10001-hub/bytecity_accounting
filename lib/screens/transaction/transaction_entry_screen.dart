@@ -80,7 +80,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
         if (isDesktop) {
           return Material(
-            color: const Color(0xFFF7FAFC),
+            color: _getBackgroundColor(transactionProvider.selectedType),
             child: Column(
               children: [
                 // Form Body
@@ -107,7 +107,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
 
         // Mobile Layout
         return Scaffold(
-          backgroundColor: const Color(0xFFF7FAFC),
+          backgroundColor:
+              _getBackgroundColor(transactionProvider.selectedType),
           appBar: AppBar(
             title: Text(
               title,
@@ -141,6 +142,35 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         );
       },
     );
+  }
+
+  Color _getBackgroundColor(VoucherType? type) {
+    if (type == null) return const Color(0xFFF7FAFC);
+    switch (type) {
+      case VoucherType.payment:
+        return const Color(
+            0xFFFFF7ED); // Soft Peach/Orange 50 (Very eye-friendly)
+      case VoucherType.receipt:
+        return const Color(0xFFF0FDF4); // Extremely soft green
+      case VoucherType.contra:
+        return const Color(0xFFEFF6FF); // Extremely soft blue
+      default:
+        return const Color(0xFFF7FAFC);
+    }
+  }
+
+  Color _getBorderColor(VoucherType type) {
+    switch (type) {
+      case VoucherType.payment:
+        return const Color(0xFFF97316)
+            .withValues(alpha: 0.1); // Orange 600 tint
+      case VoucherType.receipt:
+        return Colors.green.withValues(alpha: 0.15);
+      case VoucherType.contra:
+        return Colors.blue.withValues(alpha: 0.15);
+      default:
+        return Colors.transparent;
+    }
   }
 
   Widget _buildFormBody(
@@ -198,7 +228,8 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                 VoucherType.payment,
                 'Payment',
                 LucideIcons.arrowUp,
-                const Color(0xFFE53E3E),
+                const Color(
+                    0xFFEA580C), // Deep Orange 600 (Eye-friendly accent)
               ),
               _buildSegmentButton(
                 provider,
@@ -362,6 +393,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         _buildSectionCard(
+          context: context,
           title: 'General Details',
           icon: LucideIcons.fileText,
           child: Column(
@@ -418,6 +450,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         const SizedBox(height: 24),
 
         _buildSectionCard(
+          context: context,
           title: 'Observations',
           icon: LucideIcons.messageSquare,
           child: TextFormField(
@@ -585,16 +618,25 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
   }
 
   Widget _buildSectionCard({
+    required BuildContext context,
     required String title,
     required IconData icon,
     required Widget child,
     Widget? trailing,
   }) {
+    final type = context.read<TransactionProvider>().selectedType;
+    Color bgColor =
+        Colors.white; // Keep cards clean white so it doesn't hurt eyes
+
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: bgColor,
         borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: type != null ? _getBorderColor(type) : Colors.transparent,
+          width: 1,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -957,6 +999,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
         .toList();
 
     return _buildSectionCard(
+      context: context,
       title: 'Transaction Details',
       icon: LucideIcons.layers,
       child: Column(
