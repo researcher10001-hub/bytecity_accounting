@@ -845,7 +845,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       fromSubtitle = ' (Credit)';
     }
 
-    Widget _buildHeader(String title, String subtitle) {
+    Widget buildHeader(String title, String subtitle) {
       return RichText(
         text: TextSpan(
           text: title,
@@ -957,7 +957,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       '৳ ${NumberFormat('#,##0.00').format(provider.totalDestBDT)}',
                     ),
                     const Divider(height: 16),
-                    _buildHeader(toTitle, toSubtitle),
+                    buildHeader(toTitle, toSubtitle),
                     const SizedBox(height: 4),
                     ...provider.destinations.map(
                       (d) => _rowDetail(
@@ -968,7 +968,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       ),
                     ),
                     const Divider(height: 16),
-                    _buildHeader(fromTitle, fromSubtitle),
+                    buildHeader(fromTitle, fromSubtitle),
                     const SizedBox(height: 4),
                     ...provider.sources.map(
                       (s) => _rowDetail(

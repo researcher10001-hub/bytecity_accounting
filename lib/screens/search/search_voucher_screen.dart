@@ -93,7 +93,7 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
             )
             .toList();
 
-    Widget _highlightText(String text, TextStyle baseStyle) {
+    Widget highlightText(String text, TextStyle baseStyle) {
       if (_searchQuery.isEmpty) {
         return Text(text,
             style: baseStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
@@ -263,7 +263,7 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
                                   size: 24,
                                 ),
                               ),
-                              title: _highlightText(
+                              title: highlightText(
                                 tx.voucherNo,
                                 GoogleFonts.inter(
                                   fontWeight: FontWeight.bold,
@@ -274,7 +274,7 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const SizedBox(height: 4),
-                                  _highlightText(
+                                  highlightText(
                                     tx.mainNarration,
                                     GoogleFonts.inter(
                                       fontSize: 13,

@@ -28,6 +28,8 @@ class TransactionHistoryScreen extends StatefulWidget {
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   DateTimeRange? _dateRange;
   String _selectedViewFilter = 'My History';
+  bool _sortDateAscending = false;
+  bool _sortCreationAscending = false;
   @override
   void initState() {
     super.initState();
@@ -181,6 +183,33 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       "DEBUG: Active Count: ${activeTransactions.length}, Removed Count: ${removedTransactions.length}",
     );
 
+    // 4. Apply Sorting based on _sortDateAscending and _sortCreationAscending
+    void performSort(List<TransactionModel> list) {
+      list.sort((a, b) {
+        // Level 1: Sort by Date
+        int dateComparison;
+        if (_sortDateAscending) {
+          dateComparison = a.date.compareTo(b.date); // Oldest date first
+        } else {
+          dateComparison = b.date.compareTo(a.date); // Newest date first
+        }
+
+        if (dateComparison != 0) {
+          return dateComparison;
+        }
+
+        // Level 2: If dates are the same (year, month, day), sort by Creation/VoucherNo
+        if (_sortCreationAscending) {
+          return a.voucherNo.compareTo(b.voucherNo); // Oldest creation first
+        } else {
+          return b.voucherNo.compareTo(a.voucherNo); // Newest creation first
+        }
+      });
+    }
+
+    performSort(activeTransactions);
+    performSort(removedTransactions);
+
     return DefaultTabController(
       length: 2,
       child: Scaffold(
@@ -326,6 +355,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                     ),
                 ],
               ),
+            IconButton(
+              tooltip: 'Sort List',
+              icon:
+                  const Icon(LucideIcons.listFilter, color: Color(0xFF2563EB)),
+              onPressed: () => _showSortFilterDialog(context),
+            ),
             IconButton(
               icon: Icon(
                 LucideIcons.calendar,
@@ -1227,5 +1262,158 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
         child: Icon(icon, size: 14, color: color),
       ),
     );
+  }
+
+  void _showSortFilterDialog(BuildContext context) {
+    // Check if we are on a wide screen / web
+    final bool isWide = MediaQuery.of(context).size.width > 600;
+
+    showModalBottomSheetOrDialog(context, isWide);
+  }
+
+  void showModalBottomSheetOrDialog(BuildContext context, bool isWide) {
+    Widget buildSortOptions(StateSetter setModalState) {
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, top: 20.0, bottom: 4.0),
+            child: Text(
+              '1. Sort Dates By',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1E293B),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          RadioListTile<bool>(
+            title: Text('Latest First', style: GoogleFonts.inter()),
+            value: false,
+            groupValue: _sortDateAscending,
+            activeColor: const Color(0xFF2563EB),
+            onChanged: (value) {
+              setModalState(() => _sortDateAscending = value!);
+            },
+          ),
+          RadioListTile<bool>(
+            title: Text('Oldest First', style: GoogleFonts.inter()),
+            value: true,
+            groupValue: _sortDateAscending,
+            activeColor: const Color(0xFF2563EB),
+            onChanged: (value) {
+              setModalState(() => _sortDateAscending = value!);
+            },
+          ),
+          const Divider(height: 24),
+          Padding(
+            padding: const EdgeInsets.only(left: 16.0, top: 4.0, bottom: 4.0),
+            child: Text(
+              '2. Sort Entries By (Within Same Date)',
+              style: GoogleFonts.inter(
+                fontSize: 13,
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF1E293B),
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
+          RadioListTile<bool>(
+            title: Text('Newest Created First', style: GoogleFonts.inter()),
+            value: false,
+            groupValue: _sortCreationAscending,
+            activeColor: const Color(0xFF2563EB),
+            onChanged: (value) {
+              setModalState(() => _sortCreationAscending = value!);
+            },
+          ),
+          RadioListTile<bool>(
+            title: Text('Oldest Created First', style: GoogleFonts.inter()),
+            value: true,
+            groupValue: _sortCreationAscending,
+            activeColor: const Color(0xFF2563EB),
+            onChanged: (value) {
+              setModalState(() => _sortCreationAscending = value!);
+            },
+          ),
+          const SizedBox(height: 16),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0),
+            child: SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  setState(() {}); // Trigger rebuild with new sort states
+                  Navigator.pop(context);
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF2563EB),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'Apply Sorting',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w600),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+        ],
+      );
+    }
+
+    if (isWide) {
+      showDialog(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setModalState) {
+              return AlertDialog(
+                title: Text(
+                  'Sort Transactions',
+                  style: GoogleFonts.inter(fontWeight: FontWeight.w700),
+                ),
+                contentPadding: const EdgeInsets.symmetric(vertical: 8),
+                content: SizedBox(
+                  width: 350,
+                  child: buildSortOptions(setModalState),
+                ),
+                shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16)),
+              );
+            },
+          );
+        },
+      );
+    } else {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        shape: const RoundedRectangleBorder(
+          borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        ),
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setModalState) {
+              return SafeArea(
+                child: Padding(
+                  padding: EdgeInsets.only(
+                    bottom: MediaQuery.of(context).viewInsets.bottom,
+                  ),
+                  child: buildSortOptions(setModalState),
+                ),
+              );
+            },
+          );
+        },
+      );
+    }
   }
 }
