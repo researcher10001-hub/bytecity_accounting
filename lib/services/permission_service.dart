@@ -78,7 +78,14 @@ class PermissionService {
     if (user.isManagement) return true; // Management sees all
     if (user.isViewer) return true; // Viewers see all
 
-    // 2. Creator Check — user always sees their own transactions
+    // 2. Branch Manager Check - see all within their own branch
+    if (user.isBranchManager &&
+        transaction.branch.trim().toLowerCase() ==
+            user.branch.trim().toLowerCase()) {
+      return true;
+    }
+
+    // 3. Creator Check — user always sees their own transactions
     final currentUserEmail = user.email.trim().toLowerCase();
     if (transaction.createdBy.trim().toLowerCase() == currentUserEmail) {
       return true;

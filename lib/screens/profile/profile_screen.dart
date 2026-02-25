@@ -272,6 +272,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
           value: user.designation.isNotEmpty ? user.designation : 'N/A',
           icon: LucideIcons.badgeCheck,
         ),
+        const SizedBox(height: 12),
+        _buildInfoTile(
+          label: 'Branch',
+          value: user.branch.isNotEmpty ? user.branch : 'N/A',
+          icon: LucideIcons.building,
+        ),
       ],
     ).animate().fadeIn(delay: 400.ms).slideY(begin: 0.1, end: 0);
   }

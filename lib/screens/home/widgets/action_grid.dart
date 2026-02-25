@@ -18,35 +18,38 @@ class ActionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<AuthProvider>().user;
     final bool isAdmin = userRole.trim().toLowerCase() == 'admin';
+    final bool isAssociate = user?.isAssociate ?? false;
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
-          // Row: Branch Entries (Visible to all)
-          Row(
-            children: [
-              Expanded(
-                child: _buildActionCard(
-                  context,
-                  icon: Icons.store_mall_directory_rounded,
-                  label: 'Branch Entries',
-                  color: Colors.blueAccent,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => const BranchEntriesScreen(),
-                      ),
-                    );
-                  },
+          if (!isAssociate) ...[
+            // Row: Branch Entries (Visible to all EXCEPT Associates)
+            Row(
+              children: [
+                Expanded(
+                  child: _buildActionCard(
+                    context,
+                    icon: Icons.store_mall_directory_rounded,
+                    label: 'Branch Entries',
+                    color: Colors.blueAccent,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const BranchEntriesScreen(),
+                        ),
+                      );
+                    },
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 10),
-
+              ],
+            ),
+            const SizedBox(height: 10),
+          ],
           if (isAdmin) ...[
             // Row: Ledger + Search Voucher
             Row(
@@ -97,7 +100,6 @@ class ActionGrid extends StatelessWidget {
               ],
             ),
           ],
-
           if ((userRole.toLowerCase() == 'admin' ||
                   userRole.toLowerCase() == 'management') &&
               context.watch<AuthProvider>().user?.allowAutoApproval ==

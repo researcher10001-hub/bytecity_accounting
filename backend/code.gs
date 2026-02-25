@@ -1385,10 +1385,10 @@ function getEntries(e) {
     if (userSheet) {
       const userData = userSheet.getDataRange().getValues();
       for (let j = 1; j < userData.length; j++) {
-        const uEmail = userData[j][1].toString().toLowerCase();
-        userMap[uEmail] = userData[j][0].toString();
-        userRoleMap[uEmail] = userData[j][3] ? userData[j][3].toString() : "Viewer";
-        userBranchMap[uEmail] = (userData[j].length > 12) ? userData[j][12].toString() : "HQ";
+        const uEmail = userData[j][1].toString().trim().toLowerCase();
+        userMap[uEmail] = userData[j][0].toString().trim();
+        userRoleMap[uEmail] = userData[j][3] ? userData[j][3].toString().trim() : "Viewer";
+        userBranchMap[uEmail] = (userData[j].length > 12) ? userData[j][12].toString().trim() : "HQ";
       }
     }
 
@@ -1450,7 +1450,28 @@ function getEntries(e) {
     const requesterEmail = requestingUserEmail;
     const requesterRole = requesterEmail ? (userRoleMap[requesterEmail] || "Viewer") : null;
     const requesterBranch = requesterEmail ? (userBranchMap[requesterEmail] || "HQ") : null;
+    
+    // Role checks
     const isRequesterAdminOrMgmt = (requesterRole === 'Admin' || requesterRole === 'Management');
+    const isRequesterViewer = (requesterRole === 'Viewer');
+    const isRequesterBranchManager = (requesterRole === 'Branch Manager');
+    const isRequesterAssociate = (requesterRole === 'Associate' || requesterRole === 'Business Operations Associate');
+    
+    // Prepare owned accounts for Associate
+    const ownedAccounts = new Set();
+    if (isRequesterAssociate && requesterEmail) {
+       const accSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ACCOUNTS);
+       if (accSheet) {
+          const accRows = accSheet.getDataRange().getValues();
+          for (let r = 1; r < accRows.length; r++) {
+             const ownersStr = accRows[r][1] ? accRows[r][1].toString() : '';
+             const owners = ownersStr.split(',').map(o => o.trim().toLowerCase());
+             if (owners.includes(requesterEmail)) {
+                ownedAccounts.add(accRows[r][0].toString());
+             }
+          }
+       }
+    }
 
     for (let i = 0; i < rows.length; i++) {
        const row = rows[i];
@@ -1459,33 +1480,41 @@ function getEntries(e) {
        // Handling Deleted Entries
        if (status === 'Deleted') {
          if (!requestingUserEmail) continue; 
-         // ... (ownership check logic omitted for speed in this block, assumed hidden)
-         // Actually, let's just hide deleted for now in optimized fetch to save bandwidth?
-         // Or implement proper check. Let's skip complex check for now.
          continue; 
        }
 
-       const creatorEmail = (row[9] || "").toString().toLowerCase();
+       const creatorEmail = (row[9] || "").toString().trim().toLowerCase();
        
        // Fallbacks for historical data
-       const rowCreatorBranch = (row.length > 23 && row[23]) ? row[23].toString() : (userBranchMap[creatorEmail] || "HQ");
-       const rowCreatorRole = (row.length > 24 && row[24]) ? row[24].toString() : (userRoleMap[creatorEmail] || "Viewer");
+       const rowCreatorBranch = (row.length > 23 && row[23]) ? row[23].toString().trim() : (userBranchMap[creatorEmail] || "HQ");
+       const rowCreatorRole = (row.length > 24 && row[24]) ? row[24].toString().trim() : (userRoleMap[creatorEmail] || "Viewer");
+       const rowAccount = row[4] ? row[4].toString() : "";
 
        // Check Visibility Rules
        if (requestingUserEmail) {
-           if (!isRequesterAdminOrMgmt) {
-               // Rule 1: General users only see their branch
+           const isCreator = (creatorEmail === requesterEmail);
+
+           if (isRequesterAssociate) {
+               // Associate Rule: Only own entries OR listed as owner of the account
+               const isOwner = ownedAccounts.has(rowAccount);
+               if (!isCreator && !isOwner) {
+                   continue;
+               }
+           } else if (isRequesterBranchManager) {
+               // Branch Manager Rule: Only their own branch AND cannot see Admin/Mgmt
                if (rowCreatorBranch !== requesterBranch) continue;
                
-               // Rule 2: General users cannot see Admin/Management entries
                if (rowCreatorRole === 'Admin' || rowCreatorRole === 'Management') {
                    // Failsafe: unless they somehow created it themselves
-                   if (creatorEmail !== requesterEmail) {
+                   if (!isCreator) {
                        continue;
                    }
                }
+           } else if (!isRequesterAdminOrMgmt && !isRequesterViewer) {
+               // Fallback for an unknown role (Treat safely: see only own)
+               if (!isCreator) continue;
            } else {
-               // Admin/Management filtering by branch if requested
+               // Admin/Management/Viewer global visibility, filtering by branch if requested
                if (branchFilter !== 'All' && rowCreatorBranch !== branchFilter) {
                    continue;
                }

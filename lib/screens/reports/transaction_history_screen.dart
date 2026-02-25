@@ -9,6 +9,7 @@ import '../../providers/auth_provider.dart';
 import '../../models/transaction_model.dart';
 import '../../models/user_model.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/branch_provider.dart';
 
 import '../../providers/account_provider.dart';
 
@@ -59,15 +60,28 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
 
     // Use the filtered list from Provider
     final userProvider = context.watch<UserProvider>();
+    final branchProvider = context.watch<BranchProvider>();
     // 1. Get transactions visible to role
     final roleBasedList = provider.getVisibleTransactions(user);
 
-    // 2. Strict Filter for "My History" / "Owned Accounts" / "All Transactions" + Date Filter
-    final bool canViewOthers =
-        user.isAdmin || user.isManagement || user.isViewer;
+    List<String> getFilterOptions() {
+      if (user.isAssociate) {
+        return ['My History', 'Owned Accounts'];
+      } else if (user.isBranchManager) {
+        return ['My History', 'My Branch'];
+      } else {
+        // Admin, Management, Viewer
+        return ['My History', 'All Branches', ...branchProvider.branches];
+      }
+    }
 
-    // Associate users can see "My History" and "Owned Accounts" filters
-    final bool canShowFilters = canViewOthers || user.isAssociate;
+    final viewFilterOptions = getFilterOptions();
+
+    // Safe fallback if selected filter becomes invalid
+    String activeFilter = _selectedViewFilter;
+    if (!viewFilterOptions.contains(activeFilter)) {
+      activeFilter = 'My History';
+    }
 
     final allTransactions = roleBasedList.where((tx) {
       final txOwner = tx.createdBy.trim().toLowerCase();
@@ -75,7 +89,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       final isCreator = txOwner == me || txOwner.isEmpty;
 
       bool isOwnedAccount = false;
-      if (_selectedViewFilter == 'Owned Accounts') {
+      if (activeFilter == 'Owned Accounts') {
         final accountProvider = context.read<AccountProvider>();
         isOwnedAccount = tx.details.any((d) {
           try {
@@ -90,12 +104,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       }
 
       bool isVisible = false;
-      if (_selectedViewFilter == 'My History') {
+      if (activeFilter == 'My History') {
         isVisible = isCreator;
-      } else if (_selectedViewFilter == 'Owned Accounts') {
+      } else if (activeFilter == 'Owned Accounts') {
         isVisible = isCreator || isOwnedAccount;
-      } else if (_selectedViewFilter == 'All Transactions') {
+      } else if (activeFilter == 'My Branch' ||
+          activeFilter == 'All Branches') {
         isVisible = true;
+      } else {
+        isVisible = tx.branch == activeFilter;
       }
 
       if (!isVisible) return false;
@@ -163,12 +180,15 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       });
 
       bool isVisible = false;
-      if (_selectedViewFilter == 'My History') {
+      if (activeFilter == 'My History') {
         isVisible = isCreator || isDeleter || isOwnedAccount;
-      } else if (_selectedViewFilter == 'Owned Accounts') {
+      } else if (activeFilter == 'Owned Accounts') {
         isVisible = isCreator || isDeleter || isOwnedAccount;
-      } else if (_selectedViewFilter == 'All Transactions') {
+      } else if (activeFilter == 'My Branch' ||
+          activeFilter == 'All Branches') {
         isVisible = true;
+      } else {
+        isVisible = tx.branch == activeFilter;
       }
 
       if (isVisible) {
@@ -226,135 +246,97 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
           foregroundColor: const Color(0xFF1E293B),
           elevation: 0,
           actions: [
-            if (canShowFilters)
-              PopupMenuButton<String>(
-                tooltip: 'View Filter',
-                child: Center(
-                  child: Container(
-                    height: 32,
-                    margin: const EdgeInsets.only(right: 8),
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF1F5F9),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0xFFE2E8F0)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          _selectedViewFilter == 'My History'
-                              ? LucideIcons.user
-                              : _selectedViewFilter == 'Owned Accounts'
-                                  ? LucideIcons.briefcase
-                                  : LucideIcons.globe,
-                          size: 14,
-                          color: const Color(0xFF2563EB),
+            PopupMenuButton<String>(
+              tooltip: 'View Filter',
+              child: Center(
+                child: Container(
+                  height: 32,
+                  margin: const EdgeInsets.only(right: 8),
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: const Color(0xFFE2E8F0)),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Icon(
+                        activeFilter == 'My History'
+                            ? LucideIcons.user
+                            : activeFilter == 'Owned Accounts'
+                                ? LucideIcons.briefcase
+                                : activeFilter == 'My Branch'
+                                    ? LucideIcons.building
+                                    : activeFilter == 'All Branches'
+                                        ? LucideIcons.globe
+                                        : LucideIcons.mapPin,
+                        size: 14,
+                        color: const Color(0xFF2563EB),
+                      ),
+                      const SizedBox(width: 6),
+                      Text(
+                        activeFilter,
+                        style: GoogleFonts.inter(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: const Color(0xFF475569),
                         ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _selectedViewFilter,
-                          style: GoogleFonts.inter(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: const Color(0xFF475569),
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        const Icon(LucideIcons.chevronDown,
-                            size: 14, color: Color(0xFF64748B)),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(width: 4),
+                      const Icon(LucideIcons.chevronDown,
+                          size: 14, color: Color(0xFF64748B)),
+                    ],
                   ),
                 ),
-                onSelected: (String newValue) {
-                  setState(() {
-                    _selectedViewFilter = newValue;
-                  });
-                },
-                itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                  PopupMenuItem<String>(
-                    value: 'My History',
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.user,
-                          size: 16,
-                          color: _selectedViewFilter == 'My History'
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'My History',
-                          style: GoogleFonts.inter(
-                            fontWeight: _selectedViewFilter == 'My History'
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: _selectedViewFilter == 'My History'
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  PopupMenuItem<String>(
-                    value: 'Owned Accounts',
-                    child: Row(
-                      children: [
-                        Icon(
-                          LucideIcons.briefcase,
-                          size: 16,
-                          color: _selectedViewFilter == 'Owned Accounts'
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          'Owned Accounts',
-                          style: GoogleFonts.inter(
-                            fontWeight: _selectedViewFilter == 'Owned Accounts'
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: _selectedViewFilter == 'Owned Accounts'
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (canViewOthers)
-                    PopupMenuItem<String>(
-                      value: 'All Transactions',
-                      child: Row(
-                        children: [
-                          Icon(
-                            LucideIcons.globe,
-                            size: 16,
-                            color: _selectedViewFilter == 'All Transactions'
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFF64748B),
-                          ),
-                          const SizedBox(width: 8),
-                          Text(
-                            'All Transactions',
-                            style: GoogleFonts.inter(
-                              fontWeight:
-                                  _selectedViewFilter == 'All Transactions'
-                                      ? FontWeight.w600
-                                      : FontWeight.w500,
-                              color: _selectedViewFilter == 'All Transactions'
-                                  ? const Color(0xFF2563EB)
-                                  : const Color(0xFF475569),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                ],
               ),
+              onSelected: (String newValue) {
+                setState(() {
+                  _selectedViewFilter = newValue;
+                });
+              },
+              itemBuilder: (BuildContext context) {
+                return viewFilterOptions.map((String option) {
+                  IconData iconData = LucideIcons.globe;
+                  if (option == 'My History') {
+                    iconData = LucideIcons.user;
+                  } else if (option == 'Owned Accounts') {
+                    iconData = LucideIcons.briefcase;
+                  } else if (option == 'My Branch') {
+                    iconData = LucideIcons.building;
+                  } else if (option != 'All Branches') {
+                    iconData = LucideIcons.mapPin;
+                  }
+
+                  return PopupMenuItem<String>(
+                    value: option,
+                    child: Row(
+                      children: [
+                        Icon(
+                          iconData,
+                          size: 16,
+                          color: activeFilter == option
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF64748B),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          option,
+                          style: GoogleFonts.inter(
+                            fontWeight: activeFilter == option
+                                ? FontWeight.w600
+                                : FontWeight.w500,
+                            color: activeFilter == option
+                                ? const Color(0xFF2563EB)
+                                : const Color(0xFF475569),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }).toList();
+              },
+            ),
             IconButton(
               tooltip: 'Sort List',
               icon:

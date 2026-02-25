@@ -1525,6 +1525,7 @@ class _UsersScreenState extends State<UsersScreen> {
       if (currentUser?.isAdmin == true) AppRoles.admin,
       AppRoles.management,
       AppRoles.associate,
+      AppRoles.branchManager,
       AppRoles.viewer,
     ];
     String selectedRole =
@@ -1715,6 +1716,7 @@ class _UsersScreenState extends State<UsersScreen> {
       if (currentUser?.isAdmin == true) AppRoles.admin,
       AppRoles.management,
       AppRoles.associate,
+      AppRoles.branchManager,
       AppRoles.viewer,
     ];
 

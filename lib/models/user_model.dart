@@ -118,6 +118,8 @@ class User {
   bool get isAssociate =>
       role.toLowerCase() == AppRoles.associate.toLowerCase() ||
       role.toLowerCase() == 'business operations associate'; // Backward compat
+  bool get isBranchManager =>
+      role.toLowerCase() == AppRoles.branchManager.toLowerCase();
   bool get isViewer => role.toLowerCase() == AppRoles.viewer.toLowerCase();
 
   // Status Helpers
