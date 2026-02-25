@@ -1152,7 +1152,13 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
                       if (MediaQuery.of(context).size.width >= 800) {
                         context.read<DashboardProvider>().popView();
                       } else {
-                        Navigator.pop(context);
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const AuthWrapper(),
+                          ),
+                          (route) => false,
+                        );
                       }
                     },
                     child: Text(
