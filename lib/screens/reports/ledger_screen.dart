@@ -220,35 +220,28 @@ class _LedgerScreenState extends State<LedgerScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   Expanded(
+                    flex: 2,
                     child: _buildAccountDropdown(
                       context,
                       accounts,
                       groupProvider,
                     ),
                   ),
-                ],
-              ),
-              const SizedBox(height: 6),
-              Row(
-                children: [
+                  const SizedBox(width: 8),
                   Expanded(
+                    flex: 1,
                     child: _buildDateTile(
                       'From',
                       _dateRange?.start,
                       () => _selectDate(isStart: true),
                     ),
                   ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 10),
-                    child: Icon(
-                      LucideIcons.arrowRight,
-                      size: 14,
-                      color: Color(0xFF94A3B8),
-                    ),
-                  ),
+                  const SizedBox(width: 6),
                   Expanded(
+                    flex: 1,
                     child: _buildDateTile(
                       'To',
                       _dateRange?.end,
@@ -912,26 +905,48 @@ class _LedgerScreenState extends State<LedgerScreen> {
                           ),
                         ),
                         // Amount (Side based on isDebit)
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Text(
-                              formattedAmount,
-                              style: GoogleFonts.inter(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
-                                color: isDebit ? Colors.green : Colors.red,
-                              ),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isDebit
+                                ? Colors.green.withAlpha(0x1A)
+                                : Colors.red.withAlpha(0x1A),
+                            borderRadius: BorderRadius.circular(6),
+                            border: Border.all(
+                              color: isDebit
+                                  ? Colors.green.withAlpha(0x4D)
+                                  : Colors.red.withAlpha(0x4D),
                             ),
-                            const SizedBox(width: 4),
-                            Text(
-                              isDebit ? 'Dr' : 'Cr',
-                              style: GoogleFonts.inter(
-                                fontSize: 11,
-                                color: Colors.grey,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                formattedAmount,
+                                style: GoogleFonts.inter(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                  color: isDebit
+                                      ? Colors.green.shade700
+                                      : Colors.red.shade700,
+                                ),
                               ),
-                            ),
-                          ],
+                              const SizedBox(width: 4),
+                              Text(
+                                isDebit ? 'Dr' : 'Cr',
+                                style: GoogleFonts.inter(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w600,
+                                  color: isDebit
+                                      ? Colors.green.shade600
+                                      : Colors.red.shade600,
+                                ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),
@@ -939,6 +954,7 @@ class _LedgerScreenState extends State<LedgerScreen> {
 
                     // ROW 2: [Against : ] [Against account title (unfocused)]
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         SizedBox(
                           width: 75,
@@ -965,6 +981,42 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
+                        // Added Running Balance
+                        if (entry.containsKey('balance'))
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF1F5F9),
+                              borderRadius: BorderRadius.circular(4),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Text(
+                                  'Bal: ',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 10,
+                                    color: const Color(0xFF64748B),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                                Text(
+                                  '৳${CurrencyFormatter.format(entry['balance'])}',
+                                  style: GoogleFonts.inter(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                    color: const Color(0xFF334155),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                       ],
                     ),
                   ],
@@ -1035,96 +1087,116 @@ class _LedgerScreenState extends State<LedgerScreen> {
 
   Widget _buildStatusBar(double debit, double credit, double balance) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
+        color: const Color(0xFFF8FAFC), // Slight offset from white
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withAlpha(0x0A),
-            offset: const Offset(0, 4),
-            blurRadius: 15,
+            color: Colors.black.withAlpha(0x0C),
+            offset: const Offset(0, -4),
+            blurRadius: 16,
           ),
         ],
-        border: Border.all(color: const Color(0xFFE2E8F0)),
+        border: const Border(
+          top: BorderSide(color: Color(0xFFCBD5E1), width: 1.5),
+        ),
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // Row 1: Debit
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Debit',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: const Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Row 1: Debit
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Debit',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                Text(
-                  '৳${CurrencyFormatter.format(debit)}',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.green,
-                    fontWeight: FontWeight.w600,
+                  Text(
+                    '৳${CurrencyFormatter.format(debit)}',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      color: Colors.green.shade700,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            // Row 2: Credit
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Credit',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: const Color(0xFF64748B),
-                    fontWeight: FontWeight.w500,
+                ],
+              ),
+              const SizedBox(height: 8),
+              // Row 2: Credit
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Total Credit',
+                    style: GoogleFonts.inter(
+                      fontSize: 14,
+                      color: const Color(0xFF64748B),
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
-                ),
-                Text(
-                  '৳${CurrencyFormatter.format(credit)}',
-                  style: GoogleFonts.inter(
-                    fontSize: 14,
-                    color: Colors.red,
-                    fontWeight: FontWeight.w600,
+                  Text(
+                    '৳${CurrencyFormatter.format(credit)}',
+                    style: GoogleFonts.inter(
+                      fontSize: 15,
+                      color: Colors.red.shade700,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
-                ),
-              ],
-            ),
-            const Padding(
-              padding: EdgeInsets.symmetric(vertical: 8),
-              child: Divider(height: 1, thickness: 1),
-            ),
-            // Row 3: Balance
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Balance',
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    color: const Color(0xFF1E293B),
-                    fontWeight: FontWeight.w700,
+                ],
+              ),
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 12),
+                child: Divider(
+                    height: 1, thickness: 1.5, color: Color(0xFFE2E8F0)),
+              ),
+              // Row 3: Balance
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Net Balance',
+                    style: GoogleFonts.inter(
+                      fontSize: 16,
+                      color: const Color(0xFF0F172A),
+                      fontWeight: FontWeight.w800,
+                    ),
                   ),
-                ),
-                Text(
-                  '৳${CurrencyFormatter.format(balance)}',
-                  style: GoogleFonts.inter(
-                    fontSize: 15,
-                    color: balance < 0 ? Colors.red : Colors.green,
-                    fontWeight: FontWeight.w700,
+                  Container(
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: balance < 0
+                          ? Colors.red.withAlpha(0x1A)
+                          : Colors.green.withAlpha(0x1A),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: balance < 0
+                            ? Colors.red.withAlpha(0x4D)
+                            : Colors.green.withAlpha(0x4D),
+                      ),
+                    ),
+                    child: Text(
+                      '৳${CurrencyFormatter.format(balance)}',
+                      style: GoogleFonts.inter(
+                        fontSize: 16,
+                        color: balance < 0
+                            ? Colors.red.shade700
+                            : Colors.green.shade700,
+                        fontWeight: FontWeight.w800,
+                      ),
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
