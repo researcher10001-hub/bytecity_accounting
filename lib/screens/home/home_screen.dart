@@ -506,6 +506,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   currentIndex == 1,
                   onTapOverride: isAdmin
                       ? () {
+                          context
+                              .read<TransactionProvider>()
+                              .resetHistoryFilters();
                           Navigator.push(
                             context,
                             MaterialPageRoute(
@@ -546,6 +549,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   isAdmin ? 'Settings' : 'History',
                   currentIndex == 3,
                   onTapOverride: () {
+                    if (!isAdmin) {
+                      context.read<TransactionProvider>().resetHistoryFilters();
+                    }
                     Navigator.push(
                       context,
                       MaterialPageRoute(

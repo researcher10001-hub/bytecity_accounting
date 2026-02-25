@@ -41,14 +41,20 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
   @override
   void initState() {
     super.initState();
-    // Default to show TODAY's transactions
-    final now = DateTime.now();
-    _dateRange = DateTimeRange(
-      start: DateTime(now.year, now.month, now.day),
-      end: DateTime(now.year, now.month, now.day),
-    );
-
     final txProvider = context.read<TransactionProvider>();
+
+    // Default to show TODAY's transactions if no cache exists
+    final now = DateTime.now();
+    _dateRange = txProvider.historyDateRange ??
+        DateTimeRange(
+          start: DateTime(now.year, now.month, now.day),
+          end: DateTime(now.year, now.month, now.day),
+        );
+
+    _selectedViewFilter = txProvider.historyViewFilter;
+    _sortDateAscending = txProvider.historySortDateAscending;
+    _sortCreationAscending = txProvider.historySortCreationAscending;
+
     _tabController = TabController(
       length: 2,
       vsync: this,
@@ -56,7 +62,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
     );
     _tabController.addListener(() {
       if (!_tabController.indexIsChanging) {
-        txProvider.setHistoryTabIndex(_tabController.index);
+        txProvider.setHistoryFilters(tabIndex: _tabController.index);
         setState(() {}); // Rebuild to update tab colors
       }
     });
@@ -259,13 +265,31 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'History',
-          style: GoogleFonts.inter(
-            fontWeight: FontWeight.w700,
-            fontSize: 20,
-            color: const Color(0xFF1E293B),
-          ),
+        title: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'History',
+              style: GoogleFonts.inter(
+                fontWeight: FontWeight.w700,
+                fontSize: 20,
+                color: const Color(0xFF1E293B),
+              ),
+            ),
+            if (_dateRange != null)
+              Text(
+                _dateRange!.start == _dateRange!.end
+                    ? DateFormat('dd MMM yyyy').format(_dateRange!.start)
+                    : '${DateFormat('dd MMM yyyy').format(_dateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_dateRange!.end)}',
+                style: GoogleFonts.inter(
+                  fontSize: 11,
+                  fontWeight: FontWeight.w500,
+                  color: const Color(0xFF64748B),
+                ),
+              ),
+          ],
         ),
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1E293B),
@@ -303,7 +327,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                     Text(
                       activeFilter,
                       style: GoogleFonts.inter(
-                        fontSize: 12,
+                        fontSize: 10,
                         fontWeight: FontWeight.w600,
                         color: const Color(0xFF475569),
                       ),
@@ -319,6 +343,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
               setState(() {
                 _selectedViewFilter = newValue;
               });
+              context
+                  .read<TransactionProvider>()
+                  .setHistoryFilters(viewFilter: newValue);
             },
             itemBuilder: (BuildContext context) {
               return viewFilterOptions.map((String option) {
@@ -348,6 +375,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                       Text(
                         option,
                         style: GoogleFonts.inter(
+                          fontSize: 11,
                           fontWeight: activeFilter == option
                               ? FontWeight.w600
                               : FontWeight.w500,
@@ -837,6 +865,27 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
 
                       const SizedBox(width: 8),
 
+                      // Creator Info
+                      if (tx.createdBy.isNotEmpty) ...[
+                        Text(
+                          'By: ${tx.createdBy.split('@').first[0].toUpperCase()}${tx.createdBy.split('@').first.substring(1).toLowerCase()}',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            color: const Color(0xFF64748B),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '•',
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            color: Colors.grey.shade400,
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                      ],
+
                       // Type Badge
                       Container(
                         padding: const EdgeInsets.symmetric(
@@ -1074,6 +1123,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                               onPressed: () {
                                 setDialogState(() => _dateRange = null);
                                 setState(() {});
+                                context
+                                    .read<TransactionProvider>()
+                                    .setHistoryFilters(dateRange: _dateRange);
                                 Navigator.pop(dialogContext);
                               },
                               style: TextButton.styleFrom(
@@ -1114,7 +1166,12 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                         Expanded(
                           flex: 2,
                           child: ElevatedButton(
-                            onPressed: () => Navigator.pop(dialogContext),
+                            onPressed: () {
+                              context
+                                  .read<TransactionProvider>()
+                                  .setHistoryFilters(dateRange: _dateRange);
+                              Navigator.pop(dialogContext);
+                            },
                             style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF2563EB),
                               foregroundColor: Colors.white,
@@ -1340,6 +1397,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
+                  context.read<TransactionProvider>().setHistoryFilters(
+                        sortDateAscending: _sortDateAscending,
+                        sortCreationAscending: _sortCreationAscending,
+                      );
                   setState(() {}); // Trigger rebuild with new sort states
                   Navigator.pop(context);
                 },

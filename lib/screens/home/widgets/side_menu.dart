@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/dashboard_provider.dart';
+import '../../../../providers/transaction_provider.dart';
 import '../../../../core/constants/role_constants.dart';
 
 class SideMenu extends StatelessWidget {
@@ -85,6 +86,9 @@ class SideMenu extends StatelessWidget {
         isSelected: isSelected,
         onTap: () {
           final view = item['view'] as DashboardView;
+          if (view == DashboardView.transactions) {
+            context.read<TransactionProvider>().resetHistoryFilters();
+          }
           context.read<DashboardProvider>().setView(view);
           onItemSelected(index);
         },

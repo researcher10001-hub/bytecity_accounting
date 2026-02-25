@@ -62,8 +62,40 @@ class TransactionProvider with ChangeNotifier {
   int _historyTabIndex = 0;
   int get historyTabIndex => _historyTabIndex;
 
-  void setHistoryTabIndex(int index) {
-    _historyTabIndex = index;
+  DateTimeRange? _historyDateRange;
+  DateTimeRange? get historyDateRange => _historyDateRange;
+
+  String _historyViewFilter = 'My History';
+  String get historyViewFilter => _historyViewFilter;
+
+  bool _historySortDateAscending = false;
+  bool get historySortDateAscending => _historySortDateAscending;
+
+  bool _historySortCreationAscending = false;
+  bool get historySortCreationAscending => _historySortCreationAscending;
+
+  void setHistoryFilters({
+    int? tabIndex,
+    DateTimeRange? dateRange,
+    String? viewFilter,
+    bool? sortDateAscending,
+    bool? sortCreationAscending,
+  }) {
+    if (tabIndex != null) _historyTabIndex = tabIndex;
+    if (dateRange != null) _historyDateRange = dateRange;
+    if (viewFilter != null) _historyViewFilter = viewFilter;
+    if (sortDateAscending != null)
+      _historySortDateAscending = sortDateAscending;
+    if (sortCreationAscending != null)
+      _historySortCreationAscending = sortCreationAscending;
+  }
+
+  void resetHistoryFilters() {
+    _historyTabIndex = 0;
+    _historyDateRange = null; // Will be set to TODAY in UI
+    _historyViewFilter = 'My History';
+    _historySortDateAscending = false;
+    _historySortCreationAscending = false;
   }
 
   // Branch Selection Logic
