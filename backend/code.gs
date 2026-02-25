@@ -1479,8 +1479,9 @@ function getEntries(e) {
        
        // Handling Deleted Entries
        if (status === 'Deleted') {
+         // Let them pass through so they can be shown in the 'Removed' tab
+         // Filtering will still apply based on user role below
          if (!requestingUserEmail) continue; 
-         continue; 
        }
 
        const creatorEmail = (row[9] || "").toString().trim().toLowerCase();

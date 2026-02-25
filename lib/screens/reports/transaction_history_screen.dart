@@ -26,11 +26,18 @@ class TransactionHistoryScreen extends StatefulWidget {
       _TransactionHistoryScreenState();
 }
 
-class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
+class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
+    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
   DateTimeRange? _dateRange;
   String _selectedViewFilter = 'My History';
   bool _sortDateAscending = false;
   bool _sortCreationAscending = false;
+
+  late TabController _tabController;
+
+  @override
+  bool get wantKeepAlive => true;
+
   @override
   void initState() {
     super.initState();
@@ -40,6 +47,19 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
       start: DateTime(now.year, now.month, now.day),
       end: DateTime(now.year, now.month, now.day),
     );
+
+    final txProvider = context.read<TransactionProvider>();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: txProvider.historyTabIndex,
+    );
+    _tabController.addListener(() {
+      if (!_tabController.indexIsChanging) {
+        txProvider.setHistoryTabIndex(_tabController.index);
+        setState(() {}); // Rebuild to update tab colors
+      }
+    });
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<AuthProvider>().user;
@@ -52,7 +72,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    super.build(context); // Required by AutomaticKeepAliveClientMixin
     final user = context.watch<AuthProvider>().user;
     final provider = context.watch<TransactionProvider>();
 
@@ -230,201 +257,199 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
     performSort(activeTransactions);
     performSort(removedTransactions);
 
-    return DefaultTabController(
-      length: 2,
-      child: Scaffold(
-        appBar: AppBar(
-          title: Text(
-            'History',
-            style: GoogleFonts.inter(
-              fontWeight: FontWeight.w700,
-              fontSize: 20,
-              color: const Color(0xFF1E293B),
-            ),
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          'History',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            fontSize: 20,
+            color: const Color(0xFF1E293B),
           ),
-          backgroundColor: Colors.white,
-          foregroundColor: const Color(0xFF1E293B),
-          elevation: 0,
-          actions: [
-            PopupMenuButton<String>(
-              tooltip: 'View Filter',
-              child: Center(
-                child: Container(
-                  height: 32,
-                  margin: const EdgeInsets.only(right: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 10),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF1F5F9),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: const Color(0xFFE2E8F0)),
-                  ),
+        ),
+        backgroundColor: Colors.white,
+        foregroundColor: const Color(0xFF1E293B),
+        elevation: 0,
+        actions: [
+          PopupMenuButton<String>(
+            tooltip: 'View Filter',
+            child: Center(
+              child: Container(
+                height: 32,
+                margin: const EdgeInsets.only(right: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: const Color(0xFFE2E8F0)),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      activeFilter == 'My History'
+                          ? LucideIcons.user
+                          : activeFilter == 'Owned Accounts'
+                              ? LucideIcons.briefcase
+                              : activeFilter == 'My Branch'
+                                  ? LucideIcons.building
+                                  : activeFilter == 'All Branches'
+                                      ? LucideIcons.globe
+                                      : LucideIcons.mapPin,
+                      size: 14,
+                      color: const Color(0xFF2563EB),
+                    ),
+                    const SizedBox(width: 6),
+                    Text(
+                      activeFilter,
+                      style: GoogleFonts.inter(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: const Color(0xFF475569),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    const Icon(LucideIcons.chevronDown,
+                        size: 14, color: Color(0xFF64748B)),
+                  ],
+                ),
+              ),
+            ),
+            onSelected: (String newValue) {
+              setState(() {
+                _selectedViewFilter = newValue;
+              });
+            },
+            itemBuilder: (BuildContext context) {
+              return viewFilterOptions.map((String option) {
+                IconData iconData = LucideIcons.globe;
+                if (option == 'My History') {
+                  iconData = LucideIcons.user;
+                } else if (option == 'Owned Accounts') {
+                  iconData = LucideIcons.briefcase;
+                } else if (option == 'My Branch') {
+                  iconData = LucideIcons.building;
+                } else if (option != 'All Branches') {
+                  iconData = LucideIcons.mapPin;
+                }
+
+                return PopupMenuItem<String>(
+                  value: option,
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(
-                        activeFilter == 'My History'
-                            ? LucideIcons.user
-                            : activeFilter == 'Owned Accounts'
-                                ? LucideIcons.briefcase
-                                : activeFilter == 'My Branch'
-                                    ? LucideIcons.building
-                                    : activeFilter == 'All Branches'
-                                        ? LucideIcons.globe
-                                        : LucideIcons.mapPin,
-                        size: 14,
-                        color: const Color(0xFF2563EB),
-                      ),
-                      const SizedBox(width: 6),
-                      Text(
-                        activeFilter,
-                        style: GoogleFonts.inter(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w600,
-                          color: const Color(0xFF475569),
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      const Icon(LucideIcons.chevronDown,
-                          size: 14, color: Color(0xFF64748B)),
-                    ],
-                  ),
-                ),
-              ),
-              onSelected: (String newValue) {
-                setState(() {
-                  _selectedViewFilter = newValue;
-                });
-              },
-              itemBuilder: (BuildContext context) {
-                return viewFilterOptions.map((String option) {
-                  IconData iconData = LucideIcons.globe;
-                  if (option == 'My History') {
-                    iconData = LucideIcons.user;
-                  } else if (option == 'Owned Accounts') {
-                    iconData = LucideIcons.briefcase;
-                  } else if (option == 'My Branch') {
-                    iconData = LucideIcons.building;
-                  } else if (option != 'All Branches') {
-                    iconData = LucideIcons.mapPin;
-                  }
-
-                  return PopupMenuItem<String>(
-                    value: option,
-                    child: Row(
-                      children: [
-                        Icon(
-                          iconData,
-                          size: 16,
-                          color: activeFilter == option
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF64748B),
-                        ),
-                        const SizedBox(width: 8),
-                        Text(
-                          option,
-                          style: GoogleFonts.inter(
-                            fontWeight: activeFilter == option
-                                ? FontWeight.w600
-                                : FontWeight.w500,
-                            color: activeFilter == option
-                                ? const Color(0xFF2563EB)
-                                : const Color(0xFF475569),
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                }).toList();
-              },
-            ),
-            IconButton(
-              tooltip: 'Sort List',
-              icon:
-                  const Icon(LucideIcons.listFilter, color: Color(0xFF2563EB)),
-              onPressed: () => _showSortFilterDialog(context),
-            ),
-            IconButton(
-              icon: Icon(
-                LucideIcons.calendar,
-                size: 20,
-                color: _dateRange != null
-                    ? const Color(0xFF2563EB)
-                    : const Color(0xFF64748B),
-              ),
-              tooltip: 'Date Filter',
-              onPressed: () => _showDateFilterDialog(context),
-            ),
-            IconButton(
-              icon: const Icon(LucideIcons.refreshCw, size: 20),
-              tooltip: 'Refresh',
-              onPressed: () {
-                final accountProvider = context.read<AccountProvider>();
-                provider.fetchHistory(
-                  user,
-                  forceRefresh: true,
-                  accountProvider: accountProvider,
-                );
-              },
-            ),
-            const SizedBox(width: 8),
-          ],
-          bottom: TabBar(
-            labelColor: const Color(0xFF2563EB),
-            unselectedLabelColor: const Color(0xFF64748B),
-            indicatorSize: TabBarIndicatorSize.tab,
-            labelStyle: GoogleFonts.inter(
-              fontWeight: FontWeight.w600,
-              fontSize: 12, // Made text smaller
-            ),
-            tabs: [
-              const Tab(text: 'Active'),
-              Tab(
-                child: Builder(
-                  builder: (context) {
-                    final int tabIndex = DefaultTabController.of(context).index;
-                    final bool isSelected = tabIndex == 1;
-                    return Text(
-                      'Removed',
-                      style: TextStyle(
-                        color: isSelected
-                            ? const Color(0xFFEF4444)
+                        iconData,
+                        size: 16,
+                        color: activeFilter == option
+                            ? const Color(0xFF2563EB)
                             : const Color(0xFF64748B),
                       ),
-                    );
-                  },
-                ),
-              ),
-            ],
+                      const SizedBox(width: 8),
+                      Text(
+                        option,
+                        style: GoogleFonts.inter(
+                          fontWeight: activeFilter == option
+                              ? FontWeight.w600
+                              : FontWeight.w500,
+                          color: activeFilter == option
+                              ? const Color(0xFF2563EB)
+                              : const Color(0xFF475569),
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList();
+            },
           ),
-        ),
-        backgroundColor: const Color(0xFFF8FAFC),
-        body: Column(
-          children: [
-            // Date Filter removed from here, now in AppBar via dialog
-            const Divider(height: 1, color: Color(0xFFF1F5F9)),
-
-            // TabBar View
-            Expanded(
-              child: TabBarView(
-                children: [
-                  _buildTransactionList(
-                    activeTransactions,
-                    userProvider,
-                    user,
-                    provider.isLoading,
-                  ),
-                  _buildTransactionList(
-                    removedTransactions,
-                    userProvider,
-                    user,
-                    provider.isLoading,
-                    isRemoved: true,
-                  ),
-                ],
+          IconButton(
+            tooltip: 'Sort List',
+            icon: const Icon(LucideIcons.listFilter, color: Color(0xFF2563EB)),
+            onPressed: () => _showSortFilterDialog(context),
+          ),
+          IconButton(
+            icon: Icon(
+              LucideIcons.calendar,
+              size: 20,
+              color: _dateRange != null
+                  ? const Color(0xFF2563EB)
+                  : const Color(0xFF64748B),
+            ),
+            tooltip: 'Date Filter',
+            onPressed: () => _showDateFilterDialog(context),
+          ),
+          IconButton(
+            icon: const Icon(LucideIcons.refreshCw, size: 20),
+            tooltip: 'Refresh',
+            onPressed: () {
+              final accountProvider = context.read<AccountProvider>();
+              provider.fetchHistory(
+                user,
+                forceRefresh: true,
+                accountProvider: accountProvider,
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          labelColor: const Color(0xFF2563EB),
+          unselectedLabelColor: const Color(0xFF64748B),
+          indicatorSize: TabBarIndicatorSize.tab,
+          labelStyle: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            fontSize: 12, // Made text smaller
+          ),
+          tabs: [
+            const Tab(text: 'Active'),
+            Tab(
+              child: Builder(
+                builder: (context) {
+                  final int tabIndex = _tabController.index;
+                  final bool isSelected = tabIndex == 1;
+                  return Text(
+                    'Removed',
+                    style: TextStyle(
+                      color: isSelected
+                          ? const Color(0xFFEF4444)
+                          : const Color(0xFF64748B),
+                    ),
+                  );
+                },
               ),
             ),
           ],
         ),
+      ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: Column(
+        children: [
+          // Date Filter removed from here, now in AppBar via dialog
+          const Divider(height: 1, color: Color(0xFFF1F5F9)),
+
+          // TabBar View
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildTransactionList(
+                  activeTransactions,
+                  userProvider,
+                  user,
+                  provider.isLoading,
+                ),
+                _buildTransactionList(
+                  removedTransactions,
+                  userProvider,
+                  user,
+                  provider.isLoading,
+                  isRemoved: true,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -616,8 +641,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                           fontSize: 10,
                           color: Colors.grey.shade400,
                           fontWeight: FontWeight.w500,
-                          decoration:
-                              isRemoved ? TextDecoration.lineThrough : null,
                         ),
                       ),
                       if (tx.isFlagged) ...[
@@ -703,9 +726,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF1E293B),
-                                decoration: isRemoved
-                                    ? TextDecoration.lineThrough
-                                    : null,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -718,8 +738,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               color: isRemoved
                                   ? Colors.grey.shade500
                                   : const Color(0xFF16A34A), // Green
-                              decoration:
-                                  isRemoved ? TextDecoration.lineThrough : null,
                             ),
                           ),
                         ],
@@ -764,9 +782,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                                 fontSize: 12,
                                 fontWeight: FontWeight.w600,
                                 color: const Color(0xFF1E293B),
-                                decoration: isRemoved
-                                    ? TextDecoration.lineThrough
-                                    : null,
                               ),
                               overflow: TextOverflow.ellipsis,
                             ),
@@ -779,8 +794,6 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen> {
                               color: isRemoved
                                   ? Colors.grey.shade500
                                   : const Color(0xFFDC2626), // Red
-                              decoration:
-                                  isRemoved ? TextDecoration.lineThrough : null,
                             ),
                           ),
                         ],

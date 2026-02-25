@@ -186,7 +186,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           onPressed: () => Navigator.pop(context),
         ),
         actions: [
-          if (localIsCreator || user.isAdmin)
+          if ((localIsCreator || user.isAdmin) &&
+              _currentTransaction.status != TransactionStatus.deleted)
             PopupMenuButton<String>(
               icon: const Icon(
                 LucideIcons.moreVertical,
@@ -416,6 +417,63 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                     ),
                   ),
 
+                // Deleted Warning Banner
+                if (_currentTransaction.status == TransactionStatus.deleted)
+                  Container(
+                    width: double.infinity,
+                    padding: const EdgeInsets.symmetric(
+                        horizontal: 16, vertical: 12),
+                    margin: const EdgeInsets.only(bottom: 16),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFEDF2F7), // Light gray
+                      border: Border(
+                        bottom: BorderSide(color: const Color(0xFFCBD5E0)),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(8),
+                          decoration: const BoxDecoration(
+                            color: Color(0xFFE2E8F0),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            LucideIcons.alertCircle,
+                            color: Color(0xFF4A5568),
+                            size: 16,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "THIS TRANSACTION HAS BEEN DELETED",
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF2D3748),
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 11,
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                "It cannot be edited or processed further. It is retained only for auditing purposes.",
+                                style: GoogleFonts.inter(
+                                  color: const Color(0xFF4A5568),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+
                 // Transaction Summary Card
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -472,7 +530,9 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                 children: [
                                   if (MediaQuery.of(context).size.width >=
                                           800 &&
-                                      (localIsCreator || user.isAdmin))
+                                      (localIsCreator || user.isAdmin) &&
+                                      _currentTransaction.status !=
+                                          TransactionStatus.deleted)
                                     Padding(
                                       padding: const EdgeInsets.only(bottom: 8),
                                       child: Row(
@@ -1085,7 +1145,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         ),
 
         // Action Area (Allow if Owner OR Creator OR Admin)
-        if (localCanSendMessage || user.isAdmin)
+        if ((localCanSendMessage || user.isAdmin) &&
+            _currentTransaction.status != TransactionStatus.deleted)
           Consumer<TransactionProvider>(
             builder: (ctx, provider, _) => ApprovalActionWidget(
               isLoading: provider.isLoading,

@@ -18,9 +18,7 @@ class ActionGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<AuthProvider>().user;
     final bool isAdmin = userRole.trim().toLowerCase() == 'admin';
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(

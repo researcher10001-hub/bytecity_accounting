@@ -59,6 +59,13 @@ class TransactionProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  int _historyTabIndex = 0;
+  int get historyTabIndex => _historyTabIndex;
+
+  void setHistoryTabIndex(int index) {
+    _historyTabIndex = index;
+  }
+
   // Branch Selection Logic
   String _selectedBranch = 'All';
   String get selectedBranch => _selectedBranch;
@@ -1072,11 +1079,6 @@ class TransactionProvider with ChangeNotifier {
         String vch = item['voucher_no']?.toString() ?? '';
         String entryId = item['id']?.toString() ?? '';
         String key = entryId.isNotEmpty ? entryId : vch;
-        String status = item['approval_status']?.toString() ?? 'pending';
-
-        if (status.toLowerCase() == 'deleted') {
-          continue;
-        }
 
         if (!entryMap.containsKey(key)) {
           entryMap[key] = TransactionModel(
