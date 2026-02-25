@@ -92,26 +92,41 @@ class _UsersScreenState extends State<UsersScreen> {
           'Manage Users',
           style: GoogleFonts.inter(
             fontWeight: FontWeight.w700,
-            fontSize: 18,
+            fontSize: 20,
+            color: const Color(0xFF1E293B),
+            letterSpacing: -0.5,
           ),
         ),
-        centerTitle: true,
+        centerTitle: false,
         backgroundColor: Colors.white,
+        surfaceTintColor: Colors.white,
         elevation: 0,
-        foregroundColor: Colors.black,
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(1),
+          child: Container(
+            color: Colors.grey.shade200,
+            height: 1,
+          ),
+        ),
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
             child: Row(
               children: [
-                const Text(
+                Text(
                   'Show Deleted',
-                  style: TextStyle(fontSize: 12, color: Colors.black),
+                  style: GoogleFonts.inter(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                  ),
                 ),
+                const SizedBox(width: 8),
                 Transform.scale(
                   scale: 0.8,
                   child: Switch(
                     value: _showDeleted,
+                    activeColor: const Color(0xFF6366F1),
                     onChanged: (val) {
                       setState(() {
                         _showDeleted = val;
@@ -124,39 +139,46 @@ class _UsersScreenState extends State<UsersScreen> {
           ),
         ],
       ),
-      // ...
-      backgroundColor: const Color(0xFFF8F9FA),
+      backgroundColor: const Color(0xFFF8FAFC),
       body: SafeArea(
         child: Column(
           children: [
             // Search Bar
             Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: TextField(
-                controller: _searchController,
-                decoration: InputDecoration(
-                  hintText: 'Search by Name or Email...',
-                  prefixIcon: const Icon(Icons.search, color: Colors.blueGrey),
-                  filled: true,
-                  fillColor: Colors.white,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
+              padding: const EdgeInsets.fromLTRB(16, 24, 16, 16),
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 600),
+                child: Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withValues(alpha: 0.03),
+                        blurRadius: 10,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
                   ),
-                  enabledBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: BorderSide(color: Colors.grey.shade200),
-                  ),
-                  focusedBorder: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    borderSide: const BorderSide(
-                      color: Colors.indigo,
-                      width: 2,
+                  child: TextField(
+                    controller: _searchController,
+                    style: GoogleFonts.inter(
+                        fontSize: 14, color: const Color(0xFF1E293B)),
+                    decoration: InputDecoration(
+                      hintText: 'Search by Name or Email...',
+                      hintStyle:
+                          GoogleFonts.inter(color: const Color(0xFF94A3B8)),
+                      prefixIcon: const Icon(LucideIcons.search,
+                          size: 20, color: Color(0xFF94A3B8)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        borderSide: BorderSide.none,
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 20, vertical: 16),
                     ),
                   ),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 14),
                 ),
-                style: const TextStyle(color: Colors.black87),
               ),
             ),
 
@@ -216,11 +238,21 @@ class _UsersScreenState extends State<UsersScreen> {
           ],
         ),
       ),
-
-      floatingActionButton: FloatingActionButton(
+      floatingActionButton: FloatingActionButton.extended(
         onPressed: () => _showAddUserDialog(context),
-        backgroundColor: Colors.indigo,
-        child: const Icon(Icons.person_add, color: Colors.white),
+        backgroundColor: const Color(0xFF6366F1),
+        elevation: 4,
+        highlightElevation: 8,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        icon: const Icon(LucideIcons.userPlus, color: Colors.white, size: 20),
+        label: Text(
+          'Add User',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w600,
+            color: Colors.white,
+            letterSpacing: 0.2,
+          ),
+        ),
       ),
     );
   }
@@ -237,25 +269,64 @@ class _UsersScreenState extends State<UsersScreen> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 4),
-          child: Text(
-            title.toUpperCase(),
-            style: GoogleFonts.inter(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              color: Colors.blueGrey[700],
-              letterSpacing: 1.2,
-            ),
+          padding: const EdgeInsets.only(top: 24.0, bottom: 16.0, left: 4.0),
+          child: Row(
+            children: [
+              Container(
+                width: 4,
+                height: 16,
+                decoration: BoxDecoration(
+                  color: const Color(0xFF6366F1),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                title.toUpperCase(),
+                style: GoogleFonts.inter(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w700,
+                  color: const Color(0xFF475569),
+                  letterSpacing: 1.0,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Container(
+                  height: 1,
+                  color: Colors.grey.shade200,
+                ),
+              ),
+            ],
           ),
         ),
-        ...users.map(
-          (user) => _buildUserCardNew(
-            context,
-            provider,
-            accountProvider,
-            user,
-            key: ValueKey(user.email),
-          ),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            // Determine card width based on screen size
+            double cardWidth = constraints.maxWidth;
+            if (constraints.maxWidth > 1200) {
+              cardWidth = (constraints.maxWidth - 32) / 3; // 3 columns
+            } else if (constraints.maxWidth > 800) {
+              cardWidth = (constraints.maxWidth - 16) / 2; // 2 columns
+            }
+
+            return Wrap(
+              spacing: 16.0,
+              runSpacing: 16.0,
+              children: users.map((user) {
+                return SizedBox(
+                  width: cardWidth,
+                  child: _buildUserCardNew(
+                    context,
+                    provider,
+                    accountProvider,
+                    user,
+                    key: ValueKey(user.email),
+                  ),
+                );
+              }).toList(),
+            );
+          },
         ),
         const SizedBox(height: 12),
       ],
