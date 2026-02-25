@@ -24,6 +24,7 @@ class ApiConstants {
       'updateSubCategory'; // Used in SubCategoryProvider
   static const String actionDeleteSubCategory =
       'deleteSubCategory'; // Used in SubCategoryProvider
+  static const String actionGetBranches = 'getBranches';
 
   static const String actionGetUsers = 'getUsers';
   static const String actionCreateUser = 'createUser';

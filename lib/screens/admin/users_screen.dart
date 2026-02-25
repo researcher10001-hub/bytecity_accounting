@@ -6,9 +6,10 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/group_provider.dart';
 import '../../providers/account_provider.dart';
-import '../../providers/auth_provider.dart';
 import '../../models/user_model.dart';
 import '../../models/account_model.dart';
+import '../../providers/branch_provider.dart';
+import '../../providers/auth_provider.dart';
 import '../../core/constants/role_constants.dart';
 
 class UsersScreen extends StatefulWidget {
@@ -37,7 +38,13 @@ class _UsersScreenState extends State<UsersScreen> {
         // ... existing logic ...
         final admin = userProvider.users.firstWhere(
           (u) => u.isAdmin,
-          orElse: () => User(name: '', email: '', role: '', status: 'Active'),
+          orElse: () => User(
+            name: '',
+            email: '',
+            role: '',
+            status: 'Active',
+            branch: 'HQ',
+          ),
         );
         if (admin.email.isNotEmpty) {
           accountProvider.fetchAccounts(admin);
@@ -844,6 +851,7 @@ class _UsersScreenState extends State<UsersScreen> {
                           name: user.name,
                           role: user.role,
                           status: user.status,
+                          branch: user.branch,
                           allowForeignCurrency: user.allowForeignCurrency,
                           allowDateEdit: user.allowDateEdit,
                           groupIds: selectedGroups,
@@ -1521,6 +1529,7 @@ class _UsersScreenState extends State<UsersScreen> {
     ];
     String selectedRole =
         roles.contains(AppRoles.viewer) ? AppRoles.viewer : roles.first;
+    String selectedBranch = 'HQ';
 
     showDialog(
       context: context,
@@ -1587,6 +1596,20 @@ class _UsersScreenState extends State<UsersScreen> {
                       border: OutlineInputBorder(),
                     ),
                   ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
+                    initialValue: selectedBranch,
+                    items: context
+                        .watch<BranchProvider>()
+                        .branches
+                        .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                        .toList(),
+                    onChanged: (val) => setState(() => selectedBranch = val!),
+                    decoration: const InputDecoration(
+                      labelText: 'Branch',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -1634,6 +1657,7 @@ class _UsersScreenState extends State<UsersScreen> {
                                   pass,
                                   selectedRole,
                                   designationController.text.trim(),
+                                  selectedBranch,
                                 );
 
                         if (context.mounted) {
@@ -1681,6 +1705,7 @@ class _UsersScreenState extends State<UsersScreen> {
     final nameController = TextEditingController(text: user.name);
     final designationController = TextEditingController(text: user.designation);
     String selectedRole = user.role;
+    String selectedBranch = user.branch;
     String selectedStatus = user.status;
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
@@ -1736,6 +1761,20 @@ class _UsersScreenState extends State<UsersScreen> {
                   ),
                   const SizedBox(height: 12),
                   DropdownButtonFormField<String>(
+                    initialValue: selectedBranch,
+                    items: context
+                        .watch<BranchProvider>()
+                        .branches
+                        .map((b) => DropdownMenuItem(value: b, child: Text(b)))
+                        .toList(),
+                    onChanged: (val) => setState(() => selectedBranch = val!),
+                    decoration: const InputDecoration(
+                      labelText: 'Branch',
+                      border: OutlineInputBorder(),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  DropdownButtonFormField<String>(
                     initialValue: selectedStatus,
                     items: statuses
                         .map((s) => DropdownMenuItem(value: s, child: Text(s)))
@@ -1776,6 +1815,7 @@ class _UsersScreenState extends State<UsersScreen> {
                           name: name,
                           role: selectedRole,
                           designation: designationController.text.trim(),
+                          branch: selectedBranch,
                           status: selectedStatus,
                           allowForeignCurrency: user.allowForeignCurrency,
                           allowDateEdit: user.allowDateEdit,

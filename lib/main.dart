@@ -11,6 +11,7 @@ import 'providers/settings_provider.dart';
 import 'providers/notification_provider.dart';
 import 'providers/sub_category_provider.dart';
 import 'providers/dashboard_provider.dart';
+import 'providers/branch_provider.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
@@ -33,7 +34,6 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => TransactionProvider()),
         ChangeNotifierProvider(create: (_) => UserProvider()),
-
         ChangeNotifierProvider(create: (_) => GroupProvider()),
         ChangeNotifierProvider(create: (_) => SettingsProvider()),
         ChangeNotifierProvider(create: (_) => NotificationProvider()),
@@ -41,6 +41,7 @@ class MyApp extends StatelessWidget {
           create: (_) => SubCategoryProvider()..fetchSubCategories(),
         ),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
+        ChangeNotifierProvider(create: (_) => BranchProvider()),
       ],
       child: MaterialApp(
         title: 'BC Math',

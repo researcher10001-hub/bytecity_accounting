@@ -32,6 +32,7 @@ const SHEET_ACCOUNTS = "Accounts";
 const SHEET_GROUPS = "Groups";
 const SHEET_ENTRIES = "Entries";
 const SHEET_SUB_CATEGORIES = "SubCategories";
+const SHEET_BRANCHES = "Branches";
 const SECRET_SALT = "BYTECITY_V1_SALT"; // Simple salt for Phase A
 
 // --- DO GET (Connectivity Check & Simple Actions) ---
@@ -55,6 +56,10 @@ function doPost(e) {
   
   if (action == 'loginUser') {
     return loginUser(e);
+  }
+
+  if (action == 'getBranches') {
+    return getBranches(e);
   }
   
   if (action == 'getAccounts') {
@@ -242,6 +247,45 @@ function changePassword(e) {
   })).setMimeType(ContentService.MimeType.JSON);
 }
 
+// --- GET BRANCHES ---
+function getBranches(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_BRANCHES);
+    if (!sheet) {
+      // Default fallback if sheet doesn't exist yet
+      return successResponse(['HQ', 'JFP', 'Uttara', 'Dhanmondi']); 
+    }
+
+    const rows = sheet.getDataRange().getValues();
+    const branches = [];
+    
+    // Check if there is a header, usually we expect data from row 1 or 2
+    // Let's assume Row 1 might be a header like "Branch Name"
+    let startIndex = 0;
+    if (rows.length > 0 && rows[0][0].toString().toLowerCase().includes("branch")) {
+        startIndex = 1;
+    }
+    
+    for (let i = startIndex; i < rows.length; i++) {
+        const branchName = rows[i][0] ? rows[i][0].toString().trim() : "";
+        if (branchName) {
+            branches.push(branchName);
+        }
+    }
+    
+    // Deduplicate and fallback
+    const uniqueBranches = [...new Set(branches)];
+    if (uniqueBranches.length === 0) {
+       return successResponse(['HQ', 'JFP', 'Uttara', 'Dhanmondi']);
+    }
+
+    return successResponse(uniqueBranches);
+  } catch (err) {
+    return errorResponse("Server error: " + err.toString());
+  }
+}
+
+
 // --- CHECK SESSION (Heartbeat) ---
 // --- CHECK SESSION (Heartbeat) ---
 function checkSession(e) {
@@ -296,7 +340,8 @@ function checkSession(e) {
                       'allow_foreign_currency': allowForeignCurrency,
                       'allow_auto_approval': allowAutoApproval,
                       'allow_date_edit': allowDateEdit,
-                      'pinned_account': pinnedAccount
+                      'pinned_account': pinnedAccount,
+                      'branch': (row.length > 12) ? row[12].toString() : "HQ"
                   });
               } else {
                   return errorResponse("Unauthorized: User suspended.");
@@ -604,6 +649,10 @@ function updateUser(e) {
     const pinnedAccount = data.pinned_account;
     if (pinnedAccount !== undefined) sheet.getRange(rowToUpdate, 12).setValue(pinnedAccount);
     
+    // Branch is Col 13 (Index 12)
+    const branch = data.branch;
+    if (branch !== undefined) sheet.getRange(rowToUpdate, 13).setValue(branch);
+    
     
     return successResponse({'message': 'User updated'});
     
@@ -623,6 +672,7 @@ function createUser(e) {
     const designation = data.designation || "";
     const allowForeignCurrency = data.allow_foreign_currency || false;
     const allowAutoApproval = data.allow_auto_approval || false;
+    const branch = data.branch || "HQ"; // New Branch field
 
     if (!name || !email || !password) {
       return errorResponse("Missing required fields");
@@ -642,8 +692,8 @@ function createUser(e) {
     
     const hash = generateHash(email, password);
     
-    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8], AllowAutoApproval [9], DatePermission [10], PinnedAccount [11]
-    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency, allowAutoApproval, false, ""]);
+    // Schema: Name [0], Email [1], PasswordHash [2], Role [3], Status [4], GroupIDs [5], SessionToken [6], Designation [7], AllowForeignCurrency [8], AllowAutoApproval [9], DatePermission [10], PinnedAccount [11], Branch [12]
+    sheet.appendRow([name, email, hash, role, "Active", "", "", designation, allowForeignCurrency, allowAutoApproval, false, "", branch]);
     
     return successResponse({'message': 'User created'});
     
@@ -712,7 +762,8 @@ function getUsers(e) {
         'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false,
         'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false,
         'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false,
-        'pinned_account': (row.length > 11) ? row[11].toString() : ""
+        'pinned_account': (row.length > 11) ? row[11].toString() : "",
+        'branch': (row.length > 12) ? row[12].toString() : "HQ"
       });
     }
     
@@ -863,7 +914,8 @@ function loginUser(e) {
                'allow_foreign_currency': (row.length > 8) ? (row[8] === true || row[8].toString().toUpperCase() === 'TRUE') : false,
                'allow_auto_approval': (row.length > 9) ? (row[9] === true || row[9].toString().toUpperCase() === 'TRUE') : false,
                'allow_date_edit': (row.length > 10) ? (row[10] === true || row[10].toString().toUpperCase() === 'TRUE') : false,
-               'pinned_account': (row.length > 11) ? row[11].toString() : ""
+               'pinned_account': (row.length > 11) ? row[11].toString() : "",
+               'branch': (row.length > 12) ? row[12].toString() : "HQ"
              });
           } else {
             return errorResponse("Account " + status + ". Contact admin.");
@@ -923,7 +975,7 @@ function createEntry(e) {
         "Status", "ApprovalLog", "LastActionBy", "IsFlagged", 
         "FlaggedBy", "FlaggedAt", "FlagReason",
         "LastActivityAt", "LastActivityType", "LastActivityBy",
-        "ERPSyncStatus"
+        "ERPSyncStatus", "ERPDocumentId", "CreatorBranch", "CreatorRole"
       ]);
     }
     
@@ -972,6 +1024,8 @@ function createEntry(e) {
     // Fetch User mapping for names AND permissions
     const userMap = {};
     let userHasAutoApproval = false; // Check if creator has permission
+    let creatorBranch = "HQ";
+    let creatorRole = "Viewer";
     
     const userSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
     if (userSheet) {
@@ -981,6 +1035,8 @@ function createEntry(e) {
         userMap[uEmail] = userData[j][0].toString();
         
         if (uEmail === userEmail.toLowerCase()) {
+             creatorRole = userData[j][3] ? userData[j][3].toString() : "Viewer";
+             creatorBranch = (userData[j].length > 12) ? userData[j][12].toString() : "HQ";
              // Check Col 10 (Index 9) for allow_auto_approval
              userHasAutoApproval = (userData[j].length > 9) ? (userData[j][9] === true || userData[j][9].toString().toUpperCase() === 'TRUE') : false;
         }
@@ -1088,7 +1144,11 @@ function createEntry(e) {
           '',        // FlagReason
           new Date().toISOString(), // Col 19: LastActivityAt
           'create',                 // Col 20: LastActivityType
-          userEmail                 // Col 21: LastActivityBy
+          userEmail,                // Col 21: LastActivityBy
+          'none',                   // Col 22: ERPSyncStatus
+          '',                       // Col 23: ERPDocumentId
+          creatorBranch,            // Col 24: CreatorBranch
+          creatorRole               // Col 25: CreatorRole
         ]);
     }
     
@@ -1125,8 +1185,8 @@ function createEntry(e) {
     if (rowsToAdd.length > 0) {
        const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ENTRIES);
        const lastRow = sheet.getLastRow();
-       // Range is now 21 columns wide
-       sheet.getRange(lastRow + 1, 1, rowsToAdd.length, 21).setValues(rowsToAdd);
+       // Range is now 25 columns wide
+       sheet.getRange(lastRow + 1, 1, rowsToAdd.length, 25).setValues(rowsToAdd);
 
        // REAL-TIME: Notify Owners via Email
        try {
@@ -1318,13 +1378,17 @@ function getEntries(e) {
 
     const entries = [];
     
-    // 1. Fetch User Emails -> Names Map for display lookup
     const userMap = {};
+    const userRoleMap = {};
+    const userBranchMap = {};
     const userSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
     if (userSheet) {
       const userData = userSheet.getDataRange().getValues();
       for (let j = 1; j < userData.length; j++) {
-        userMap[userData[j][1].toString().toLowerCase()] = userData[j][0].toString();
+        const uEmail = userData[j][1].toString().toLowerCase();
+        userMap[uEmail] = userData[j][0].toString();
+        userRoleMap[uEmail] = userData[j][3] ? userData[j][3].toString() : "Viewer";
+        userBranchMap[uEmail] = (userData[j].length > 12) ? userData[j][12].toString() : "HQ";
       }
     }
 
@@ -1334,6 +1398,7 @@ function getEntries(e) {
     // Parse Request Body
     let requestingUserEmail = '';
     let limit = 0;
+    let branchFilter = 'All'; // For Admin/Management filtering
     // let startDate = null; // Future scope
     
     try {
@@ -1341,6 +1406,7 @@ function getEntries(e) {
          const body = JSON.parse(e.postData.contents);
          requestingUserEmail = (body.user_email || '').toString().toLowerCase();
          if (body.limit) limit = parseInt(body.limit);
+         if (body.branch_filter) branchFilter = body.branch_filter;
       }
     } catch (err) { }
 
@@ -1381,6 +1447,11 @@ function getEntries(e) {
     // If we used getDataRange, we shifted it off.
     // So 'rows' now contains purely data.
 
+    const requesterEmail = requestingUserEmail;
+    const requesterRole = requesterEmail ? (userRoleMap[requesterEmail] || "Viewer") : null;
+    const requesterBranch = requesterEmail ? (userBranchMap[requesterEmail] || "HQ") : null;
+    const isRequesterAdminOrMgmt = (requesterRole === 'Admin' || requesterRole === 'Management');
+
     for (let i = 0; i < rows.length; i++) {
        const row = rows[i];
        const status = (row.length > 11) ? row[11] : "Pending";
@@ -1390,15 +1461,36 @@ function getEntries(e) {
          if (!requestingUserEmail) continue; 
          // ... (ownership check logic omitted for speed in this block, assumed hidden)
          // Actually, let's just hide deleted for now in optimized fetch to save bandwidth?
-         // Or keep logic consistent. Consistency preferred.
-         const accName = row[4];
-         // Check ownership logic... (Simplification: if deleted, skip unless admin?)
-         // Let's skip deleted for pagination speed if usually not needed.
          // Or implement proper check. Let's skip complex check for now.
          continue; 
        }
 
        const creatorEmail = (row[9] || "").toString().toLowerCase();
+       
+       // Fallbacks for historical data
+       const rowCreatorBranch = (row.length > 23 && row[23]) ? row[23].toString() : (userBranchMap[creatorEmail] || "HQ");
+       const rowCreatorRole = (row.length > 24 && row[24]) ? row[24].toString() : (userRoleMap[creatorEmail] || "Viewer");
+
+       // Check Visibility Rules
+       if (requestingUserEmail) {
+           if (!isRequesterAdminOrMgmt) {
+               // Rule 1: General users only see their branch
+               if (rowCreatorBranch !== requesterBranch) continue;
+               
+               // Rule 2: General users cannot see Admin/Management entries
+               if (rowCreatorRole === 'Admin' || rowCreatorRole === 'Management') {
+                   // Failsafe: unless they somehow created it themselves
+                   if (creatorEmail !== requesterEmail) {
+                       continue;
+                   }
+               }
+           } else {
+               // Admin/Management filtering by branch if requested
+               if (branchFilter !== 'All' && rowCreatorBranch !== branchFilter) {
+                   continue;
+               }
+           }
+       }
 
        entries.push({
          'id': row[0],
@@ -1413,6 +1505,8 @@ function getEntries(e) {
          'rate': row[8],
          'created_by': row[9],
          'created_by_name': userMap[creatorEmail] || row[9] || 'Unknown',
+         'branch': rowCreatorBranch,
+         'creator_role': rowCreatorRole,
          'type': (row.length > 10) ? row[10] : "Journal", // Read Type
          'approval_status': status,
          'approval_log': (row.length > 12) ? row[12] : "[]",

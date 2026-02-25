@@ -185,6 +185,8 @@ class AuthProvider with ChangeNotifier {
               updatedUser.allowAutoApproval != _user!.allowAutoApproval ||
               updatedUser.role != _user!.role ||
               updatedUser.status != _user!.status ||
+              updatedUser.branch != _user!.branch ||
+              updatedUser.designation != _user!.designation ||
               !_listEquals(
                 updatedUser.pinnedAccountNames,
                 _user!.pinnedAccountNames,

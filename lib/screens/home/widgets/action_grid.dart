@@ -4,6 +4,7 @@ import '../../reports/ledger_screen.dart';
 import '../../search/search_voucher_screen.dart';
 import '../../admin/pending_transactions_screen.dart';
 import '../../admin/erp_sync_queue_screen.dart';
+import '../../reports/branch_entries_screen.dart';
 import '../../../providers/transaction_provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/dashboard_provider.dart';
@@ -23,6 +24,29 @@ class ActionGrid extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         children: [
+          // Row: Branch Entries (Visible to all)
+          Row(
+            children: [
+              Expanded(
+                child: _buildActionCard(
+                  context,
+                  icon: Icons.store_mall_directory_rounded,
+                  label: 'Branch Entries',
+                  color: Colors.blueAccent,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const BranchEntriesScreen(),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+
           if (isAdmin) ...[
             // Row: Ledger + Search Voucher
             Row(

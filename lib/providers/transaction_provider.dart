@@ -59,6 +59,18 @@ class TransactionProvider with ChangeNotifier {
   bool _isLoading = false;
   String? _error;
 
+  // Branch Selection Logic
+  String _selectedBranch = 'All';
+  String get selectedBranch => _selectedBranch;
+
+  void setSelectedBranch(String branch, User user) {
+    if (_selectedBranch != branch) {
+      _selectedBranch = branch;
+      notifyListeners();
+      fetchHistory(user, forceRefresh: true);
+    }
+  }
+
   // Session ID for forcing UI redraws on reset
   String _formSessionId = UniqueKey().toString();
 
@@ -1026,6 +1038,7 @@ class TransactionProvider with ChangeNotifier {
       final response = await _apiService.postRequest('getEntries', {
         'user_email': user.email,
         'limit': 300, // OPTIMIZATION: Fetch only recent 300
+        'branch_filter': _selectedBranch, // NEW
       });
 
       if (response is List) {
@@ -1083,6 +1096,8 @@ class TransactionProvider with ChangeNotifier {
             createdByName: item['created_by_name']?.toString() ??
                 item['created_by']?.toString() ??
                 '',
+            branch: item['branch']?.toString() ?? 'HQ',
+            creatorRole: item['creator_role']?.toString() ?? 'Viewer',
             status: TransactionStatus.values.firstWhere(
               (e) =>
                   e.toString().split('.').last ==

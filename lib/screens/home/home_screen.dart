@@ -9,6 +9,7 @@ import '../../providers/transaction_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/notification_provider.dart';
 import '../../providers/user_provider.dart';
+import '../../providers/branch_provider.dart';
 
 import '../../core/constants/role_constants.dart';
 import '../../models/user_model.dart';
@@ -100,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> {
       //   context.read<TransactionProvider>().transactions,
       // );
 
+      context.read<BranchProvider>().fetchBranches(user); // Pre-fetch branches
       context.read<UserProvider>().fetchUsers(); // Pre-fetch users
       context.read<NotificationProvider>().refreshNotifications(
             user,

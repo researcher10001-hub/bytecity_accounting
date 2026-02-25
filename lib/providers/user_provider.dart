@@ -58,6 +58,7 @@ class UserProvider with ChangeNotifier {
         'name': updatedUser.name,
         'role': updatedUser.role,
         'designation': updatedUser.designation,
+        'branch': updatedUser.branch,
         'status': updatedUser.status,
         'group_ids': updatedUser.groupIds.join(','),
         'allow_foreign_currency': updatedUser.allowForeignCurrency,
@@ -111,6 +112,7 @@ class UserProvider with ChangeNotifier {
     String password,
     String role,
     String designation,
+    String branch,
   ) async {
     _isLoading = true;
     notifyListeners();
@@ -122,6 +124,7 @@ class UserProvider with ChangeNotifier {
         'password': password,
         'role': role,
         'designation': designation.trim(),
+        'branch': branch,
       };
 
       await _apiService.postRequest(ApiConstants.actionCreateUser, payload);
@@ -132,6 +135,7 @@ class UserProvider with ChangeNotifier {
         name: name.trim(),
         role: role,
         designation: designation.trim(),
+        branch: branch,
         status: 'Active',
         allowAutoApproval: false, // Default false
       );

@@ -14,9 +14,10 @@ import '../../providers/dashboard_provider.dart';
 import '../../providers/user_provider.dart';
 import '../../providers/group_provider.dart';
 import '../../providers/settings_provider.dart';
+import '../../providers/branch_provider.dart';
 import '../../models/account_model.dart';
 import '../../services/permission_service.dart';
-
+import '../../models/user_model.dart';
 import '../../models/transaction_model.dart';
 import '../../core/utils/currency_formatter.dart';
 import '../transaction/transaction_entry_screen.dart';
@@ -223,13 +224,21 @@ class _LedgerScreenState extends State<LedgerScreen> {
               Row(
                 children: [
                   Expanded(
-                    flex: 1,
+                    flex: 2,
                     child: _buildAccountDropdown(
                       context,
                       accounts,
                       groupProvider,
                     ),
                   ),
+                  if (user.isAdmin || user.isManagement) ...[
+                    const SizedBox(width: 8),
+                    Expanded(
+                      flex: 1,
+                      child: _buildBranchDropdown(
+                          context, transactionProvider, user),
+                    ),
+                  ],
                 ],
               ),
               const SizedBox(height: 6),
@@ -1709,6 +1718,47 @@ class _LedgerScreenState extends State<LedgerScreen> {
           shape: BoxShape.circle,
         ),
         child: Icon(icon, size: 14, color: color),
+      ),
+    );
+  }
+
+  Widget _buildBranchDropdown(
+    BuildContext context,
+    TransactionProvider provider,
+    User user,
+  ) {
+    // Only show certain branches or All based on options
+    return Container(
+      decoration: BoxDecoration(
+        color: const Color(0xFFF1F5F9), // Match other inputs
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: const Color(0xFFE2E8F0)),
+      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12),
+      height: 48, // Standard height matching other fields roughly
+      child: DropdownButtonHideUnderline(
+        child: DropdownButton<String>(
+          value: provider.selectedBranch,
+          isExpanded: true,
+          icon: const Icon(LucideIcons.chevronDown,
+              size: 16, color: Color(0xFF64748B)),
+          style: GoogleFonts.inter(
+            fontSize: 13,
+            fontWeight: FontWeight.w500,
+            color: const Color(0xFF475569),
+          ),
+          items: ['All', ...context.watch<BranchProvider>().branches]
+              .map((b) => DropdownMenuItem(
+                    value: b,
+                    child: Text(b),
+                  ))
+              .toList(),
+          onChanged: (val) {
+            if (val != null) {
+              provider.setSelectedBranch(val, user);
+            }
+          },
+        ),
       ),
     );
   }

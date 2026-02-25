@@ -12,6 +12,7 @@ class User {
   final String? sessionToken;
   final bool allowAutoApproval; // New field for Management approval permission
   final List<String> pinnedAccountNames;
+  final String branch; // New field for Branch Filtering
 
   User({
     required this.name,
@@ -25,6 +26,7 @@ class User {
     this.sessionToken,
     this.allowAutoApproval = false,
     this.pinnedAccountNames = const [],
+    this.branch = 'HQ', // Default branch
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -77,6 +79,7 @@ class User {
       sessionToken: json['session_token']?.toString().trim(),
       allowAutoApproval: json['allow_auto_approval'] == true,
       pinnedAccountNames: _parsePinnedAccounts(json['pinned_account']),
+      branch: (json['branch'] ?? 'HQ').toString().trim(),
     );
   }
 
@@ -104,6 +107,7 @@ class User {
       'session_token': sessionToken,
       'allow_auto_approval': allowAutoApproval,
       'pinned_account': pinnedAccountNames.join(','),
+      'branch': branch,
     };
   }
 
@@ -138,6 +142,7 @@ class User {
     String? sessionToken,
     bool? allowAutoApproval,
     List<String>? pinnedAccountNames,
+    String? branch,
   }) {
     return User(
       name: name ?? this.name,
@@ -151,6 +156,7 @@ class User {
       sessionToken: sessionToken ?? this.sessionToken,
       allowAutoApproval: allowAutoApproval ?? this.allowAutoApproval,
       pinnedAccountNames: pinnedAccountNames ?? this.pinnedAccountNames,
+      branch: branch ?? this.branch,
     );
   }
 }

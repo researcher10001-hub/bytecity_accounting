@@ -10,6 +10,7 @@ import '../../providers/account_provider.dart';
 import '../../providers/dashboard_provider.dart';
 import '../../models/transaction_model.dart';
 import '../../models/message_model.dart';
+import '../../providers/branch_provider.dart';
 import '../transaction/transaction_detail_screen.dart';
 import '../../core/utils/currency_formatter.dart';
 
@@ -23,6 +24,7 @@ class PendingTransactionsScreen extends StatefulWidget {
 
 class _PendingTransactionsScreenState extends State<PendingTransactionsScreen> {
   String? _selectedUserEmail;
+  String _selectedBranch = 'All';
   bool _isLoading = false;
 
   @override
@@ -54,17 +56,26 @@ class _PendingTransactionsScreenState extends State<PendingTransactionsScreen> {
       ),
       body: Consumer2<TransactionProvider, NotificationProvider>(
         builder: (context, txProvider, notifProvider, _) {
+          final user = context.read<AuthProvider>().user;
+
           final allPendingTransactions = txProvider.transactions.where((tx) {
-            return tx.status == TransactionStatus.pending ||
+            bool matchesStatus = tx.status == TransactionStatus.pending ||
                 tx.status == TransactionStatus.clarification ||
                 tx.status == TransactionStatus.underReview;
+
+            bool matchesBranch = true;
+            if (user != null && (user.isAdmin || user.isManagement)) {
+              if (_selectedBranch != 'All') {
+                matchesBranch = tx.branch == _selectedBranch;
+              }
+            }
+
+            return matchesStatus && matchesBranch;
           }).toList();
 
           // Extract unique users who have pending entries to build filter chips
-          final userEmails = allPendingTransactions
-              .map((tx) => tx.createdBy)
-              .toSet()
-              .toList();
+          final userEmails =
+              allPendingTransactions.map((tx) => tx.createdBy).toSet().toList();
 
           final filteredTransactions = _selectedUserEmail == null
               ? allPendingTransactions
@@ -79,6 +90,60 @@ class _PendingTransactionsScreenState extends State<PendingTransactionsScreen> {
 
           return Column(
             children: [
+              if (user != null && (user.isAdmin || user.isManagement))
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.grey.shade300),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.business,
+                            size: 20, color: Colors.grey.shade600),
+                        const SizedBox(width: 8),
+                        Text('Branch Filter: ',
+                            style: GoogleFonts.inter(
+                                fontSize: 13, color: Colors.grey.shade700)),
+                        const SizedBox(width: 8),
+                        Expanded(
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: _selectedBranch,
+                              isExpanded: true,
+                              icon: const Icon(Icons.arrow_drop_down),
+                              style: GoogleFonts.inter(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.black87,
+                              ),
+                              items: [
+                                'All',
+                                ...context.watch<BranchProvider>().branches
+                              ]
+                                  .map((b) => DropdownMenuItem(
+                                      value: b, child: Text(b)))
+                                  .toList(),
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() {
+                                    _selectedBranch = val;
+                                    _selectedUserEmail =
+                                        null; // reset user filter
+                                  });
+                                }
+                              },
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
               // personnel filter chips
               if (userEmails.length > 1) _buildFilterChips(context, userEmails),
 

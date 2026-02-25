@@ -124,6 +124,8 @@ class TransactionModel {
   List<TransactionDetail> details;
   String createdBy; // User email
   String createdByName; // User name
+  String branch; // Creator's Branch at time of entry
+  String creatorRole; // Creator's Role at time of entry
   String currency;
   double exchangeRate;
 
@@ -159,6 +161,8 @@ class TransactionModel {
     required this.details,
     required this.createdBy,
     this.createdByName = '', // Default to empty, will be populated from API
+    this.branch = 'HQ',
+    this.creatorRole = 'Viewer',
     this.currency = 'BDT',
     this.exchangeRate = 1.0,
     this.status = TransactionStatus.pending,
@@ -193,6 +197,8 @@ class TransactionModel {
       'main_narration': mainNarration,
       'details': details.map((e) => e.toJson()).toList(),
       'created_by': createdBy,
+      'branch': branch,
+      'creator_role': creatorRole,
       'currency': currency,
       'exchange_rate': exchangeRate,
       'status': status.toString().split('.').last,
@@ -212,21 +218,21 @@ class TransactionModel {
       ),
       voucherNo: json['voucher_no'] ?? '',
       mainNarration: json['main_narration'] ?? '',
-      details:
-          (json['details'] as List<dynamic>?)
+      details: (json['details'] as List<dynamic>?)
               ?.map((e) => TransactionDetail.fromJson(e))
               .toList() ??
           [],
       createdBy: json['created_by'] ?? '',
       createdByName: json['created_by_name'] ?? '',
+      branch: json['branch'] ?? 'HQ',
+      creatorRole: json['creator_role'] ?? 'Viewer',
       currency: json['currency'] ?? 'BDT',
       exchangeRate: (json['exchange_rate'] ?? 1.0).toDouble(),
       status: TransactionStatus.values.firstWhere(
         (e) => e.toString().split('.').last == json['status'],
         orElse: () => TransactionStatus.pending,
       ),
-      approvalLog:
-          (json['approval_log'] as List<dynamic>?)
+      approvalLog: (json['approval_log'] as List<dynamic>?)
               ?.map((e) => ApprovalMessage.fromJson(e))
               .toList() ??
           [],
