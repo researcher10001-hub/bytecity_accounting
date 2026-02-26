@@ -2833,7 +2833,6 @@ class _UsersScreenState extends State<UsersScreen> {
       builder: (ctx) {
         bool isResetting = false;
         return StatefulBuilder(
-        return StatefulBuilder(
           builder: (context, setState) => Dialog(
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(20),
@@ -2982,11 +2981,13 @@ class _UsersScreenState extends State<UsersScreen> {
                           onPressed: isResetting
                               ? null
                               : () async {
-                                  final newPass = passwordController.text.trim();
+                                  final newPass =
+                                      passwordController.text.trim();
                                   if (newPass.isEmpty) {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       const SnackBar(
-                                        content: Text('Password cannot be empty'),
+                                        content:
+                                            Text('Password cannot be empty'),
                                         backgroundColor: Colors.red,
                                       ),
                                     );
@@ -3002,18 +3003,23 @@ class _UsersScreenState extends State<UsersScreen> {
                                   if (context.mounted) {
                                     if (success) {
                                       Navigator.pop(ctx);
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         const SnackBar(
-                                          content: Text('Password reset successfully'),
+                                          content: Text(
+                                              'Password reset successfully'),
                                           backgroundColor: Colors.green,
                                         ),
                                       );
                                     } else {
                                       setState(() => isResetting = false);
-                                      ScaffoldMessenger.of(context).showSnackBar(
+                                      ScaffoldMessenger.of(context)
+                                          .showSnackBar(
                                         SnackBar(
                                           content: Text(
-                                            context.read<UserProvider>().error ??
+                                            context
+                                                    .read<UserProvider>()
+                                                    .error ??
                                                 'Failed to reset password',
                                           ),
                                           backgroundColor: Colors.red,

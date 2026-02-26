@@ -868,7 +868,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                       // Creator Info
                       if (tx.createdBy.isNotEmpty) ...[
                         Text(
-                          'By: ${tx.createdBy.split('@').first[0].toUpperCase()}${tx.createdBy.split('@').first.substring(1).toLowerCase()}',
+                          'By: ${tx.createdByName.isNotEmpty ? tx.createdByName : '${tx.createdBy.split('@').first[0].toUpperCase()}${tx.createdBy.split('@').first.substring(1).toLowerCase()}'}',
                           style: GoogleFonts.inter(
                             fontSize: 10,
                             color: const Color(0xFF64748B),
