@@ -12,9 +12,11 @@ import 'providers/notification_provider.dart';
 import 'providers/sub_category_provider.dart';
 import 'providers/dashboard_provider.dart';
 import 'providers/branch_provider.dart';
+import 'core/services/update_service.dart';
 
 import 'screens/auth/login_screen.dart';
 import 'screens/home/home_screen.dart';
+import 'screens/update/force_update_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -42,6 +44,8 @@ class MyApp extends StatelessWidget {
         ),
         ChangeNotifierProvider(create: (_) => DashboardProvider()),
         ChangeNotifierProvider(create: (_) => BranchProvider()),
+        ChangeNotifierProvider(
+            create: (_) => UpdateService()..checkForUpdates()),
       ],
       child: MaterialApp(
         title: 'BC Math',
@@ -65,8 +69,21 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Consumer<AuthProvider>(
-      builder: (context, auth, child) {
+    return Consumer2<UpdateService, AuthProvider>(
+      builder: (context, updateService, auth, child) {
+        if (updateService.isLoading) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (updateService.updateRequired) {
+          return ForceUpdateScreen(
+            latestVersion: updateService.latestVersion,
+            downloadLink: updateService.downloadLink,
+          );
+        }
+
         if (!auth.isInitialized) {
           // Show splash only during initial session check
           return const Scaffold(

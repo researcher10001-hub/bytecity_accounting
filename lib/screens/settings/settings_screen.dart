@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:lucide_icons/lucide_icons.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/account_provider.dart';
 import '../../providers/dashboard_provider.dart';
@@ -353,11 +354,19 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
             const SizedBox(height: 40),
             Center(
-              child: Text(
-                'BC Math v3.23',
-                style: GoogleFonts.inter(color: Colors.grey[400], fontSize: 12),
-              ),
+              child: FutureBuilder<PackageInfo>(
+                  future: PackageInfo.fromPlatform(),
+                  builder: (context, snapshot) {
+                    return Text(
+                      snapshot.hasData
+                          ? 'BC Math v${snapshot.data!.version}'
+                          : 'BC Math v...',
+                      style: GoogleFonts.inter(
+                          color: Colors.grey[400], fontSize: 12),
+                    );
+                  }),
             ),
+            const SizedBox(height: 40),
           ],
         ),
       ),

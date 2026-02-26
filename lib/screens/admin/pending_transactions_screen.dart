@@ -61,7 +61,8 @@ class _PendingTransactionsScreenState extends State<PendingTransactionsScreen> {
           final allPendingTransactions = txProvider.transactions.where((tx) {
             bool matchesStatus = tx.status == TransactionStatus.pending ||
                 tx.status == TransactionStatus.clarification ||
-                tx.status == TransactionStatus.underReview;
+                tx.status == TransactionStatus.underReview ||
+                tx.status == TransactionStatus.pendingDeletion;
 
             bool matchesBranch = true;
             if (user != null && (user.isAdmin || user.isManagement)) {

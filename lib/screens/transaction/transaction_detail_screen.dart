@@ -261,51 +261,139 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                       );
                     }
                   }
+                } else if (value == 'request_delete') {
+                  final controller = TextEditingController();
+                  final confirm = await showDialog<String>(
+                    context: context,
+                    builder: (context) => AlertDialog(
+                      title: const Text('Request Deletion'),
+                      content: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Text(
+                              'Please provide a reason for deleting this approved entry:'),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: controller,
+                            decoration: const InputDecoration(
+                              hintText: 'Reason for deletion...',
+                              border: OutlineInputBorder(),
+                            ),
+                            maxLines: 2,
+                          ),
+                        ],
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context, null),
+                          child: const Text('Cancel'),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            if (controller.text.trim().isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(
+                                    content: Text('Reason is required')),
+                              );
+                              return;
+                            }
+                            Navigator.pop(context, controller.text.trim());
+                          },
+                          child: const Text('Submit Request'),
+                        ),
+                      ],
+                    ),
+                  );
+
+                  if (confirm != null &&
+                      confirm.isNotEmpty &&
+                      context.mounted) {
+                    final success =
+                        await context.read<TransactionProvider>().addMessage(
+                              voucherNo: _currentTransaction.voucherNo,
+                              entryId: _currentTransaction.id ?? '',
+                              userEmail: user.email,
+                              senderName: user.name,
+                              message: 'Deletion Request: $confirm',
+                              action: 'request_delete',
+                            );
+                    if (success && context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                            content: Text('Deletion request submitted')),
+                      );
+                      context
+                          .read<TransactionProvider>()
+                          .fetchHistory(user, forceRefresh: true);
+                      Navigator.pop(context);
+                    }
+                  }
                 }
               },
-              itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-                PopupMenuItem<String>(
-                  value: 'edit',
-                  child: Row(
-                    children: [
-                      const Icon(
-                        LucideIcons.edit,
-                        size: 16,
-                        color: Color(0xFF4A5568),
+              itemBuilder: (BuildContext context) {
+                final isApproved =
+                    _currentTransaction.status == TransactionStatus.approved;
+                final canEditDelete = !isApproved || user.isAdmin;
+                final items = <PopupMenuEntry<String>>[];
+
+                if (canEditDelete) {
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'edit',
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.edit,
+                              size: 16, color: Color(0xFF4A5568)),
+                          const SizedBox(width: 8),
+                          Text('Edit Entry',
+                              style: GoogleFonts.inter(
+                                  color: const Color(0xFF2D3748),
+                                  fontWeight: FontWeight.w500)),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Edit Entry',
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFF2D3748),
-                          fontWeight: FontWeight.w500,
-                        ),
+                    ),
+                  );
+                  items.add(const PopupMenuDivider());
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'delete',
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.trash2,
+                              size: 16, color: Color(0xFFE53E3E)),
+                          const SizedBox(width: 8),
+                          Text('Delete Entry',
+                              style: GoogleFonts.inter(
+                                  color: const Color(0xFFE53E3E),
+                                  fontWeight: FontWeight.w500)),
+                        ],
                       ),
-                    ],
-                  ),
-                ),
-                const PopupMenuDivider(),
-                PopupMenuItem<String>(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      const Icon(
-                        LucideIcons.trash2,
-                        size: 16,
-                        color: Color(0xFFE53E3E),
+                    ),
+                  );
+                }
+
+                if (isApproved && !user.isAdmin && localIsCreator) {
+                  if (items.isNotEmpty) items.add(const PopupMenuDivider());
+                  items.add(
+                    PopupMenuItem<String>(
+                      value: 'request_delete',
+                      child: Row(
+                        children: [
+                          const Icon(LucideIcons.fileWarning,
+                              size: 16, color: Color(0xFFDD6B20)),
+                          const SizedBox(width: 8),
+                          Text('Request Deletion',
+                              style: GoogleFonts.inter(
+                                  color: const Color(0xFFDD6B20),
+                                  fontWeight: FontWeight.w500)),
+                        ],
                       ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'Delete Entry',
-                        style: GoogleFonts.inter(
-                          color: const Color(0xFFE53E3E),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
+                    ),
+                  );
+                }
+
+                return items;
+              },
             ),
           const SizedBox(width: 8),
         ],
@@ -538,166 +626,320 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                       child: Row(
                                         mainAxisSize: MainAxisSize.min,
                                         children: [
-                                          InkWell(
-                                            onTap: () => context
-                                                .read<DashboardProvider>()
-                                                .setView(
-                                                  DashboardView
-                                                      .transactionEntry,
-                                                  args: _currentTransaction,
-                                                ),
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 6,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    Colors.blue.withAlpha(0x15),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                border: Border.all(
+                                          if (_currentTransaction.status !=
+                                                  TransactionStatus.approved ||
+                                              user.isAdmin) ...[
+                                            InkWell(
+                                              onTap: () => context
+                                                  .read<DashboardProvider>()
+                                                  .setView(
+                                                    DashboardView
+                                                        .transactionEntry,
+                                                    args: _currentTransaction,
+                                                  ),
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
                                                   color: Colors.blue
-                                                      .withAlpha(0x40),
+                                                      .withAlpha(0x15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                      color: Colors.blue
+                                                          .withAlpha(0x40)),
                                                 ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const Icon(
-                                                    LucideIcons.pencil,
-                                                    size: 14,
-                                                    color: Colors.blue,
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    "EDIT",
-                                                    style: GoogleFonts.inter(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      color: Colors.blue,
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 8),
-                                          InkWell(
-                                            onTap: () async {
-                                              final confirm =
-                                                  await showDialog<bool>(
-                                                context: context,
-                                                builder: (context) =>
-                                                    AlertDialog(
-                                                  title: const Text(
-                                                      'Delete Entry'),
-                                                  content: const Text(
-                                                      'Are you sure you want to delete this entry? This action cannot be undone.'),
-                                                  actions: [
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context, false),
-                                                      child:
-                                                          const Text('Cancel'),
-                                                    ),
-                                                    TextButton(
-                                                      onPressed: () =>
-                                                          Navigator.pop(
-                                                              context, true),
-                                                      style:
-                                                          TextButton.styleFrom(
-                                                        foregroundColor:
-                                                            Colors.red,
-                                                      ),
-                                                      child:
-                                                          const Text('Delete'),
-                                                    ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                        LucideIcons.pencil,
+                                                        size: 14,
+                                                        color: Colors.blue),
+                                                    const SizedBox(width: 8),
+                                                    Text("EDIT",
+                                                        style:
+                                                            GoogleFonts.inter(
+                                                                fontSize: 11,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w800,
+                                                                color: Colors
+                                                                    .blue)),
                                                   ],
                                                 ),
-                                              );
-
-                                              if (confirm == true &&
-                                                  context.mounted) {
-                                                final success = await context
-                                                    .read<TransactionProvider>()
-                                                    .deleteTransaction(
-                                                        user,
-                                                        _currentTransaction
-                                                            .voucherNo);
-                                                if (success &&
-                                                    context.mounted) {
-                                                  context
-                                                      .read<DashboardProvider>()
-                                                      .setView(
-                                                          DashboardView.home);
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    const SnackBar(
-                                                        content: Text(
-                                                            'Transaction deleted')),
-                                                  );
-                                                } else if (context.mounted) {
-                                                  ScaffoldMessenger.of(context)
-                                                      .showSnackBar(
-                                                    SnackBar(
-                                                      content: Text(context
-                                                              .read<
-                                                                  TransactionProvider>()
-                                                              .error ??
-                                                          'Failed to delete transaction'),
-                                                      backgroundColor:
-                                                          Colors.red,
-                                                    ),
-                                                  );
-                                                }
-                                              }
-                                            },
-                                            borderRadius:
-                                                BorderRadius.circular(8),
-                                            child: Container(
-                                              padding:
-                                                  const EdgeInsets.symmetric(
-                                                horizontal: 12,
-                                                vertical: 6,
-                                              ),
-                                              decoration: BoxDecoration(
-                                                color:
-                                                    Colors.red.withAlpha(0x15),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                border: Border.all(
-                                                  color: Colors.red
-                                                      .withAlpha(0x40),
-                                                ),
-                                              ),
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: [
-                                                  const Icon(
-                                                    LucideIcons.trash2,
-                                                    size: 14,
-                                                    color: Colors.red,
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Text(
-                                                    "DELETE",
-                                                    style: GoogleFonts.inter(
-                                                      fontSize: 11,
-                                                      fontWeight:
-                                                          FontWeight.w800,
-                                                      color: Colors.red,
-                                                    ),
-                                                  ),
-                                                ],
                                               ),
                                             ),
-                                          ),
+                                            const SizedBox(width: 8),
+                                            InkWell(
+                                              onTap: () async {
+                                                final confirm =
+                                                    await showDialog<bool>(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      AlertDialog(
+                                                    title: const Text(
+                                                        'Delete Entry'),
+                                                    content: const Text(
+                                                        'Are you sure you want to delete this entry? This action cannot be undone.'),
+                                                    actions: [
+                                                      TextButton(
+                                                          onPressed: () =>
+                                                              Navigator.pop(
+                                                                  context,
+                                                                  false),
+                                                          child: const Text(
+                                                              'Cancel')),
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context, true),
+                                                        style: TextButton
+                                                            .styleFrom(
+                                                                foregroundColor:
+                                                                    Colors.red),
+                                                        child: const Text(
+                                                            'Delete'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+
+                                                if (confirm == true &&
+                                                    context.mounted) {
+                                                  final success = await context
+                                                      .read<
+                                                          TransactionProvider>()
+                                                      .deleteTransaction(
+                                                          user,
+                                                          _currentTransaction
+                                                              .voucherNo);
+                                                  if (success &&
+                                                      context.mounted) {
+                                                    context
+                                                        .read<
+                                                            DashboardProvider>()
+                                                        .setView(
+                                                            DashboardView.home);
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                            const SnackBar(
+                                                                content: Text(
+                                                                    'Transaction deleted')));
+                                                  } else if (context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      SnackBar(
+                                                        content: Text(context
+                                                                .read<
+                                                                    TransactionProvider>()
+                                                                .error ??
+                                                            'Failed to delete transaction'),
+                                                        backgroundColor:
+                                                            Colors.red,
+                                                      ),
+                                                    );
+                                                  }
+                                                }
+                                              },
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.red
+                                                      .withAlpha(0x15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                      color: Colors.red
+                                                          .withAlpha(0x40)),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                        LucideIcons.trash2,
+                                                        size: 14,
+                                                        color: Colors.red),
+                                                    const SizedBox(width: 8),
+                                                    Text("DELETE",
+                                                        style:
+                                                            GoogleFonts.inter(
+                                                                fontSize: 11,
+                                                                fontWeight:
+                                                                    FontWeight
+                                                                        .w800,
+                                                                color: Colors
+                                                                    .red)),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                          if (_currentTransaction.status ==
+                                                  TransactionStatus.approved &&
+                                              !user.isAdmin &&
+                                              localIsCreator)
+                                            InkWell(
+                                              onTap: () async {
+                                                final controller =
+                                                    TextEditingController();
+                                                final confirm =
+                                                    await showDialog<String>(
+                                                  context: context,
+                                                  builder: (context) =>
+                                                      AlertDialog(
+                                                    title: const Text(
+                                                        'Request Deletion'),
+                                                    content: Column(
+                                                      mainAxisSize:
+                                                          MainAxisSize.min,
+                                                      children: [
+                                                        const Text(
+                                                            'Please provide a reason for deleting this approved entry:'),
+                                                        const SizedBox(
+                                                            height: 12),
+                                                        TextField(
+                                                          controller:
+                                                              controller,
+                                                          decoration:
+                                                              const InputDecoration(
+                                                            hintText:
+                                                                'Reason for deletion...',
+                                                            border:
+                                                                OutlineInputBorder(),
+                                                          ),
+                                                          maxLines: 2,
+                                                        ),
+                                                      ],
+                                                    ),
+                                                    actions: [
+                                                      TextButton(
+                                                        onPressed: () =>
+                                                            Navigator.pop(
+                                                                context, null),
+                                                        child: const Text(
+                                                            'Cancel'),
+                                                      ),
+                                                      TextButton(
+                                                        onPressed: () {
+                                                          if (controller.text
+                                                              .trim()
+                                                              .isEmpty) {
+                                                            ScaffoldMessenger
+                                                                    .of(context)
+                                                                .showSnackBar(
+                                                              const SnackBar(
+                                                                  content: Text(
+                                                                      'Reason is required')),
+                                                            );
+                                                            return;
+                                                          }
+                                                          Navigator.pop(
+                                                              context,
+                                                              controller.text
+                                                                  .trim());
+                                                        },
+                                                        child: const Text(
+                                                            'Submit Request'),
+                                                      ),
+                                                    ],
+                                                  ),
+                                                );
+
+                                                if (confirm != null &&
+                                                    confirm.isNotEmpty &&
+                                                    context.mounted) {
+                                                  final success = await context
+                                                      .read<
+                                                          TransactionProvider>()
+                                                      .addMessage(
+                                                        voucherNo:
+                                                            _currentTransaction
+                                                                .voucherNo,
+                                                        entryId:
+                                                            _currentTransaction
+                                                                    .id ??
+                                                                '',
+                                                        userEmail: user.email,
+                                                        senderName: user.name,
+                                                        message:
+                                                            'Deletion Request: $confirm',
+                                                        action:
+                                                            'request_delete',
+                                                      );
+                                                  if (success &&
+                                                      context.mounted) {
+                                                    ScaffoldMessenger.of(
+                                                            context)
+                                                        .showSnackBar(
+                                                      const SnackBar(
+                                                          content: Text(
+                                                              'Deletion request submitted')),
+                                                    );
+                                                    context
+                                                        .read<
+                                                            TransactionProvider>()
+                                                        .fetchHistory(user,
+                                                            forceRefresh: true);
+                                                    context
+                                                        .read<
+                                                            DashboardProvider>()
+                                                        .setView(
+                                                            DashboardView.home);
+                                                  }
+                                                }
+                                              },
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                        horizontal: 12,
+                                                        vertical: 6),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(0xFFDD6B20)
+                                                      .withAlpha(0x15),
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                  border: Border.all(
+                                                      color: const Color(
+                                                              0xFFDD6B20)
+                                                          .withAlpha(0x40)),
+                                                ),
+                                                child: Row(
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
+                                                  children: [
+                                                    const Icon(
+                                                        LucideIcons.fileWarning,
+                                                        size: 14,
+                                                        color:
+                                                            Color(0xFFDD6B20)),
+                                                    const SizedBox(width: 8),
+                                                    Text("REQUEST DELETE",
+                                                        style: GoogleFonts.inter(
+                                                            fontSize: 11,
+                                                            fontWeight:
+                                                                FontWeight.w800,
+                                                            color: const Color(
+                                                                0xFFDD6B20))),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
                                         ],
                                       ),
                                     ),
@@ -1280,6 +1522,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
         return const Color(0xFF38A169); // Vibrant Green
       case TransactionStatus.rejected:
         return const Color(0xFFE53E3E); // Vibrant Red
+      case TransactionStatus.pendingDeletion:
+        return const Color(0xFFDD6B20); // Orange / Amber
       case TransactionStatus.clarification:
         return const Color(0xFFDD6B20); // Vibrant Orange
       case TransactionStatus.correction:

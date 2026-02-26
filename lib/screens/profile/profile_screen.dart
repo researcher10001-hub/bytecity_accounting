@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:lucide_icons/lucide_icons.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -60,15 +61,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 32),
                     _buildActionsSection(context, user),
                     const SizedBox(height: 48),
-                    Text(
-                      'BC Math v3.23',
-                      style: GoogleFonts.inter(
-                        color: const Color(0xFFA0AEC0),
-                        fontSize: 12,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
+                    FutureBuilder<PackageInfo>(
+                        future: PackageInfo.fromPlatform(),
+                        builder: (context, snapshot) {
+                          return Text(
+                            snapshot.hasData
+                                ? 'BC Math v${snapshot.data!.version}'
+                                : 'BC Math v...',
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFFA0AEC0),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          );
+                        }),
+                    const SizedBox(height: 24),
                   ],
                 ),
               ),

@@ -86,7 +86,8 @@ class ActionGrid extends StatelessWidget {
                       final pendingCount = txProvider.transactions.where((tx) {
                         return tx.status == TransactionStatus.pending ||
                             tx.status == TransactionStatus.clarification ||
-                            tx.status == TransactionStatus.underReview;
+                            tx.status == TransactionStatus.underReview ||
+                            tx.status == TransactionStatus.pendingDeletion;
                       }).length;
 
                       return _buildActionCard(

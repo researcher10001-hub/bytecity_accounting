@@ -1014,6 +1014,9 @@ class TransactionProvider with ChangeNotifier {
         case 'clarify':
           newStatus = TransactionStatus.clarification;
           break;
+        case 'request_delete':
+          newStatus = TransactionStatus.pendingDeletion;
+          break;
         case 'comment':
           // Status remains the same for comments
           break;
@@ -1145,9 +1148,10 @@ class TransactionProvider with ChangeNotifier {
             creatorRole: item['creator_role']?.toString() ?? 'Viewer',
             status: TransactionStatus.values.firstWhere(
               (e) =>
-                  e.toString().split('.').last ==
+                  e.toString().split('.').last.toLowerCase() ==
                   (item['approval_status'] ?? 'pending')
                       .toString()
+                      .replaceAll(' ', '')
                       .toLowerCase(),
               orElse: () => TransactionStatus.pending,
             ),

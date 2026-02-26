@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../providers/auth_provider.dart';
@@ -105,10 +106,17 @@ class _LoginScreenState extends State<LoginScreen> {
                 ),
 
                 const Spacer(),
-                Text(
-                  'v3.23 | © BC Math',
-                  style: GoogleFonts.inter(color: Colors.white70, fontSize: 12),
-                ),
+                FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.hasData
+                            ? 'v${snapshot.data!.version} | © BC Math'
+                            : 'v... | © BC Math',
+                        style: GoogleFonts.inter(
+                            color: Colors.white70, fontSize: 12),
+                      );
+                    }),
               ],
             ),
           ),
@@ -307,10 +315,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
               const SizedBox(height: 32),
               Center(
-                child: Text(
-                  'v3.23 | © BC Math',
-                  style: TextStyle(color: Colors.grey[400]),
-                ),
+                child: FutureBuilder<PackageInfo>(
+                    future: PackageInfo.fromPlatform(),
+                    builder: (context, snapshot) {
+                      return Text(
+                        snapshot.hasData
+                            ? 'v${snapshot.data!.version} | © BC Math'
+                            : 'v... | © BC Math',
+                        style: TextStyle(color: Colors.grey[400]),
+                      );
+                    }),
               ),
             ],
           ),

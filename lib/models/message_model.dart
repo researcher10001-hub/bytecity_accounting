@@ -125,6 +125,7 @@ class MessageThread {
   /// Determine message status from transaction status
   static MessageStatus getStatusFromTransaction(TransactionStatus txStatus) {
     switch (txStatus) {
+      case TransactionStatus.pendingDeletion:
       case TransactionStatus.pending:
         return MessageStatus.pending;
       case TransactionStatus.clarification:

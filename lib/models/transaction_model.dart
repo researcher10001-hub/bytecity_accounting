@@ -10,6 +10,7 @@ enum TransactionStatus {
   clarification,
   underReview,
   deleted,
+  pendingDeletion,
 }
 
 class ApprovalMessage {
@@ -51,7 +52,12 @@ class ApprovalMessage {
       message: json['message'] ?? '',
       timestamp: DateTime.tryParse(json['timestamp'] ?? '') ?? DateTime.now(),
       resultingStatus: TransactionStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['resulting_status'],
+        (e) =>
+            e.toString().split('.').last.toLowerCase() ==
+            json['resulting_status']
+                ?.toString()
+                .replaceAll(' ', '')
+                .toLowerCase(),
         orElse: () => TransactionStatus.pending,
       ),
       actionType: json['action_type'] ?? 'comment',
@@ -229,7 +235,12 @@ class TransactionModel {
       currency: json['currency'] ?? 'BDT',
       exchangeRate: (json['exchange_rate'] ?? 1.0).toDouble(),
       status: TransactionStatus.values.firstWhere(
-        (e) => e.toString().split('.').last == json['status'],
+        (e) =>
+            e.toString().split('.').last.toLowerCase() ==
+            (json['status'] ?? 'pending')
+                .toString()
+                .replaceAll(' ', '')
+                .toLowerCase(),
         orElse: () => TransactionStatus.pending,
       ),
       approvalLog: (json['approval_log'] as List<dynamic>?)

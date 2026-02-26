@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import '../../../../providers/auth_provider.dart';
 import '../../../../providers/dashboard_provider.dart';
@@ -285,12 +286,22 @@ class SideMenu extends StatelessWidget {
   }
 
   Widget _buildFooter() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-      child: Text(
-        'v3.23 | BC Math',
-        style: GoogleFonts.inter(color: Colors.white54, fontSize: 11),
-      ),
+    return FutureBuilder<PackageInfo>(
+      future: PackageInfo.fromPlatform(),
+      builder: (context, snapshot) {
+        String versionText = 'v... | BC Math';
+        if (snapshot.hasData) {
+          versionText = 'v${snapshot.data!.version} | BC Math';
+        }
+
+        return Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+          child: Text(
+            versionText,
+            style: GoogleFonts.inter(color: Colors.white54, fontSize: 11),
+          ),
+        );
+      },
     );
   }
 }

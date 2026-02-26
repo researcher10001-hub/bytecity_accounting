@@ -134,6 +134,10 @@ function doPost(e) {
     return changePassword(e);
   }
 
+  if (action == 'get_app_settings') {
+    return getAppSettings(e);
+  }
+
 // --- CHANGE PASSWORD ---
 function changePassword(e) {
   try {
@@ -1617,6 +1621,7 @@ function addEntryMessage(e) {
      else if (action === 'clarify') newStatus = 'Clarification';
      else if (action === 'comment') newStatus = currentStatus; // No change
      else if (action === 'flag_review') newStatus = 'Under Review'; // NEW
+     else if (action === 'request_delete') newStatus = 'Pending Deletion'; // NEW
      else newStatus = 'Pending'; 
      
      // 3. Append Message
@@ -1686,11 +1691,21 @@ function deleteEntry(e) {
   try {
     const data = JSON.parse(e.postData.contents);
     const voucherNo = data.voucher_no;
+    const userEmail = data.user_email || '';
 
     if (!voucherNo) return errorResponse("Missing voucher_no");
 
     const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_ENTRIES);
     if (!sheet) return errorResponse("Entries sheet not found");
+    
+    // Check if user is Admin
+    let isAdmin = false;
+    const userSheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName(SHEET_USERS);
+    if (userSheet) {
+      const uRows = userSheet.getDataRange().getValues();
+      const uRow = uRows.find(r => r[1].toString().toLowerCase() === userEmail.toLowerCase());
+      if (uRow && uRow[3] === 'Admin') isAdmin = true;
+    }
 
     const rows = sheet.getDataRange().getValues();
     let count = 0;
@@ -1699,6 +1714,12 @@ function deleteEntry(e) {
     // Col 12 is Status (Index 11)
     for (let i = 1; i < rows.length; i++) {
        if (rows[i][2].toString() === voucherNo) {
+          // Check approval status first
+          const status = (rows[i].length > 11) ? rows[i][11] : 'Pending';
+          if (status === 'Approved' && !isAdmin) {
+             return errorResponse("Cannot delete an approved transaction directly. Please request deletion.");
+          }
+
           // Col 12 is Status (Index 11)
           sheet.getRange(i + 1, 12).setValue("Deleted");
           
@@ -1753,6 +1774,10 @@ function editEntry(e) {
      for (let i = 1; i < rows.length; i++) {
         if (rows[i][2].toString() === oldVoucherNo) {
              targetIndices.push(i + 1); // 1-based index
+             const status = (rows[i].length > 11) ? rows[i][11] : 'Pending';
+             if (status === 'Approved') {
+                  return errorResponse("Cannot edit an approved transaction.");
+             }
              
              // Capture Log (from first row found)
              if (oldLog.length === 0 && rows[i].length > 12) {
@@ -1776,23 +1801,12 @@ function editEntry(e) {
      const snapshotStr = `Old Amount: Unknown (Multiple lines), Accounts: ${Array.from(oldSnapshot.accounts).join(', ')}`; 
      // Note: Amount logic is tricky with multi-line splits. Let's stick to Accounts for clarity.
 
-     // Log "Forward Link" to OLD Enty
-     const forwardLinkMsg = {
-         'sender_email': 'System',
-         'sender_name': 'System',
-         'sender_role': 'System',
-         'message': `Replaced by corrected version. New details will follow in new entry. Status: Deleted.`,
-         'timestamp': new Date().toISOString(),
-         'resulting_status': 'Deleted',
-         'action_type': 'forward_link'
-     };
-     oldLog.push(forwardLinkMsg);
-     const forwardLinkLogJson = JSON.stringify(oldLog);
-
-     // Mark OLD Rows as Deleted
-     for (let rowNum of targetIndices) {
-         sheet.getRange(rowNum, 12).setValue("Deleted");
-         sheet.getRange(rowNum, 13).setValue(forwardLinkLogJson); // Update log with forward link
+     // 1. HARD DELETE Old Rows
+     // Delete from bottom to top to avoid index shifting
+     if (targetIndices.length > 0) {
+       for (let i = targetIndices.length - 1; i >= 0; i--) {
+           sheet.deleteRow(targetIndices[i]);
+       }
      }
 
      // 2. Append New Rows
@@ -2515,6 +2529,38 @@ function updateSettings(e) {
     return successResponse({'message': 'Settings updated successfully'});
   } catch (err) {
     return errorResponse("Server error: " + err.toString());
+  }
+}
+
+// --- SETTINGS MANAGEMENT (APP FORCE UPDATE) ---
+function getAppSettings(e) {
+  try {
+    const sheet = SpreadsheetApp.getActiveSpreadsheet().getSheetByName("Settings");
+    if (!sheet) {
+      return errorResponse("Settings sheet not found.");
+    }
+
+    const data = sheet.getDataRange().getValues();
+    const settings = {};
+
+    // Standardize parsing the key-value pairs from Col A and Col B
+    for (let i = 0; i < data.length; i++) {
+        let key = (data[i][0] || "").toString().trim();
+        let value = data[i][1];
+
+        if (key) {
+            settings[key] = value;
+        }
+    }
+
+    return successResponse({
+      'latest_android_version': settings['latest_android_version'] || "",
+      'force_update_required': settings['force_update_required'] === true || settings['force_update_required'] === 'TRUE',
+      'apk_download_link': settings['apk_download_link'] || ""
+    });
+
+  } catch(err) {
+     return errorResponse("Server error: " + err.toString());
   }
 }
 

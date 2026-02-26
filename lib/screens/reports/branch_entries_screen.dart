@@ -167,6 +167,7 @@ class _BranchEntriesScreenState extends State<BranchEntriesScreen> {
     switch (status) {
       case TransactionStatus.approved:
         return Colors.green;
+      case TransactionStatus.pendingDeletion:
       case TransactionStatus.pending:
         return Colors.orange;
       case TransactionStatus.rejected:
