@@ -55,6 +55,17 @@ class TransactionProvider with ChangeNotifier {
   bool _isEditing = false;
   String? _editingOldVoucherNo;
 
+  // Search Screen State
+  String _searchQuery = '';
+  String get searchQuery => _searchQuery;
+
+  void setSearchQuery(String query) {
+    if (_searchQuery != query) {
+      _searchQuery = query;
+      notifyListeners();
+    }
+  }
+
   // Loading State
   bool _isLoading = false;
   String? _error;

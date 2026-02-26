@@ -19,7 +19,6 @@ class SearchVoucherScreen extends StatefulWidget {
 
 class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
   final _searchController = TextEditingController();
-  String _searchQuery = '';
 
   @override
   void initState() {
@@ -27,6 +26,12 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       // Fetch users to know roles for filtering
       context.read<UserProvider>().fetchUsers();
+
+      // Initialize controller with preserved query
+      final provider = context.read<TransactionProvider>();
+      if (provider.searchQuery.isNotEmpty) {
+        _searchController.text = provider.searchQuery;
+      }
     });
   }
 
@@ -77,6 +82,8 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
         return false;
       }).toList();
     }
+
+    final String _searchQuery = transactionProvider.searchQuery;
 
     // 2. Filter by Search Query
     final List<TransactionModel> filteredTransactions = _searchQuery.isEmpty
@@ -151,9 +158,8 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
             child: TextField(
               controller: _searchController,
               onChanged: (value) {
-                setState(() {
-                  _searchQuery = value;
-                });
+                // Remove setState
+                context.read<TransactionProvider>().setSearchQuery(value);
               },
               decoration: InputDecoration(
                 hintText: 'Search by voucher no or comment...',
@@ -162,14 +168,14 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
                   color: Colors.grey[400],
                 ),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
-                suffixIcon: _searchQuery.isNotEmpty
+                suffixIcon: transactionProvider.searchQuery.isNotEmpty
                     ? IconButton(
                         icon: const Icon(Icons.clear, color: Colors.grey),
                         onPressed: () {
                           _searchController.clear();
-                          setState(() {
-                            _searchQuery = '';
-                          });
+                          context
+                              .read<TransactionProvider>()
+                              .setSearchQuery('');
                         },
                       )
                     : null,
