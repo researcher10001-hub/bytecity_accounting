@@ -122,7 +122,7 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
               final statusMatch = tx.status == TransactionStatus.approved;
               final syncMatch =
                   tx.erpSyncStatus.trim().toLowerCase() == 'none' ||
-                  tx.erpSyncStatus.trim().isEmpty;
+                      tx.erpSyncStatus.trim().isEmpty;
               return statusMatch && syncMatch;
             }).toList();
 
@@ -269,9 +269,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
                         color: Colors.grey.shade400,
                         letterSpacing: 0.5,
                         fontWeight: FontWeight.w500,
-                        decoration: isRemoved
-                            ? TextDecoration.lineThrough
-                            : null,
+                        decoration:
+                            isRemoved ? TextDecoration.lineThrough : null,
                       ),
                     ),
                   ],
@@ -314,9 +313,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF1E293B),
-                              decoration: isRemoved
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                              decoration:
+                                  isRemoved ? TextDecoration.lineThrough : null,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -329,9 +327,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
                             color: isRemoved
                                 ? Colors.grey.shade500
                                 : const Color(0xFF16A34A),
-                            decoration: isRemoved
-                                ? TextDecoration.lineThrough
-                                : null,
+                            decoration:
+                                isRemoved ? TextDecoration.lineThrough : null,
                           ),
                         ),
                       ],
@@ -376,9 +373,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
                               fontSize: 12,
                               fontWeight: FontWeight.w600,
                               color: const Color(0xFF1E293B),
-                              decoration: isRemoved
-                                  ? TextDecoration.lineThrough
-                                  : null,
+                              decoration:
+                                  isRemoved ? TextDecoration.lineThrough : null,
                             ),
                             overflow: TextOverflow.ellipsis,
                           ),
@@ -391,9 +387,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
                             color: isRemoved
                                 ? Colors.grey.shade500
                                 : const Color(0xFFDC2626),
-                            decoration: isRemoved
-                                ? TextDecoration.lineThrough
-                                : null,
+                            decoration:
+                                isRemoved ? TextDecoration.lineThrough : null,
                           ),
                         ),
                       ],
@@ -538,9 +533,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
                 Icon(
                   icon,
                   size: 14,
-                  color: isPrimary
-                      ? Colors.white
-                      : color.withValues(alpha: 0.8),
+                  color:
+                      isPrimary ? Colors.white : color.withValues(alpha: 0.8),
                 ),
               if (!isLoading) const SizedBox(width: 6),
               if (isLoading)
@@ -558,9 +552,8 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
                 style: GoogleFonts.outfit(
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
-                  color: isPrimary
-                      ? Colors.white
-                      : color.withValues(alpha: 0.8),
+                  color:
+                      isPrimary ? Colors.white : color.withValues(alpha: 0.8),
                   letterSpacing: 0.2,
                 ),
               ),
@@ -582,9 +575,9 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
 
     try {
       await context.read<TransactionProvider>().fetchHistory(
-        user,
-        forceRefresh: true,
-      );
+            user,
+            forceRefresh: true,
+          );
     } finally {
       if (mounted) {
         setState(() => _isProcessing = false);
@@ -611,9 +604,9 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
 
     try {
       final success = await context.read<TransactionProvider>().syncToERPNext(
-        voucherNo: tx.voucherNo,
-        isManual: false,
-      );
+            voucherNo: tx.voucherNo,
+            isManual: false,
+          );
 
       if (mounted) {
         if (success) {
@@ -740,6 +733,7 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
     );
 
     if (result != null) {
+      if (!mounted) return;
       // User confirmed
       setState(() => _isProcessing = true);
 
@@ -761,12 +755,12 @@ class _ERPSyncQueueScreenState extends State<ERPSyncQueueScreen>
 
       try {
         final success = await context.read<TransactionProvider>().syncToERPNext(
-          voucherNo: tx.voucherNo,
-          isManual: true,
-          erpDocumentId: documentId,
-        );
+              voucherNo: tx.voucherNo,
+              isManual: true,
+              erpDocumentId: documentId,
+            );
 
-        if (mounted) {
+        if (mounted && context.mounted) {
           if (success) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(

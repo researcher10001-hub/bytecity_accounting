@@ -82,33 +82,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _initialFetch(User user) async {
     final accountProvider = context.read<AccountProvider>();
+    final transactionProvider = context.read<TransactionProvider>();
+    final branchProvider = context.read<BranchProvider>();
+    final userProvider = context.read<UserProvider>();
+    final notificationProvider = context.read<NotificationProvider>();
+
     // Stale-while-revalidate: Load from cache (already done in constructor), then fetch fresh silently
     await accountProvider.fetchAccounts(
       user,
       forceRefresh: true,
       skipLoading: true,
     );
-    await context.read<TransactionProvider>().fetchHistory(
-          user,
-          accountProvider: accountProvider,
-          forceRefresh: true,
-          skipLoading: true,
-        );
+    await transactionProvider.fetchHistory(
+      user,
+      accountProvider: accountProvider,
+      forceRefresh: true,
+      skipLoading: true,
+    );
 
-    if (context.mounted) {
-      // OPTIMIZATION: Removed client-side balance calculation
-      // context.read<AccountProvider>().updateBalancesFromTransactions(
-      //   context.read<TransactionProvider>().transactions,
-      // );
-
-      context.read<BranchProvider>().fetchBranches(user); // Pre-fetch branches
-      context.read<UserProvider>().fetchUsers(); // Pre-fetch users
-      context.read<NotificationProvider>().refreshNotifications(
-            user,
-            context.read<TransactionProvider>(),
-            context.read<UserProvider>(),
-            accountProvider: context.read<AccountProvider>(),
-          );
+    if (mounted) {
+      branchProvider.fetchBranches(user); // Pre-fetch branches
+      userProvider.fetchUsers(); // Pre-fetch users
+      notificationProvider.refreshNotifications(
+        user,
+        transactionProvider,
+        userProvider,
+        accountProvider: accountProvider,
+      );
     }
   }
 
@@ -629,27 +629,35 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       child: FloatingActionButton(
         onPressed: () async {
-          final user = context.read<AuthProvider>().user;
+          final authProvider = context.read<AuthProvider>();
+          final accountProvider = context.read<AccountProvider>();
+          final transactionProvider = context.read<TransactionProvider>();
+          final notificationProvider = context.read<NotificationProvider>();
+          final userProvider = context.read<UserProvider>();
+
+          final user = authProvider.user;
           if (user == null) return;
+
           await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => const TransactionEntryScreen(),
             ),
           );
-          if (mounted && context.mounted) {
-            await context.read<AccountProvider>().fetchAccounts(user);
-            await context.read<TransactionProvider>().fetchHistory(
-                  user,
-                  forceRefresh: true,
-                );
-            if (context.mounted) {
-              context.read<NotificationProvider>().refreshNotifications(
-                    user,
-                    context.read<TransactionProvider>(),
-                    context.read<UserProvider>(),
-                    accountProvider: context.read<AccountProvider>(),
-                  );
+
+          if (mounted) {
+            await accountProvider.fetchAccounts(user);
+            await transactionProvider.fetchHistory(
+              user,
+              forceRefresh: true,
+            );
+            if (mounted) {
+              notificationProvider.refreshNotifications(
+                user,
+                transactionProvider,
+                userProvider,
+                accountProvider: accountProvider,
+              );
             }
           }
         },

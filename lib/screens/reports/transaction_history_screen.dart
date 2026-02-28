@@ -1,3 +1,4 @@
+// ignore_for_file: deprecated_member_use
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
@@ -27,13 +28,12 @@ class TransactionHistoryScreen extends StatefulWidget {
 }
 
 class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
-    with SingleTickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+    with AutomaticKeepAliveClientMixin {
   DateTimeRange? _dateRange;
   String _selectedViewFilter = 'My History';
   bool _sortDateAscending = false;
   bool _sortCreationAscending = false;
-
-  late TabController _tabController;
+  bool _showRemoved = false;
 
   @override
   bool get wantKeepAlive => true;
@@ -54,18 +54,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
     _selectedViewFilter = txProvider.historyViewFilter;
     _sortDateAscending = txProvider.historySortDateAscending;
     _sortCreationAscending = txProvider.historySortCreationAscending;
-
-    _tabController = TabController(
-      length: 2,
-      vsync: this,
-      initialIndex: txProvider.historyTabIndex,
-    );
-    _tabController.addListener(() {
-      if (!_tabController.indexIsChanging) {
-        txProvider.setHistoryFilters(tabIndex: _tabController.index);
-        setState(() {}); // Rebuild to update tab colors
-      }
-    });
+    _showRemoved = txProvider.historyTabIndex == 1;
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final user = context.read<AuthProvider>().user;
@@ -77,11 +66,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
     });
   }
 
-  @override
-  void dispose() {
-    _tabController.dispose();
-    super.dispose();
-  }
+  // No explicit dispose needed since tabController is gone
 
   @override
   Widget build(BuildContext context) {
@@ -167,10 +152,10 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
     // that if I deleted/edited a transaction (even if I didn't create the original),
     // I can still see it in the Removed tab.
     // However, for now, let's keep it simple and debug the visibility.
-    print(
+    debugPrint(
       "DEBUG: History Screen - Total Visibile (Role): ${roleBasedList.length}",
     );
-    print(
+    debugPrint(
       "DEBUG: History Screen - Total My History: ${allTransactions.length}",
     );
 
@@ -225,14 +210,14 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
       }
 
       if (isVisible) {
-        print(
+        debugPrint(
           "DEBUG: Showing Removed TX: ${tx.voucherNo} (Creator: $isCreator, Deleter: $isDeleter, Owner: $isOwnedAccount)",
         );
       }
       return isVisible;
     }).toList();
 
-    print(
+    debugPrint(
       "DEBUG: Active Count: ${activeTransactions.length}, Removed Count: ${removedTransactions.length}",
     );
 
@@ -265,10 +250,17 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
 
     return Scaffold(
       appBar: AppBar(
-        title: Column(
-          mainAxisSize: MainAxisSize.min,
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.start,
+        leading: IconButton(
+          icon: const Icon(LucideIcons.arrowLeft, color: Color(0xFF1E293B)),
+          onPressed: () {
+            if (Navigator.canPop(context)) {
+              Navigator.pop(context);
+            } else {
+              context.read<DashboardProvider>().setView(DashboardView.home);
+            }
+          },
+        ),
+        title: Row(
           children: [
             Text(
               'History',
@@ -278,206 +270,208 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                 color: const Color(0xFF1E293B),
               ),
             ),
-            if (_dateRange != null)
-              Text(
-                _dateRange!.start == _dateRange!.end
-                    ? DateFormat('dd MMM yyyy').format(_dateRange!.start)
-                    : '${DateFormat('dd MMM yyyy').format(_dateRange!.start)} - ${DateFormat('dd MMM yyyy').format(_dateRange!.end)}',
-                style: GoogleFonts.inter(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: const Color(0xFF64748B),
+            if (_dateRange != null) ...[
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  _dateRange!.start == _dateRange!.end
+                      ? '(${DateFormat('dd MMM, yy').format(_dateRange!.start)})'
+                      : '(${DateFormat('dd MMM, yy').format(_dateRange!.start)} - ${DateFormat('dd MMM, yy').format(_dateRange!.end)})',
+                  style: GoogleFonts.inter(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: const Color(0xFF64748B),
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
+            ],
           ],
         ),
         backgroundColor: Colors.white,
         foregroundColor: const Color(0xFF1E293B),
         elevation: 0,
-        actions: [
-          PopupMenuButton<String>(
-            tooltip: 'View Filter',
-            child: Center(
-              child: Container(
-                height: 32,
-                margin: const EdgeInsets.only(right: 8),
-                padding: const EdgeInsets.symmetric(horizontal: 10),
-                decoration: BoxDecoration(
-                  color: const Color(0xFFF1F5F9),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: const Color(0xFFE2E8F0)),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(
-                      activeFilter == 'My History'
-                          ? LucideIcons.user
-                          : activeFilter == 'Owned Accounts'
-                              ? LucideIcons.briefcase
-                              : activeFilter == 'My Branch'
-                                  ? LucideIcons.building
-                                  : activeFilter == 'All Branches'
-                                      ? LucideIcons.globe
-                                      : LucideIcons.mapPin,
-                      size: 14,
-                      color: const Color(0xFF2563EB),
-                    ),
-                    const SizedBox(width: 6),
-                    Text(
-                      activeFilter,
-                      style: GoogleFonts.inter(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w600,
-                        color: const Color(0xFF475569),
-                      ),
-                    ),
-                    const SizedBox(width: 4),
-                    const Icon(LucideIcons.chevronDown,
-                        size: 14, color: Color(0xFF64748B)),
-                  ],
-                ),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            decoration: const BoxDecoration(
+              border: Border(
+                bottom: BorderSide(color: Color(0xFFF1F5F9), width: 1),
               ),
             ),
-            onSelected: (String newValue) {
-              setState(() {
-                _selectedViewFilter = newValue;
-              });
-              context
-                  .read<TransactionProvider>()
-                  .setHistoryFilters(viewFilter: newValue);
-            },
-            itemBuilder: (BuildContext context) {
-              return viewFilterOptions.map((String option) {
-                IconData iconData = LucideIcons.globe;
-                if (option == 'My History') {
-                  iconData = LucideIcons.user;
-                } else if (option == 'Owned Accounts') {
-                  iconData = LucideIcons.briefcase;
-                } else if (option == 'My Branch') {
-                  iconData = LucideIcons.building;
-                } else if (option != 'All Branches') {
-                  iconData = LucideIcons.mapPin;
-                }
-
-                return PopupMenuItem<String>(
-                  value: option,
-                  child: Row(
-                    children: [
-                      Icon(
-                        iconData,
-                        size: 16,
-                        color: activeFilter == option
-                            ? const Color(0xFF2563EB)
-                            : const Color(0xFF64748B),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        option,
-                        style: GoogleFonts.inter(
-                          fontSize: 11,
-                          fontWeight: activeFilter == option
-                              ? FontWeight.w600
-                              : FontWeight.w500,
-                          color: activeFilter == option
-                              ? const Color(0xFF2563EB)
-                              : const Color(0xFF475569),
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList();
-            },
-          ),
-          IconButton(
-            tooltip: 'Sort List',
-            icon: const Icon(LucideIcons.listFilter, color: Color(0xFF2563EB)),
-            onPressed: () => _showSortFilterDialog(context),
-          ),
-          IconButton(
-            icon: Icon(
-              LucideIcons.calendar,
-              size: 20,
-              color: _dateRange != null
-                  ? const Color(0xFF2563EB)
-                  : const Color(0xFF64748B),
-            ),
-            tooltip: 'Date Filter',
-            onPressed: () => _showDateFilterDialog(context),
-          ),
-          IconButton(
-            icon: const Icon(LucideIcons.refreshCw, size: 20),
-            tooltip: 'Refresh',
-            onPressed: () {
-              final accountProvider = context.read<AccountProvider>();
-              provider.fetchHistory(
-                user,
-                forceRefresh: true,
-                accountProvider: accountProvider,
-              );
-            },
-          ),
-          const SizedBox(width: 8),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          labelColor: const Color(0xFF2563EB),
-          unselectedLabelColor: const Color(0xFF64748B),
-          indicatorSize: TabBarIndicatorSize.tab,
-          labelStyle: GoogleFonts.inter(
-            fontWeight: FontWeight.w600,
-            fontSize: 12, // Made text smaller
-          ),
-          tabs: [
-            const Tab(text: 'Active'),
-            Tab(
-              child: Builder(
-                builder: (context) {
-                  final int tabIndex = _tabController.index;
-                  final bool isSelected = tabIndex == 1;
-                  return Text(
-                    'Removed',
-                    style: TextStyle(
-                      color: isSelected
-                          ? const Color(0xFFEF4444)
-                          : const Color(0xFF64748B),
-                    ),
-                  );
-                },
-              ),
-            ),
-          ],
-        ),
-      ),
-      backgroundColor: const Color(0xFFF8FAFC),
-      body: Column(
-        children: [
-          // Date Filter removed from here, now in AppBar via dialog
-          const Divider(height: 1, color: Color(0xFFF1F5F9)),
-
-          // TabBar View
-          Expanded(
-            child: TabBarView(
-              controller: _tabController,
+            child: Row(
               children: [
-                _buildTransactionList(
-                  activeTransactions,
-                  userProvider,
-                  user,
-                  provider.isLoading,
+                PopupMenuButton<String>(
+                  tooltip: 'View Filter',
+                  child: Container(
+                    height: 32,
+                    padding: const EdgeInsets.symmetric(horizontal: 10),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFFF1F5F9),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0xFFE2E8F0)),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          activeFilter == 'My History'
+                              ? LucideIcons.user
+                              : activeFilter == 'Owned Accounts'
+                                  ? LucideIcons.briefcase
+                                  : activeFilter == 'My Branch'
+                                      ? LucideIcons.building
+                                      : activeFilter == 'All Branches'
+                                          ? LucideIcons.globe
+                                          : LucideIcons.mapPin,
+                          size: 14,
+                          color: const Color(0xFF2563EB),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          activeFilter,
+                          style: GoogleFonts.inter(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: const Color(0xFF475569),
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Icon(
+                          LucideIcons.chevronDown,
+                          size: 14,
+                          color: Color(0xFF64748B),
+                        ),
+                      ],
+                    ),
+                  ),
+                  onSelected: (String newValue) {
+                    setState(() {
+                      _selectedViewFilter = newValue;
+                    });
+                    context.read<TransactionProvider>().setHistoryFilters(
+                          viewFilter: newValue,
+                        );
+                  },
+                  itemBuilder: (context) {
+                    return viewFilterOptions.map((String option) {
+                      IconData iconData = LucideIcons.globe;
+                      if (option == 'My History') {
+                        iconData = LucideIcons.user;
+                      } else if (option == 'Owned Accounts') {
+                        iconData = LucideIcons.briefcase;
+                      } else if (option == 'My Branch') {
+                        iconData = LucideIcons.building;
+                      } else if (option != 'All Branches') {
+                        iconData = LucideIcons.mapPin;
+                      }
+
+                      return PopupMenuItem<String>(
+                        value: option,
+                        child: Row(
+                          children: [
+                            Icon(
+                              iconData,
+                              size: 16,
+                              color: activeFilter == option
+                                  ? const Color(0xFF2563EB)
+                                  : const Color(0xFF64748B),
+                            ),
+                            const SizedBox(width: 8),
+                            Text(
+                              option,
+                              style: GoogleFonts.inter(
+                                fontSize: 11,
+                                fontWeight: activeFilter == option
+                                    ? FontWeight.w600
+                                    : FontWeight.w500,
+                                color: activeFilter == option
+                                    ? const Color(0xFF2563EB)
+                                    : const Color(0xFF475569),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList();
+                  },
                 ),
-                _buildTransactionList(
-                  removedTransactions,
-                  userProvider,
-                  user,
-                  provider.isLoading,
-                  isRemoved: true,
+                const Spacer(),
+                IconButton(
+                  tooltip: 'Sort List',
+                  constraints: const BoxConstraints(),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  icon: const Icon(
+                    LucideIcons.listFilter,
+                    size: 20,
+                    color: Color(0xFF2563EB),
+                  ),
+                  onPressed: () => _showSortFilterDialog(context),
+                ),
+                IconButton(
+                  tooltip: 'Date Filter',
+                  constraints: const BoxConstraints(),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  icon: Icon(
+                    LucideIcons.calendar,
+                    size: 20,
+                    color: _dateRange != null
+                        ? const Color(0xFF2563EB)
+                        : const Color(0xFF64748B),
+                  ),
+                  onPressed: () => _showDateFilterDialog(context),
+                ),
+                IconButton(
+                  tooltip: 'Removed Entries',
+                  constraints: const BoxConstraints(),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  icon: Icon(
+                    LucideIcons.trash2,
+                    size: 20,
+                    color: _showRemoved
+                        ? const Color(0xFFEF4444)
+                        : const Color(0xFF64748B),
+                  ),
+                  onPressed: () {
+                    setState(() {
+                      _showRemoved = !_showRemoved;
+                    });
+                    context.read<TransactionProvider>().setHistoryFilters(
+                          tabIndex: _showRemoved ? 1 : 0,
+                        );
+                  },
+                ),
+                IconButton(
+                  tooltip: 'Refresh',
+                  constraints: const BoxConstraints(),
+                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                  icon: const Icon(
+                    LucideIcons.refreshCw,
+                    size: 20,
+                    color: Color(0xFF64748B),
+                  ),
+                  onPressed: () {
+                    final accountProvider = context.read<AccountProvider>();
+                    provider.fetchHistory(
+                      user,
+                      forceRefresh: true,
+                      accountProvider: accountProvider,
+                    );
+                  },
                 ),
               ],
             ),
           ),
-        ],
+        ),
+      ),
+      backgroundColor: const Color(0xFFF8FAFC),
+      body: _buildTransactionList(
+        _showRemoved ? removedTransactions : activeTransactions,
+        userProvider,
+        user,
+        provider.isLoading,
+        isRemoved: _showRemoved,
       ),
     );
   }
@@ -1003,8 +997,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                         Container(
                           padding: const EdgeInsets.all(10),
                           decoration: BoxDecoration(
-                            color:
-                                const Color(0xFF2563EB).withValues(alpha: 0.1),
+                            color: const Color(
+                              0xFF2563EB,
+                            ).withValues(alpha: 0.1),
                             shape: BoxShape.circle,
                           ),
                           child: const Icon(
@@ -1130,8 +1125,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                               },
                               style: TextButton.styleFrom(
                                 foregroundColor: const Color(0xFFEF4444),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -1139,7 +1135,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                               child: Text(
                                 'Clear',
                                 style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           )
@@ -1149,8 +1146,9 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                               onPressed: () => Navigator.pop(dialogContext),
                               style: TextButton.styleFrom(
                                 foregroundColor: const Color(0xFF64748B),
-                                padding:
-                                    const EdgeInsets.symmetric(vertical: 14),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
                                 ),
@@ -1158,7 +1156,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                               child: Text(
                                 'Cancel',
                                 style: GoogleFonts.inter(
-                                    fontWeight: FontWeight.w600),
+                                  fontWeight: FontWeight.w600,
+                                ),
                               ),
                             ),
                           ),
@@ -1226,7 +1225,7 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                       color: Colors.black.withValues(alpha: 0.03),
                       blurRadius: 4,
                       offset: const Offset(0, 2),
-                    )
+                    ),
                   ]
                 : null,
           ),
@@ -1442,7 +1441,8 @@ class _TransactionHistoryScreenState extends State<TransactionHistoryScreen>
                   child: buildSortOptions(setModalState),
                 ),
                 shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16)),
+                  borderRadius: BorderRadius.circular(16),
+                ),
               );
             },
           );

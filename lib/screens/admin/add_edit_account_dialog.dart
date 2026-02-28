@@ -343,6 +343,8 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                               ),
                               child: InkWell(
                                 onTap: () {
+                                  final provider =
+                                      context.read<SubCategoryProvider>();
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
@@ -351,9 +353,7 @@ class _AddEditAccountDialogState extends State<AddEditAccountDialog> {
                                     ),
                                   ).then((_) {
                                     // Refresh on return
-                                    context
-                                        .read<SubCategoryProvider>()
-                                        .fetchSubCategories();
+                                    provider.fetchSubCategories();
                                   });
                                 },
                                 child: Text(

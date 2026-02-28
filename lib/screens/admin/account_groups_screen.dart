@@ -330,176 +330,170 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                               .length;
 
                           return Container(
-                                margin: const EdgeInsets.only(bottom: 16),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(20),
-                                  border: Border.all(
-                                    color: const Color(0xFFE2E8F0),
+                            margin: const EdgeInsets.only(bottom: 16),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(
+                                color: const Color(0xFFE2E8F0),
+                              ),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withValues(
+                                    alpha: 0.02,
                                   ),
-                                  boxShadow: [
-                                    BoxShadow(
-                                      color: Colors.black.withValues(
-                                        alpha: 0.02,
-                                      ),
-                                      blurRadius: 10,
-                                      offset: const Offset(0, 4),
-                                    ),
-                                  ],
+                                  blurRadius: 10,
+                                  offset: const Offset(0, 4),
                                 ),
-                                child: InkWell(
-                                  onTap: () =>
-                                      _showLinkedAccounts(context, group),
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Padding(
-                                    padding: const EdgeInsets.all(16),
-                                    child: Row(
-                                      children: [
-                                        Container(
-                                          width: 52,
-                                          height: 52,
-                                          decoration: BoxDecoration(
-                                            color: const Color(
-                                              0xFFE91E63,
-                                            ).withValues(alpha: 0.08),
-                                            borderRadius: BorderRadius.circular(
-                                              14,
-                                            ),
-                                          ),
-                                          child: const Icon(
-                                            LucideIcons.package,
-                                            color: Color(0xFFE91E63),
-                                            size: 24,
-                                          ),
+                              ],
+                            ),
+                            child: InkWell(
+                              onTap: () => _showLinkedAccounts(context, group),
+                              borderRadius: BorderRadius.circular(20),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  children: [
+                                    Container(
+                                      width: 52,
+                                      height: 52,
+                                      decoration: BoxDecoration(
+                                        color: const Color(
+                                          0xFFE91E63,
+                                        ).withValues(alpha: 0.08),
+                                        borderRadius: BorderRadius.circular(
+                                          14,
                                         ),
-                                        const SizedBox(width: 16),
-                                        Expanded(
-                                          child: Column(
-                                            crossAxisAlignment:
-                                                CrossAxisAlignment.start,
+                                      ),
+                                      child: const Icon(
+                                        LucideIcons.package,
+                                        color: Color(0xFFE91E63),
+                                        size: 24,
+                                      ),
+                                    ),
+                                    const SizedBox(width: 16),
+                                    Expanded(
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
                                             children: [
-                                              Row(
-                                                children: [
-                                                  Flexible(
-                                                    child: Text(
-                                                      group.name,
-                                                      style: GoogleFonts.inter(
-                                                        fontWeight:
-                                                            FontWeight.w700,
-                                                        fontSize: 16,
-                                                        color: const Color(
-                                                          0xFF1E293B,
-                                                        ),
-                                                      ),
-                                                      maxLines: 1,
-                                                      overflow:
-                                                          TextOverflow.ellipsis,
-                                                    ),
-                                                  ),
-                                                  const SizedBox(width: 8),
-                                                  Container(
-                                                    padding:
-                                                        const EdgeInsets.symmetric(
-                                                          horizontal: 8,
-                                                          vertical: 2,
-                                                        ),
-                                                    decoration: BoxDecoration(
-                                                      color: const Color(
-                                                        0xFFF1F5F9,
-                                                      ),
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                            6,
-                                                          ),
-                                                    ),
-                                                    child: Text(
-                                                      '$accountCount',
-                                                      style: GoogleFonts.inter(
-                                                        fontSize: 11,
-                                                        fontWeight:
-                                                            FontWeight.w600,
-                                                        color: const Color(
-                                                          0xFF64748B,
-                                                        ),
-                                                      ),
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                              if (group
-                                                  .description
-                                                  .isNotEmpty) ...[
-                                                const SizedBox(height: 4),
-                                                Text(
-                                                  group.description,
+                                              Flexible(
+                                                child: Text(
+                                                  group.name,
                                                   style: GoogleFonts.inter(
-                                                    fontSize: 13,
+                                                    fontWeight: FontWeight.w700,
+                                                    fontSize: 16,
                                                     color: const Color(
-                                                      0xFF64748B,
+                                                      0xFF1E293B,
                                                     ),
                                                   ),
                                                   maxLines: 1,
                                                   overflow:
                                                       TextOverflow.ellipsis,
                                                 ),
-                                              ],
+                                              ),
+                                              const SizedBox(width: 8),
+                                              Container(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
+                                                  horizontal: 8,
+                                                  vertical: 2,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: const Color(
+                                                    0xFFF1F5F9,
+                                                  ),
+                                                  borderRadius:
+                                                      BorderRadius.circular(
+                                                    6,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  '$accountCount',
+                                                  style: GoogleFonts.inter(
+                                                    fontSize: 11,
+                                                    fontWeight: FontWeight.w600,
+                                                    color: const Color(
+                                                      0xFF64748B,
+                                                    ),
+                                                  ),
+                                                ),
+                                              ),
                                             ],
                                           ),
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Row(
-                                          mainAxisSize: MainAxisSize.min,
-                                          children: [
-                                            Material(
-                                              color: Colors.transparent,
-                                              child: InkWell(
-                                                onTap: () => _showGroupDialog(
-                                                  context,
-                                                  group,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(
-                                                    8,
-                                                  ),
-                                                  child: const Icon(
-                                                    LucideIcons.edit2,
-                                                    color: Color(0xFF64748B),
-                                                    size: 18,
-                                                  ),
+                                          if (group.description.isNotEmpty) ...[
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              group.description,
+                                              style: GoogleFonts.inter(
+                                                fontSize: 13,
+                                                color: const Color(
+                                                  0xFF64748B,
                                                 ),
                                               ),
-                                            ),
-                                            const SizedBox(width: 4),
-                                            Material(
-                                              color: Colors.transparent,
-                                              child: InkWell(
-                                                onTap: () => _confirmDelete(
-                                                  context,
-                                                  group,
-                                                ),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                                child: Container(
-                                                  padding: const EdgeInsets.all(
-                                                    8,
-                                                  ),
-                                                  child: const Icon(
-                                                    LucideIcons.trash2,
-                                                    color: Color(0xFFF43F5E),
-                                                    size: 18,
-                                                  ),
-                                                ),
-                                              ),
+                                              maxLines: 1,
+                                              overflow: TextOverflow.ellipsis,
                                             ),
                                           ],
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(width: 8),
+                                    Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: () => _showGroupDialog(
+                                              context,
+                                              group,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(
+                                                8,
+                                              ),
+                                              child: const Icon(
+                                                LucideIcons.edit2,
+                                                color: Color(0xFF64748B),
+                                                size: 18,
+                                              ),
+                                            ),
+                                          ),
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Material(
+                                          color: Colors.transparent,
+                                          child: InkWell(
+                                            onTap: () => _confirmDelete(
+                                              context,
+                                              group,
+                                            ),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
+                                            child: Container(
+                                              padding: const EdgeInsets.all(
+                                                8,
+                                              ),
+                                              child: const Icon(
+                                                LucideIcons.trash2,
+                                                color: Color(0xFFF43F5E),
+                                                size: 18,
+                                              ),
+                                            ),
+                                          ),
                                         ),
                                       ],
                                     ),
-                                  ),
+                                  ],
                                 ),
-                              )
+                              ),
+                            ),
+                          )
                               .animate(delay: (index * 50).ms)
                               .fadeIn(duration: 400.ms)
                               .slideX(
@@ -514,25 +508,24 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
           );
         },
       ),
-      floatingActionButton:
-          FloatingActionButton.extended(
-            onPressed: () => _showGroupDialog(context, null),
-            backgroundColor: const Color(0xFFE91E63),
-            elevation: 4,
-            highlightElevation: 2,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-            ),
-            icon: const Icon(LucideIcons.plus, color: Colors.white, size: 20),
-            label: Text(
-              'New Group',
-              style: GoogleFonts.inter(
-                fontWeight: FontWeight.w700,
-                fontSize: 15,
-                color: Colors.white,
-              ),
-            ),
-          ).animate().scale(
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () => _showGroupDialog(context, null),
+        backgroundColor: const Color(0xFFE91E63),
+        elevation: 4,
+        highlightElevation: 2,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+        icon: const Icon(LucideIcons.plus, color: Colors.white, size: 20),
+        label: Text(
+          'New Group',
+          style: GoogleFonts.inter(
+            fontWeight: FontWeight.w700,
+            fontSize: 15,
+            color: Colors.white,
+          ),
+        ),
+      ).animate().scale(
             delay: 400.ms,
             curve: Curves.elasticOut,
             duration: 800.ms,
@@ -765,20 +758,20 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                                                 try {
                                                   final newGroups =
                                                       List<String>.from(
-                                                        acc.groupIds,
-                                                      )..remove(group.id);
+                                                    acc.groupIds,
+                                                  )..remove(group.id);
                                                   await accountProvider
                                                       .updateAccount(
-                                                        user,
-                                                        acc,
-                                                        acc.name,
-                                                        acc.type,
-                                                        newGroups,
-                                                        acc.owners,
-                                                        acc.defaultCurrency ??
-                                                            'BDT',
-                                                        acc.subCategory,
-                                                      );
+                                                    user,
+                                                    acc,
+                                                    acc.name,
+                                                    acc.type,
+                                                    newGroups,
+                                                    acc.owners,
+                                                    acc.defaultCurrency ??
+                                                        'BDT',
+                                                    acc.subCategory,
+                                                  );
                                                 } catch (e) {
                                                   debugPrint(
                                                     'Error removing account: $e',
@@ -885,10 +878,10 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                                   if (user == null) return;
                                   final created =
                                       await _showCreateAccountForGroup(
-                                        context,
-                                        group,
-                                        user,
-                                      );
+                                    context,
+                                    group,
+                                    user,
+                                  );
                                   if (created == true && context.mounted) {
                                     setState(() {});
                                   }
@@ -912,7 +905,14 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                     ],
                   ),
                 ),
-              ).animate().slideY(begin: 0.1, end: 0, curve: Curves.easeOutCubic, duration: 500.ms).fadeIn(),
+              )
+                  .animate()
+                  .slideY(
+                      begin: 0.1,
+                      end: 0,
+                      curve: Curves.easeOutCubic,
+                      duration: 500.ms)
+                  .fadeIn(),
             );
           },
         );
@@ -1004,15 +1004,14 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                                       if (index == 0) {
                                         final allSelected =
                                             filteredCandidates.isNotEmpty &&
-                                            filteredCandidates.every(
-                                              (e) =>
-                                                  selectedIds.contains(e.name),
-                                            );
-                                        final someSelected = filteredCandidates
-                                            .any(
-                                              (e) =>
-                                                  selectedIds.contains(e.name),
-                                            );
+                                                filteredCandidates.every(
+                                                  (e) => selectedIds
+                                                      .contains(e.name),
+                                                );
+                                        final someSelected =
+                                            filteredCandidates.any(
+                                          (e) => selectedIds.contains(e.name),
+                                        );
 
                                         return Column(
                                           children: [
@@ -1029,8 +1028,8 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                                               value: allSelected
                                                   ? true
                                                   : (someSelected
-                                                        ? null
-                                                        : false),
+                                                      ? null
+                                                      : false),
                                               tristate: true,
                                               onChanged: isAdding
                                                   ? null
@@ -1041,8 +1040,8 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
                                                               in filteredCandidates) {
                                                             if (!selectedIds
                                                                 .contains(
-                                                                  acc.name,
-                                                                )) {
+                                                              acc.name,
+                                                            )) {
                                                               selectedIds.add(
                                                                 acc.name,
                                                               );
@@ -1292,322 +1291,317 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
       context: context,
       barrierColor: Colors.black.withValues(alpha: 0.5),
       builder: (ctx) => StatefulBuilder(
-        builder: (context, setState) => Dialog(
+        builder: (dialogContext, setState) => Dialog(
           backgroundColor: Colors.transparent,
           insetPadding: const EdgeInsets.symmetric(
             horizontal: 20,
             vertical: 24,
           ),
-          child:
-              Container(
-                    constraints: const BoxConstraints(maxWidth: 450),
-                    decoration: BoxDecoration(
-                      color: const Color(0xFFF8FAFC),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.1),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
+          child: Container(
+            constraints: const BoxConstraints(maxWidth: 450),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(28),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 20,
+                  offset: const Offset(0, 10),
+                ),
+              ],
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(28),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Header
+                  Container(
+                    padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        bottom: BorderSide(color: Color(0xFFE2E8F0)),
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(10),
+                          decoration: BoxDecoration(
+                            color: const Color(
+                              0xFFE91E63,
+                            ).withValues(alpha: 0.1),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Icon(
+                            isEditing ? LucideIcons.edit3 : LucideIcons.layers,
+                            color: const Color(0xFFE91E63),
+                            size: 22,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                isEditing ? 'Edit Group' : 'New Group',
+                                style: GoogleFonts.inter(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.w700,
+                                  color: const Color(0xFF1E293B),
+                                ),
+                              ),
+                              Text(
+                                isEditing
+                                    ? 'Updating group settings'
+                                    : 'Create a new account category',
+                                style: GoogleFonts.inter(
+                                  fontSize: 13,
+                                  color: const Color(0xFF64748B),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          icon: const Icon(LucideIcons.x, size: 20),
+                          color: const Color(0xFF94A3B8),
                         ),
                       ],
                     ),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(28),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          // Header
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(24, 24, 16, 16),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              border: Border(
-                                bottom: BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
+                  ),
+
+                  // Content
+                  Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _buildModernLabel('Group Name'),
+                        TextField(
+                          controller: nameController,
+                          style: GoogleFonts.inter(
+                            fontSize: 15,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          decoration: _modernInputDecoration(
+                            'e.g. Fixed Assets',
+                            LucideIcons.type,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildModernLabel('Description'),
+                        TextField(
+                          controller: descController,
+                          maxLines: 3,
+                          style: GoogleFonts.inter(
+                            fontSize: 14,
+                            color: const Color(0xFF475569),
+                          ),
+                          decoration: _modernInputDecoration(
+                            'Describe the purpose of this group...',
+                            LucideIcons.alignLeft,
+                          ),
+                        ),
+                        const SizedBox(height: 20),
+                        _buildModernLabel('Group Type'),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                          ),
+                          decoration: BoxDecoration(
+                            border: Border.all(
+                              color: const Color(0xFFE2E8F0),
                             ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: const Color(
-                                      0xFFE91E63,
-                                    ).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    isEditing
-                                        ? LucideIcons.edit3
-                                        : LucideIcons.layers,
-                                    color: const Color(0xFFE91E63),
-                                    size: 22,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                            borderRadius: BorderRadius.circular(14),
+                            color: Colors.white,
+                          ),
+                          child: DropdownButtonHideUnderline(
+                            child: DropdownButton<String>(
+                              value: selectedType,
+                              isExpanded: true,
+                              icon: const Icon(
+                                LucideIcons.chevronDown,
+                                size: 18,
+                              ),
+                              style: GoogleFonts.inter(
+                                fontSize: 14,
+                                color: const Color(0xFF334155),
+                              ),
+                              items: [
+                                DropdownMenuItem(
+                                  value: 'permission',
+                                  child: Row(
                                     children: [
-                                      Text(
-                                        isEditing ? 'Edit Group' : 'New Group',
-                                        style: GoogleFonts.inter(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.w700,
-                                          color: const Color(0xFF1E293B),
-                                        ),
+                                      const Icon(
+                                        LucideIcons.shield,
+                                        size: 16,
+                                        color: Color(0xFF3B82F6),
                                       ),
+                                      const SizedBox(width: 8),
                                       Text(
-                                        isEditing
-                                            ? 'Updating group settings'
-                                            : 'Create a new account category',
+                                        'Permission — Controls entry access',
                                         style: GoogleFonts.inter(
                                           fontSize: 13,
-                                          color: const Color(0xFF64748B),
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                IconButton(
-                                  onPressed: () => Navigator.pop(ctx),
-                                  icon: const Icon(LucideIcons.x, size: 20),
-                                  color: const Color(0xFF94A3B8),
-                                ),
-                              ],
-                            ),
-                          ),
-
-                          // Content
-                          Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _buildModernLabel('Group Name'),
-                                TextField(
-                                  controller: nameController,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 15,
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                  decoration: _modernInputDecoration(
-                                    'e.g. Fixed Assets',
-                                    LucideIcons.type,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                _buildModernLabel('Description'),
-                                TextField(
-                                  controller: descController,
-                                  maxLines: 3,
-                                  style: GoogleFonts.inter(
-                                    fontSize: 14,
-                                    color: const Color(0xFF475569),
-                                  ),
-                                  decoration: _modernInputDecoration(
-                                    'Describe the purpose of this group...',
-                                    LucideIcons.alignLeft,
-                                  ),
-                                ),
-                                const SizedBox(height: 20),
-                                _buildModernLabel('Group Type'),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    border: Border.all(
-                                      color: const Color(0xFFE2E8F0),
-                                    ),
-                                    borderRadius: BorderRadius.circular(14),
-                                    color: Colors.white,
-                                  ),
-                                  child: DropdownButtonHideUnderline(
-                                    child: DropdownButton<String>(
-                                      value: selectedType,
-                                      isExpanded: true,
-                                      icon: const Icon(
-                                        LucideIcons.chevronDown,
-                                        size: 18,
+                                DropdownMenuItem(
+                                  value: 'report',
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.barChart2,
+                                        size: 16,
+                                        color: Color(0xFF10B981),
                                       ),
-                                      style: GoogleFonts.inter(
-                                        fontSize: 14,
-                                        color: const Color(0xFF334155),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Report — Quick filter in Ledger',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13,
+                                        ),
                                       ),
-                                      items: [
-                                        DropdownMenuItem(
-                                          value: 'permission',
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                LucideIcons.shield,
-                                                size: 16,
-                                                color: Color(0xFF3B82F6),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                'Permission — Controls entry access',
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
+                                    ],
+                                  ),
+                                ),
+                                DropdownMenuItem(
+                                  value: 'both',
+                                  child: Row(
+                                    children: [
+                                      const Icon(
+                                        LucideIcons.layers,
+                                        size: 16,
+                                        color: Color(0xFFF59E0B),
+                                      ),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'Both — Permission + Report',
+                                        style: GoogleFonts.inter(
+                                          fontSize: 13,
                                         ),
-                                        DropdownMenuItem(
-                                          value: 'report',
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                LucideIcons.barChart2,
-                                                size: 16,
-                                                color: Color(0xFF10B981),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                'Report — Quick filter in Ledger',
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        DropdownMenuItem(
-                                          value: 'both',
-                                          child: Row(
-                                            children: [
-                                              const Icon(
-                                                LucideIcons.layers,
-                                                size: 16,
-                                                color: Color(0xFFF59E0B),
-                                              ),
-                                              const SizedBox(width: 8),
-                                              Text(
-                                                'Both — Permission + Report',
-                                                style: GoogleFonts.inter(
-                                                  fontSize: 13,
-                                                ),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                      onChanged: (val) {
-                                        if (val != null) {
-                                          setState(() => selectedType = val);
-                                        }
-                                      },
-                                    ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ],
+                              onChanged: (val) {
+                                if (val != null) {
+                                  setState(() => selectedType = val);
+                                }
+                              },
                             ),
                           ),
+                        ),
+                      ],
+                    ),
+                  ),
 
-                          // Actions
-                          Container(
-                            padding: const EdgeInsets.all(24),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              border: Border(
-                                top: BorderSide(color: Color(0xFFE2E8F0)),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.end,
-                              children: [
-                                TextButton(
-                                  onPressed: () => Navigator.pop(ctx),
-                                  style: TextButton.styleFrom(
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Cancel',
-                                    style: GoogleFonts.inter(
-                                      color: const Color(0xFF64748B),
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                                const SizedBox(width: 12),
-                                ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFE91E63),
-                                    foregroundColor: Colors.white,
-                                    elevation: 0,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 32,
-                                      vertical: 14,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(14),
-                                    ),
-                                  ),
-                                  onPressed: () async {
-                                    final name = nameController.text.trim();
-                                    if (name.isEmpty) return;
-
-                                    final provider = context
-                                        .read<GroupProvider>();
-                                    Navigator.pop(ctx);
-
-                                    bool success;
-                                    if (isEditing) {
-                                      success = await provider.updateGroup(
-                                        group.id,
-                                        name,
-                                        descController.text.trim(),
-                                        type: selectedType,
-                                      );
-                                    } else {
-                                      success = await provider.addGroup(
-                                        name,
-                                        descController.text.trim(),
-                                        type: selectedType,
-                                      );
-                                    }
-
-                                    if (!success && mounted) {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          content: Text(
-                                            provider.error ?? 'Action failed',
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  },
-                                  child: Text(
-                                    isEditing ? 'Save Changes' : 'Create Group',
-                                    style: GoogleFonts.inter(
-                                      fontWeight: FontWeight.w700,
-                                      fontSize: 15,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
+                  // Actions
+                  Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      border: Border(
+                        top: BorderSide(color: Color(0xFFE2E8F0)),
                       ),
                     ),
-                  )
-                  .animate()
-                  .slideY(
-                    begin: 0.1,
-                    end: 0,
-                    curve: Curves.easeOutCubic,
-                    duration: 500.ms,
-                  )
-                  .fadeIn(),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(ctx),
+                          style: TextButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 24,
+                              vertical: 12,
+                            ),
+                          ),
+                          child: Text(
+                            'Cancel',
+                            style: GoogleFonts.inter(
+                              color: const Color(0xFF64748B),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFFE91E63),
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 32,
+                              vertical: 14,
+                            ),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                          ),
+                          onPressed: () async {
+                            final name = nameController.text.trim();
+                            if (name.isEmpty) return;
+
+                            final provider = context.read<GroupProvider>();
+                            Navigator.pop(ctx);
+
+                            bool success;
+                            if (isEditing) {
+                              success = await provider.updateGroup(
+                                group.id,
+                                name,
+                                descController.text.trim(),
+                                type: selectedType,
+                              );
+                            } else {
+                              success = await provider.addGroup(
+                                name,
+                                descController.text.trim(),
+                                type: selectedType,
+                              );
+                            }
+
+                            if (!success && context.mounted) {
+                              ScaffoldMessenger.of(
+                                context,
+                              ).showSnackBar(
+                                SnackBar(
+                                  content: Text(
+                                    provider.error ?? 'Action failed',
+                                  ),
+                                ),
+                              );
+                            }
+                          },
+                          child: Text(
+                            isEditing ? 'Save Changes' : 'Create Group',
+                            style: GoogleFonts.inter(
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          )
+              .animate()
+              .slideY(
+                begin: 0.1,
+                end: 0,
+                curve: Curves.easeOutCubic,
+                duration: 500.ms,
+              )
+              .fadeIn(),
         ),
       ),
     );
@@ -1669,9 +1663,9 @@ class _AccountGroupsScreenState extends State<AccountGroupsScreen> {
             onPressed: () async {
               Navigator.pop(ctx);
               final success = await context.read<GroupProvider>().deleteGroup(
-                group.id,
-              );
-              if (!success && mounted) {
+                    group.id,
+                  );
+              if (!success && context.mounted) {
                 ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(const SnackBar(content: Text('Delete failed')));

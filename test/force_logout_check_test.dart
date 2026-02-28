@@ -1,4 +1,5 @@
 import 'dart:convert';
+// ignore_for_file: avoid_print
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http/http.dart' as http;
 import 'package:bc_math/core/constants/api_constants.dart';

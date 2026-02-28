@@ -1,0 +1,36 @@
+﻿Analyzing bytecity_accounting...                                
+
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\home\dashboard\owned_accounts_screen.dart:435:41 - use_build_context_synchronously
+   info - 'translate' is deprecated and shouldn't be used. Use translateByVector3, translateByVector4, or translateByDouble instead - lib\screens\home\widgets\action_grid.dart:217:36 - deprecated_member_use
+   info - Don't use 'BuildContext's across async gaps, guarded by an unrelated 'mounted' check - lib\screens\home\widgets\owned_accounts_widget.dart:468:47 - use_build_context_synchronously
+warning - The value of the field '_isUpdating' isn't used - lib\screens\profile\profile_screen.dart:28:14 - unused_field
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\screens\reports\transaction_history_screen.dart:1346:13 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\screens\reports\transaction_history_screen.dart:1348:13 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\screens\reports\transaction_history_screen.dart:1356:13 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\screens\reports\transaction_history_screen.dart:1358:13 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\screens\reports\transaction_history_screen.dart:1379:13 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\screens\reports\transaction_history_screen.dart:1381:13 - deprecated_member_use
+   info - 'groupValue' is deprecated and shouldn't be used. Use a RadioGroup ancestor to manage group value instead. This feature was deprecated after v3.32.0-0.0.pre - lib\screens\reports\transaction_history_screen.dart:1389:13 - deprecated_member_use
+   info - 'onChanged' is deprecated and shouldn't be used. Use RadioGroup to handle value change instead. This feature was deprecated after v3.32.0-0.0.pre - lib\screens\reports\transaction_history_screen.dart:1391:13 - deprecated_member_use
+   info - Don't invoke 'print' in production code - test\debug_deployment.dart:8:3 - avoid_print
+   info - Don't invoke 'print' in production code - test\debug_deployment.dart:25:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\debug_deployment.dart:28:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\debug_deployment.dart:36:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\debug_deployment.dart:39:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\debug_deployment.dart:42:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:9:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:12:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:20:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:24:11 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:29:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:30:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:34:7 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:39:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:53:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:62:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:63:5 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:70:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:75:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:77:9 - avoid_print
+   info - Don't invoke 'print' in production code - test\force_logout_check_test.dart:80:7 - avoid_print
+

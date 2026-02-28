@@ -126,7 +126,7 @@ class _UsersScreenState extends State<UsersScreen> {
                   scale: 0.8,
                   child: Switch(
                     value: _showDeleted,
-                    activeColor: const Color(0xFF6366F1),
+                    activeThumbColor: const Color(0xFF6366F1),
                     onChanged: (val) {
                       setState(() {
                         _showDeleted = val;
@@ -1962,7 +1962,8 @@ class _UsersScreenState extends State<UsersScreen> {
         ),
         const SizedBox(height: 8),
         DropdownButtonFormField<String>(
-          value: value,
+          initialValue: value,
+          isExpanded: true,
           icon: const Icon(LucideIcons.chevronDown,
               size: 16, color: Color(0xFF94A3B8)),
           style:

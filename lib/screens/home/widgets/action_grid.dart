@@ -214,7 +214,7 @@ class _ActionCardState extends State<_ActionCard> {
         duration: const Duration(milliseconds: 200),
         curve: Curves.easeInOut,
         transform: _isHovered
-            ? (Matrix4.identity()..translate(0, -4))
+            ? Matrix4.translationValues(0, -4, 0)
             : Matrix4.identity(),
         child: InkWell(
           onTap: widget.onTap,
@@ -227,15 +227,15 @@ class _ActionCardState extends State<_ActionCard> {
               boxShadow: [
                 BoxShadow(
                   color: _isHovered
-                      ? widget.color.withOpacity(0.2)
-                      : Colors.black.withOpacity(0.05),
+                      ? widget.color.withValues(alpha: 0.2)
+                      : Colors.black.withValues(alpha: 0.05),
                   blurRadius: _isHovered ? 15 : 8,
                   offset: _isHovered ? const Offset(0, 8) : const Offset(0, 4),
                 ),
               ],
               border: Border.all(
                 color: _isHovered
-                    ? widget.color.withOpacity(0.3)
+                    ? widget.color.withValues(alpha: 0.3)
                     : Colors.transparent,
                 width: 1.2,
               ),
@@ -245,7 +245,7 @@ class _ActionCardState extends State<_ActionCard> {
                 Container(
                   padding: const EdgeInsets.all(10),
                   decoration: BoxDecoration(
-                    color: widget.color.withOpacity(0.1),
+                    color: widget.color.withValues(alpha: 0.1),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(widget.icon, color: widget.color, size: 20),

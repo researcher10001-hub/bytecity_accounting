@@ -83,7 +83,9 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           localIsOwner = true;
           break;
         }
-      } catch (e) {}
+      } catch (e) {
+        debugPrint('Error checking owners: $e');
+      }
     }
 
     bool localCanSendMessage = localIsOwner || localIsCreator;
@@ -425,7 +427,9 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
           localIsOwner = true;
           break;
         }
-      } catch (e) {}
+      } catch (e) {
+        debugPrint('Error checking owners: $e');
+      }
     }
 
     bool localCanSendMessage = localIsOwner || localIsCreator;
@@ -711,7 +715,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                                 );
 
                                                 if (confirm == true &&
-                                                    context.mounted) {
+                                                    mounted) {
                                                   final success = await context
                                                       .read<
                                                           TransactionProvider>()
@@ -719,8 +723,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                                           user,
                                                           _currentTransaction
                                                               .voucherNo);
-                                                  if (success &&
-                                                      context.mounted) {
+                                                  if (success && mounted) {
                                                     context
                                                         .read<
                                                             DashboardProvider>()
@@ -732,7 +735,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                                             const SnackBar(
                                                                 content: Text(
                                                                     'Transaction deleted')));
-                                                  } else if (context.mounted) {
+                                                  } else if (mounted) {
                                                     ScaffoldMessenger.of(
                                                             context)
                                                         .showSnackBar(
@@ -861,7 +864,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
 
                                                 if (confirm != null &&
                                                     confirm.isNotEmpty &&
-                                                    context.mounted) {
+                                                    mounted) {
                                                   final success = await context
                                                       .read<
                                                           TransactionProvider>()
@@ -880,8 +883,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                                         action:
                                                             'request_delete',
                                                       );
-                                                  if (success &&
-                                                      context.mounted) {
+                                                  if (success && mounted) {
                                                     ScaffoldMessenger.of(
                                                             context)
                                                         .showSnackBar(
@@ -1221,7 +1223,8 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                           Container(
                             padding: const EdgeInsets.all(8),
                             decoration: BoxDecoration(
-                              color: const Color(0xFF2563EB).withOpacity(0.1),
+                              color: const Color(0xFF2563EB)
+                                  .withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: const Icon(
@@ -1271,7 +1274,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                           mode: LaunchMode.externalApplication,
                                         );
                                       } else {
-                                        if (context.mounted) {
+                                        if (mounted) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             const SnackBar(
@@ -1296,7 +1299,7 @@ class _TransactionDetailScreenState extends State<TransactionDetailScreen> {
                                       await Clipboard.setData(
                                         ClipboardData(text: docUrl),
                                       );
-                                      if (context.mounted) {
+                                      if (mounted) {
                                         ScaffoldMessenger.of(context)
                                             .showSnackBar(
                                           const SnackBar(

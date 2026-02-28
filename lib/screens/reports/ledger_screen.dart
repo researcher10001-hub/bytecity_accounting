@@ -981,42 +981,6 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             overflow: TextOverflow.ellipsis,
                           ),
                         ),
-                        // Added Running Balance
-                        if (entry.containsKey('balance'))
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 2,
-                            ),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFFF1F5F9),
-                              borderRadius: BorderRadius.circular(4),
-                              border: Border.all(
-                                color: const Color(0xFFE2E8F0),
-                              ),
-                            ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Text(
-                                  'Bal: ',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 10,
-                                    color: const Color(0xFF64748B),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                                Text(
-                                  '৳${CurrencyFormatter.format(entry['balance'])}',
-                                  style: GoogleFonts.inter(
-                                    fontSize: 11,
-                                    fontWeight: FontWeight.w600,
-                                    color: const Color(0xFF334155),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          ),
                       ],
                     ),
                   ],
@@ -1459,6 +1423,11 @@ class _LedgerScreenState extends State<LedgerScreen> {
                             children: [
                               TextButton.icon(
                                 onPressed: () async {
+                                  final provider =
+                                      context.read<AccountProvider>();
+                                  final authProvider =
+                                      context.read<AuthProvider>();
+
                                   // Navigate to Account Groups and auto-refresh on return
                                   await Navigator.push(
                                     context,
@@ -1470,18 +1439,19 @@ class _LedgerScreenState extends State<LedgerScreen> {
                                     ),
                                   );
 
+                                  if (!context.mounted) return;
+
                                   // Show loading state
                                   setModalState(() => isRefreshing = true);
 
                                   // Auto-refresh accounts when returning
-                                  final provider =
-                                      context.read<AccountProvider>();
-                                  final user =
-                                      context.read<AuthProvider>().user;
+                                  final user = authProvider.user;
                                   await provider.fetchAccounts(
                                     user,
                                     forceRefresh: true,
                                   );
+
+                                  if (!context.mounted) return;
 
                                   // Hide loading and rebuild modal
                                   setModalState(() => isRefreshing = false);

@@ -83,31 +83,31 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
       }).toList();
     }
 
-    final String _searchQuery = transactionProvider.searchQuery;
+    final String searchQuery = transactionProvider.searchQuery;
 
     // 2. Filter by Search Query
-    final List<TransactionModel> filteredTransactions = _searchQuery.isEmpty
+    final List<TransactionModel> filteredTransactions = searchQuery.isEmpty
         ? []
         : baseList
             .where(
               (tx) =>
                   tx.voucherNo.toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        searchQuery.toLowerCase(),
                       ) ||
                   tx.mainNarration.toLowerCase().contains(
-                        _searchQuery.toLowerCase(),
+                        searchQuery.toLowerCase(),
                       ),
             )
             .toList();
 
     Widget highlightText(String text, TextStyle baseStyle) {
-      if (_searchQuery.isEmpty) {
+      if (searchQuery.isEmpty) {
         return Text(text,
             style: baseStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
       }
 
       final String lowerText = text.toLowerCase();
-      final String lowerQuery = _searchQuery.toLowerCase();
+      final String lowerQuery = searchQuery.toLowerCase();
       final int startIndex = lowerText.indexOf(lowerQuery);
 
       if (startIndex == -1) {
@@ -115,25 +115,24 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
             style: baseStyle, maxLines: 1, overflow: TextOverflow.ellipsis);
       }
 
-      return RichText(
-        maxLines: 1,
-        overflow: TextOverflow.ellipsis,
-        text: TextSpan(
+      return Text.rich(
+        TextSpan(
           style: baseStyle,
           children: [
             if (startIndex > 0) TextSpan(text: text.substring(0, startIndex)),
             TextSpan(
-              text:
-                  text.substring(startIndex, startIndex + _searchQuery.length),
+              text: text.substring(startIndex, startIndex + searchQuery.length),
               style: baseStyle.copyWith(
                 backgroundColor: Colors.yellow.withValues(alpha: 0.5),
                 color: Colors.black,
               ),
             ),
-            if (startIndex + _searchQuery.length < text.length)
-              TextSpan(text: text.substring(startIndex + _searchQuery.length)),
+            if (startIndex + searchQuery.length < text.length)
+              TextSpan(text: text.substring(startIndex + searchQuery.length)),
           ],
         ),
+        maxLines: 1,
+        overflow: TextOverflow.ellipsis,
       );
     }
 
@@ -195,7 +194,7 @@ class _SearchVoucherScreenState extends State<SearchVoucherScreen> {
 
           // Results
           Expanded(
-            child: _searchQuery.isEmpty
+            child: searchQuery.isEmpty
                 ? Center(
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,

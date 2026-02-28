@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
 import '../constants/api_constants.dart';
 
@@ -26,8 +27,8 @@ class ApiService {
         queryParameters: {...baseUri.queryParameters, 'action': action},
       );
 
-      print('API Request: $finalUrl');
-      print('Request Body: ${jsonEncode(data)}');
+      debugPrint('API Request: $finalUrl');
+      debugPrint('Request Body: ${jsonEncode(data)}');
 
       // Simple Request with Manual Redirect Handling
       // 1. Initial POST
@@ -41,7 +42,7 @@ class ApiService {
           )
           .timeout(const Duration(seconds: 60));
 
-      print('API Response Code: ${response.statusCode}');
+      debugPrint('API Response Code: ${response.statusCode}');
 
       // 2. Handle 302 Redirect (Apps Script often returns 302 -> GET)
       if (response.statusCode == 302 ||
@@ -56,24 +57,24 @@ class ApiService {
         });
 
         if (location != null) {
-          print('Redirecting to: $location');
+          debugPrint('Redirecting to: $location');
           // Apps Script 302 Usually points to the result JSON which should be GET
           final newResponse = await http
               .get(Uri.parse(location!))
               .timeout(const Duration(seconds: 60));
 
-          print('Redirect Response Code: ${newResponse.statusCode}');
-          print('Redirect Response Body: ${newResponse.body}');
+          debugPrint('Redirect Response Code: ${newResponse.statusCode}');
+          debugPrint('Redirect Response Body: ${newResponse.body}');
           return _processResponse(newResponse);
         }
       }
 
-      print('API Response Body: ${response.body}');
+      debugPrint('API Response Body: ${response.body}');
       return _processResponse(response);
     } on ApiException {
       rethrow;
     } catch (e) {
-      print('API Error for action $action: $e');
+      debugPrint('API Error for action $action: $e');
       throw ApiException('Network Error: $e');
     }
   }
@@ -84,7 +85,7 @@ class ApiService {
     // Check for HTML error pages (Apps Script 404/403 often return HTML)
     if (bodyString.toLowerCase().startsWith('<!doctype html>') ||
         bodyString.toLowerCase().startsWith('<html')) {
-      print(
+      debugPrint(
         'API returned HTML (Code: ${response.statusCode}): ${bodyString.substring(0, bodyString.length > 500 ? 500 : bodyString.length)}',
       );
 

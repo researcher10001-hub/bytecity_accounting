@@ -762,7 +762,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     if (provider.isEditing) {
       final success = await provider.editTransaction(user);
       if (success) {
-        if (!context.mounted) return;
+        if (!mounted) return;
         context.read<AccountProvider>().fetchAccounts(user);
         context.read<TransactionProvider>().fetchHistory(
               user,
@@ -778,7 +778,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
     } else {
       try {
         savedTx = await provider.saveTransaction(user);
-        if (savedTx != null && context.mounted) {
+        if (savedTx != null && mounted) {
           context.read<AccountProvider>().fetchAccounts(user);
           context.read<TransactionProvider>().fetchHistory(
                 user,
@@ -786,7 +786,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
               );
         }
       } catch (e) {
-        if (context.mounted) {
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('Failed to save: ${e.toString()}'),
@@ -797,7 +797,7 @@ class _TransactionEntryScreenState extends State<TransactionEntryScreen> {
       }
     }
 
-    if (savedTx != null && context.mounted) {
+    if (savedTx != null && mounted) {
       _showSuccessDialog(context, savedTx, provider);
     }
   }

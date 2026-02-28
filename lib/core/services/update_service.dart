@@ -75,8 +75,12 @@ class UpdateService extends ChangeNotifier {
       int maxLength = currentParts.length > latestParts.length
           ? currentParts.length
           : latestParts.length;
-      while (currentParts.length < maxLength) currentParts.add(0);
-      while (latestParts.length < maxLength) latestParts.add(0);
+      while (currentParts.length < maxLength) {
+        currentParts.add(0);
+      }
+      while (latestParts.length < maxLength) {
+        latestParts.add(0);
+      }
 
       for (int i = 0; i < maxLength; i++) {
         if (currentParts[i] < latestParts[i]) {

@@ -95,10 +95,12 @@ class TransactionProvider with ChangeNotifier {
     if (tabIndex != null) _historyTabIndex = tabIndex;
     if (dateRange != null) _historyDateRange = dateRange;
     if (viewFilter != null) _historyViewFilter = viewFilter;
-    if (sortDateAscending != null)
+    if (sortDateAscending != null) {
       _historySortDateAscending = sortDateAscending;
-    if (sortCreationAscending != null)
+    }
+    if (sortCreationAscending != null) {
       _historySortCreationAscending = sortCreationAscending;
+    }
   }
 
   void resetHistoryFilters() {
@@ -152,10 +154,10 @@ class TransactionProvider with ChangeNotifier {
         final List<dynamic> data = jsonDecode(jsonString);
         _processResponseData(data); // Re-use parsing logic (refactoring needed)
         notifyListeners();
-        print("DEBUG: Loaded ${data.length} transactions from cache.");
+        debugPrint("DEBUG: Loaded ${data.length} transactions from cache.");
       }
     } catch (e) {
-      print("Cache Load Error: $e");
+      debugPrint("Cache Load Error: $e");
     }
   }
 
@@ -164,7 +166,7 @@ class TransactionProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, jsonEncode(data));
     } catch (e) {
-      print("Cache Save Error: $e");
+      debugPrint("Cache Save Error: $e");
     }
   }
 
@@ -592,7 +594,7 @@ class TransactionProvider with ChangeNotifier {
           exchangeRate: _exchangeRate,
         );
 
-        print('Saved Transaction: ${updatedTransaction.toJson()}');
+        debugPrint('Saved Transaction: ${updatedTransaction.toJson()}');
         _transactions.insert(0, updatedTransaction);
 
         return updatedTransaction;
@@ -609,13 +611,13 @@ class TransactionProvider with ChangeNotifier {
         currency: _currency,
         exchangeRate: _exchangeRate,
       );
-      print('Saved Transaction (Fallback): ${transaction.toJson()}');
+      debugPrint('Saved Transaction (Fallback): ${transaction.toJson()}');
       _transactions.insert(0, transaction);
 
       _isLoading = false;
       return transaction;
     } catch (e) {
-      print('Error in saveTransaction: $e');
+      debugPrint('Error in saveTransaction: $e');
       _isLoading = false;
       notifyListeners();
       rethrow;
@@ -1104,7 +1106,7 @@ class TransactionProvider with ChangeNotifier {
       _isLoading = false;
       notifyListeners();
     } catch (e) {
-      print("Fetch Error: $e");
+      debugPrint("Fetch Error: $e");
       _isLoading = false;
       notifyListeners();
     }
@@ -1118,7 +1120,7 @@ class TransactionProvider with ChangeNotifier {
     // Grouping Logic: Use Entry ID (or Voucher No as fallback)
     Map<String, TransactionModel> entryMap = {};
 
-    print("DEBUG: Processing ${data.length} rows.");
+    debugPrint("DEBUG: Processing ${data.length} rows.");
 
     for (var item in data) {
       try {
@@ -1193,7 +1195,9 @@ class TransactionProvider with ChangeNotifier {
             realAccount = accountProvider.getAccountByName(
               item['account']?.toString() ?? '',
             );
-          } catch (e) {}
+          } catch (e) {
+            debugPrint("Account lookup error: $e");
+          }
         }
 
         entryMap[key]!.details.add(
@@ -1213,7 +1217,7 @@ class TransactionProvider with ChangeNotifier {
               ),
             );
       } catch (e) {
-        print("Skipping invalid row: $e");
+        debugPrint("Skipping invalid row: $e");
       }
     }
 

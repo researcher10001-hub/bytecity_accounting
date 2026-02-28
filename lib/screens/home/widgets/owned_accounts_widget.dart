@@ -112,7 +112,8 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
     if (user == null) return const SizedBox.shrink();
 
     return Consumer3<AccountProvider, GroupProvider, TransactionProvider>(
-      builder: (context, accountProvider, groupProvider, transactionProvider, _) {
+      builder:
+          (context, accountProvider, groupProvider, transactionProvider, _) {
         final ownedAccounts = accountProvider.accounts
             .where(
               (acc) => acc.owners.any(
@@ -338,9 +339,9 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                           onTap: () {
                             if (MediaQuery.of(context).size.width >= 800) {
                               context.read<DashboardProvider>().setView(
-                                DashboardView.ledger,
-                                args: acc.name,
-                              );
+                                    DashboardView.ledger,
+                                    args: acc.name,
+                                  );
                             } else {
                               Navigator.push(
                                 context,
@@ -401,8 +402,8 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                                         strokeWidth: 2,
                                         valueColor:
                                             AlwaysStoppedAnimation<Color>(
-                                              Colors.blue.shade700,
-                                            ),
+                                          Colors.blue.shade700,
+                                        ),
                                       ),
                                     )
                                   : InkWell(
@@ -414,24 +415,27 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                                         final isPinned = user.pinnedAccountNames
                                             .contains(acc.name);
 
+                                        final userProvider =
+                                            context.read<UserProvider>();
+                                        final authProvider =
+                                            context.read<AuthProvider>();
+                                        final accountProvider =
+                                            context.read<AccountProvider>();
+
                                         setState(() {
                                           _loadingPins.add(acc.name);
                                         });
 
                                         try {
                                           final success = isPinned
-                                              ? await context
-                                                    .read<UserProvider>()
-                                                    .unpinAccount(
-                                                      user.email,
-                                                      acc.name,
-                                                    )
-                                              : await context
-                                                    .read<UserProvider>()
-                                                    .pinAccount(
-                                                      user.email,
-                                                      acc.name,
-                                                    );
+                                              ? await userProvider.unpinAccount(
+                                                  user.email,
+                                                  acc.name,
+                                                )
+                                              : await userProvider.pinAccount(
+                                                  user.email,
+                                                  acc.name,
+                                                );
 
                                           if (context.mounted && success) {
                                             final newPins = List<String>.from(
@@ -450,18 +454,15 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                                             );
 
                                             // Update AuthProvider so all UI reflects the change
-                                            context
-                                                .read<AuthProvider>()
+                                            authProvider
                                                 .updateUserLocally(updatedUser);
 
                                             // Force account provider to re-sort
-                                            context
-                                                .read<AccountProvider>()
-                                                .fetchAccounts(
-                                                  updatedUser,
-                                                  forceRefresh: true,
-                                                  skipLoading: true,
-                                                );
+                                            accountProvider.fetchAccounts(
+                                              updatedUser,
+                                              forceRefresh: true,
+                                              skipLoading: true,
+                                            );
 
                                             ScaffoldMessenger.of(
                                               context,
@@ -488,32 +489,29 @@ class _OwnedAccountsWidgetState extends State<OwnedAccountsWidget>
                                           }
                                         }
                                       },
-                                      child:
-                                          Icon(
-                                                user.pinnedAccountNames
-                                                        .contains(acc.name)
-                                                    ? Icons.push_pin
-                                                    : Icons.push_pin_outlined,
-                                                size: 16,
-                                                color:
-                                                    user.pinnedAccountNames
-                                                        .contains(acc.name)
-                                                    ? const Color(0xFF1E88E5)
-                                                    : Colors.grey[400],
-                                              )
-                                              .animate(
-                                                target:
-                                                    user.pinnedAccountNames
-                                                        .contains(acc.name)
-                                                    ? 1
-                                                    : 0,
-                                              )
-                                              .scale(
-                                                begin: const Offset(0.8, 0.8),
-                                                end: const Offset(1.1, 1.1),
-                                                curve: Curves.easeOutBack,
-                                              )
-                                              .rotate(begin: -0.1, end: 0),
+                                      child: Icon(
+                                        user.pinnedAccountNames
+                                                .contains(acc.name)
+                                            ? Icons.push_pin
+                                            : Icons.push_pin_outlined,
+                                        size: 16,
+                                        color: user.pinnedAccountNames
+                                                .contains(acc.name)
+                                            ? const Color(0xFF1E88E5)
+                                            : Colors.grey[400],
+                                      )
+                                          .animate(
+                                            target: user.pinnedAccountNames
+                                                    .contains(acc.name)
+                                                ? 1
+                                                : 0,
+                                          )
+                                          .scale(
+                                            begin: const Offset(0.8, 0.8),
+                                            end: const Offset(1.1, 1.1),
+                                            curve: Curves.easeOutBack,
+                                          )
+                                          .rotate(begin: -0.1, end: 0),
                                     ),
                             ],
                           ),

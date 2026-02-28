@@ -56,7 +56,7 @@ class BranchProvider with ChangeNotifier {
       }
     } catch (e) {
       _error = e.toString();
-      print("Error fetching branches: $e");
+      debugPrint("Error fetching branches: $e");
     } finally {
       _isLoading = false;
       notifyListeners();
@@ -73,7 +73,7 @@ class BranchProvider with ChangeNotifier {
         notifyListeners();
       }
     } catch (e) {
-      print("Error loading branches from cache: $e");
+      debugPrint("Error loading branches from cache: $e");
     }
   }
 
@@ -82,7 +82,7 @@ class BranchProvider with ChangeNotifier {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_cacheKey, jsonEncode(data));
     } catch (e) {
-      print("Error saving branches to cache: $e");
+      debugPrint("Error saving branches to cache: $e");
     }
   }
 }

@@ -207,7 +207,7 @@ class UserProvider with ChangeNotifier {
       notifyListeners();
       return true;
     } catch (e) {
-      print('Force Logout Failed: $e');
+      debugPrint('Force Logout Failed: $e');
       _error = e.toString();
       notifyListeners();
       return false;
